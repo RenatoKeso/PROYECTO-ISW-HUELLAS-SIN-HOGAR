@@ -2,5 +2,7 @@
 
 Estructura local del proyecto de Ingenieria de Software para la gestion del refugio.
 
-El backend se encuentra en `backend/`. Esta copia no esta conectada ni se sube automaticamente a GitHub.
+- `backend/`: API en JavaScript con Express.
+- `frontend/`: aplicacion web en React.
+- `docs/`: documentacion de la arquitectura.
 

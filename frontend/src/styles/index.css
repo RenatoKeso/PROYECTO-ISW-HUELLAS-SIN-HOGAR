@@ -1,0 +1,16 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  color: #1f2933;
+  background: #f5f7f8;
+}
+
+.app-shell {
+  width: min(100% - 32px, 960px);
+  margin: 64px auto;
+}
+

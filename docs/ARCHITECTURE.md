@@ -21,3 +21,14 @@ La organizacion sigue el estilo por capas utilizado en el proyecto de referencia
 - Usuarios, roles y permisos.
 
 Por ahora las carpetas contienen solo documentacion. Los archivos de cada requisito se agregaran cuando el equipo distribuya el trabajo.
+
+## Frontend
+
+El directorio `frontend` sigue la organizacion del proyecto de referencia:
+
+- `api`: comunicacion con el backend.
+- `components`: piezas visuales reutilizables.
+- `layouts`: estructuras compartidas entre paginas.
+- `pages`: pantallas organizadas por requisito.
+- `routes`: navegacion de la aplicacion.
+- `styles`: estilos globales.
