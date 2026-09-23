@@ -1,12 +1,20 @@
 {
   "name": "huellas-sin-hogar-backend",
   "version": "0.1.0",
+  "description": "Esqueleto del backend para la gestion del refugio Huellas Sin Hogar.",
   "private": true,
-  "type": "module",
+  "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
+    "dev": "nodemon src/server.js",
     "test": "node --test"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.7",
+    "express": "^4.22.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }
-

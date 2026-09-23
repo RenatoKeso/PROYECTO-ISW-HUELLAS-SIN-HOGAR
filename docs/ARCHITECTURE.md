@@ -1,19 +1,23 @@
 # Estructura inicial del backend
 
-## Capas principales
+La organizacion sigue el estilo por capas utilizado en el proyecto de referencia `Backend-Meto`.
 
-- `src/config`: configuracion general y conexiones externas.
-- `src/modules`: funcionalidades separadas por dominio del refugio.
-- `src/shared`: codigo reutilizable por varios modulos.
-- `tests`: pruebas automaticas.
+## Flujo de una solicitud
 
-## Modulos iniciales
+1. `routes` recibe la URL solicitada.
+2. `middlewares` ejecuta controles previos.
+3. `controllers` interpreta la solicitud.
+4. `services` aplica las reglas del refugio.
+5. `repositories` accede a la base de datos.
+6. `entities` representa los datos guardados.
+7. `handlers` estandariza la respuesta o el error.
 
-- `animals`: centraliza el historial de cada animal.
-- `shifts`: organiza los turnos de voluntarios.
-- `adoptions`: administra postulaciones, decisiones y devoluciones.
-- `followups`: registra los controles posteriores a una adopcion.
-- `users`: representa al personal y sus permisos.
+## Dominios previstos
 
-La estructura es deliberadamente pequena. Cada modulo puede incorporar despues sus rutas, controladores, servicios, repositorios y validaciones cuando se implemente su requisito.
+- Animales e historial.
+- Turnos y voluntarios.
+- Postulaciones y adopciones.
+- Seguimientos y devoluciones.
+- Usuarios, roles y permisos.
 
+Por ahora las carpetas contienen solo documentacion. Los archivos de cada requisito se agregaran cuando el equipo distribuya el trabajo.

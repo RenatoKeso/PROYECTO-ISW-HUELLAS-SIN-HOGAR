@@ -1,15 +1,13 @@
-import { createServer } from "node:http";
+const express = require("express");
+const cors = require("cors");
 
-export function createApp() {
-  return createServer((request, response) => {
-    if (request.method === "GET" && request.url === "/health") {
-      response.writeHead(200, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ status: "ok" }));
-      return;
-    }
+const app = express();
 
-    response.writeHead(404, { "Content-Type": "application/json" });
-    response.end(JSON.stringify({ message: "Ruta no encontrada" }));
-  });
-}
+app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:3001" }));
+app.use(express.json());
 
+app.get("/health", (request, response) => {
+  response.json({ status: "ok", message: "Backend funcionando" });
+});
+
+module.exports = app;

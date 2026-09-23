@@ -1,4 +1,3 @@
 # Configuracion
 
-Conexion a la base de datos, variables de entorno y configuracion general del backend.
-
+Contendra la lectura de variables de entorno y la conexion con la base de datos.
