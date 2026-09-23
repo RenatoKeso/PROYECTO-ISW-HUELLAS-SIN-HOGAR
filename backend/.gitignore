@@ -3,5 +3,15 @@ node_modules/
 coverage/
 uploads/
 *.log
+.DS_Storenode_modules/
+.env
+.env.*
+!.env.example
+dist/
+build/
+.vite/
+coverage/
+uploads/
+*.log
 .DS_Store
 
