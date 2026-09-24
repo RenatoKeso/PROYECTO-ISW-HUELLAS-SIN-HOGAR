@@ -1,0 +1,5 @@
+{
+  "plugin": [
+    "@upstash/context7-opencode"
+  ]
+}
