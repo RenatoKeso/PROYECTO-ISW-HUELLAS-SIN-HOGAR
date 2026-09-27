@@ -1,111 +1,241 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* Paleta de la propuesta */
+  --crema: #ede3cf;
+  --crema-claro: #f7f1e3;
+  --verde: #1f3d2b;
+  --verde-claro: #2d5440;
+  --terracota: #c0563a;
+  --terracota-oscuro: #a4462e;
+  --texto: #2a2520;
+  --texto-suave: #6f6659;
+  --borde: #d9cdb4;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --radio: 6px;
+  --ancho-maximo: 1080px;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --serif: "Fraunces", Georgia, serif;
+  --sans: "DM Sans", system-ui, sans-serif;
+  --mono: "DM Mono", ui-monospace, monospace;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  font-family: var(--sans);
+  color: var(--texto);
+  background-color: var(--crema);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  line-height: 1.6;
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
+/* ---------- ESTRUCTURA ---------- */
+
+.app {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+.contenido {
+  flex: 1;
+  width: 100%;
+  max-width: var(--ancho-maximo);
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+/* ---------- BARRA SUPERIOR ---------- */
+
+.barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 2rem;
+  background: var(--crema-claro);
+  border-bottom: 1px solid var(--borde);
 }
 
-code,
-.counter {
+.marca {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--verde);
+  text-decoration: none;
+}
+
+.barra nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.barra nav a {
   font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+  text-decoration: none;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+.barra nav a:hover {
+  color: var(--terracota);
+}
+
+/* ---------- PORTADA ---------- */
+
+.portada {
+  padding: 3rem 0 1rem;
+}
+
+/* Etiqueta pequena en mayusculas, como el mockup */
+.etiqueta {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  margin-bottom: 0.75rem;
+}
+
+.portada h1 {
+  font-family: var(--serif);
+  font-size: 3rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--verde);
+  margin: 0 0 1rem;
+  max-width: 600px;
+}
+
+/* Para la palabra en cursiva del titulo */
+.destacado {
+  font-style: italic;
+  font-weight: 400;
+}
+
+.bajada {
+  font-size: 1.05rem;
+  color: var(--texto-suave);
+  max-width: 520px;
+  margin: 0 0 1.75rem;
+}
+
+/* ---------- HERO CON FOTO ---------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+@media (max-width: 800px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hero-foto {
+  width: 100%;
+  height: 340px;
+  object-fit: cover;
+  border-radius: var(--radio);
+  border: 1px solid var(--borde);
+}
+
+/* ---------- BLOQUES ---------- */
+
+.bloque {
+  margin-top: 3.5rem;
+}
+
+.bloque h2 {
+  font-family: var(--serif);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--verde);
+  margin: 0 0 0.75rem;
+}
+
+/* ---------- TARJETAS ---------- */
+
+.tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.tarjeta {
+  background: var(--crema-claro);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1.5rem;
+}
+
+.tarjeta h3 {
+  font-family: var(--serif);
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--verde);
+}
+
+.tarjeta p {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.95rem;
+}
+
+/* ---------- BOTONES ---------- */
+
+.boton {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: var(--terracota);
+  color: var(--crema-claro);
+  border: none;
+  border-radius: var(--radio);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.boton:hover {
+  background: var(--terracota-oscuro);
+}
+
+.boton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Boton secundario, con borde en vez de relleno */
+.boton-secundario {
+  background: transparent;
+  color: var(--verde);
+  border: 1px solid var(--borde);
+}
+
+.boton-secundario:hover {
+  background: var(--crema-claro);
+}
+
+/* ---------- PIE ---------- */
+
+.pie {
+  padding: 2rem;
+  text-align: center;
+  color: var(--texto-suave);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  border-top: 1px solid var(--borde);
+}
+
+.pie p {
+  margin: 0;
 }
