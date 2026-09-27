@@ -12,3 +12,61 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+
+// modulo animales
+
+// requisito ingreso de animales
+
+enum Especie {
+  PERRO
+  GATO
+  OTRO
+}
+
+enum EstadoEstadiaAnimal {
+  ACTIVO // esta dentro del refugio
+  ADOPTADO // ya fue adoptado
+  ESPERA_ADOPCION // esta en espera de adopcion
+  EGRESADO // ya no esta en el refugio por x motivo
+  FALLECIDO // ya no esta en el refugio por fallecimiento
+  TRANSFERIDO // transferido a otro refugio u hogar temporal
+}
+
+enum EstadoIngreso {
+  NUEVO // primer ingreso
+  EXISTENTE //  ya ha ingresado antes
+}
+
+model FichaAnimal {
+  id              Int      @id @default(autoincrement())
+  codigoAnimal    String   @unique // identificador en el sistema para el animal
+  fechaIngreso    DateTime // fecha de ingreso al sistema
+  nombre          String? //opcional
+  genero          String? //opcional  
+  especie         Especie // perro, gato, etc
+  raza            String? //inferida
+  edad            Int? //opcional 
+  estadoSalud     String? //opcional
+  observaciones   String? //opcional
+  createdAt       DateTime @default(now())
+
+  ingresoAnimals IngresoAnimal[]
+}
+
+model IngresoAnimal{
+  id             Int      @id @default(autoincrement())
+  fichaAnimalId Int      @unique
+  ficha         FichaAnimal? @relation(fields: [fichaAnimalId], references: [id])
+ // idReceptor Voluntario @relation(fields: [idReceptorId], references: [id])
+  fechaIngreso   DateTime
+  fechaEgreso    DateTime? //opcional
+  procedencia     String? //opcional
+  estadoIngreso EstadoIngreso @default(NUEVO)  //opcional
+  estadoEstadia EstadoEstadiaAnimal @default(ACTIVO) //opcional
+
+}
+
+
+ // fin modulo animales
