@@ -1,22 +1,25 @@
 :root {
-  --color-fondo: #faf8f5;
-  --color-texto: #2d2a26;
-  --color-suave: #6b6560;
-  --color-principal: #c2703d;
-  --color-principal-oscuro: #a35a2d;
-  --color-borde: #e3ddd5;
-  --color-tarjeta: #ffffff;
+  /* Paleta de la propuesta */
+  --crema: #ede3cf;
+  --crema-claro: #f7f1e3;
+  --verde: #1f3d2b;
+  --verde-claro: #2d5440;
+  --terracota: #c0563a;
+  --terracota-oscuro: #a4462e;
+  --texto: #2a2520;
+  --texto-suave: #6f6659;
+  --borde: #d9cdb4;
 
-  --radio: 8px;
-  --ancho-maximo: 1000px;
+  --radio: 6px;
+  --ancho-maximo: 1080px;
 
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    sans-serif;
-  color: var(--color-texto);
-  background-color: var(--color-fondo);
+  --serif: "Fraunces", Georgia, serif;
+  --sans: "DM Sans", system-ui, sans-serif;
+  --mono: "DM Mono", ui-monospace, monospace;
+
+  font-family: var(--sans);
+  color: var(--texto);
+  background-color: var(--crema);
 }
 
 * {
@@ -52,60 +55,109 @@ body {
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
-  padding: 1rem 1.5rem;
-  background: var(--color-tarjeta);
-  border-bottom: 1px solid var(--color-borde);
+  padding: 1rem 2rem;
+  background: var(--crema-claro);
+  border-bottom: 1px solid var(--borde);
 }
 
 .marca {
-  font-size: 1.15rem;
+  font-family: var(--serif);
+  font-size: 1.2rem;
   font-weight: 600;
-  color: var(--color-principal);
+  color: var(--verde);
   text-decoration: none;
 }
 
 .barra nav {
   display: flex;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 .barra nav a {
-  color: var(--color-suave);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--texto-suave);
   text-decoration: none;
 }
 
 .barra nav a:hover {
-  color: var(--color-principal);
+  color: var(--terracota);
 }
 
 /* ---------- PORTADA ---------- */
 
 .portada {
-  text-align: center;
-  padding: 2.5rem 0 1rem;
+  padding: 3rem 0 1rem;
+}
+
+/* Etiqueta pequena en mayusculas, como el mockup */
+.etiqueta {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  margin-bottom: 0.75rem;
 }
 
 .portada h1 {
-  font-size: 2.5rem;
-  margin: 0 0 0.5rem;
+  font-family: var(--serif);
+  font-size: 3rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--verde);
+  margin: 0 0 1rem;
+  max-width: 600px;
+}
+
+/* Para la palabra en cursiva del titulo */
+.destacado {
+  font-style: italic;
+  font-weight: 400;
 }
 
 .bajada {
-  font-size: 1.1rem;
-  color: var(--color-suave);
-  max-width: 600px;
-  margin: 0 auto;
+  font-size: 1.05rem;
+  color: var(--texto-suave);
+  max-width: 520px;
+  margin: 0 0 1.75rem;
+}
+
+/* ---------- HERO CON FOTO ---------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+@media (max-width: 800px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hero-foto {
+  width: 100%;
+  height: 340px;
+  object-fit: cover;
+  border-radius: var(--radio);
+  border: 1px solid var(--borde);
 }
 
 /* ---------- BLOQUES ---------- */
 
 .bloque {
-  margin-top: 2.5rem;
+  margin-top: 3.5rem;
 }
 
 .bloque h2 {
-  font-size: 1.4rem;
-  margin-bottom: 0.75rem;
+  font-family: var(--serif);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--verde);
+  margin: 0 0 0.75rem;
 }
 
 /* ---------- TARJETAS ---------- */
@@ -114,25 +166,27 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 }
 
 .tarjeta {
-  background: var(--color-tarjeta);
-  border: 1px solid var(--color-borde);
+  background: var(--crema-claro);
+  border: 1px solid var(--borde);
   border-radius: var(--radio);
-  padding: 1.25rem;
+  padding: 1.5rem;
 }
 
 .tarjeta h3 {
+  font-family: var(--serif);
   margin: 0 0 0.5rem;
-  font-size: 1.05rem;
-  color: var(--color-principal);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--verde);
 }
 
 .tarjeta p {
   margin: 0;
-  color: var(--color-suave);
+  color: var(--texto-suave);
   font-size: 0.95rem;
 }
 
@@ -140,19 +194,19 @@ body {
 
 .boton {
   display: inline-block;
-  margin-top: 0.5rem;
-  padding: 0.7rem 1.4rem;
-  background: var(--color-principal);
-  color: #fff;
+  padding: 0.75rem 1.5rem;
+  background: var(--terracota);
+  color: var(--crema-claro);
   border: none;
   border-radius: var(--radio);
-  font-size: 1rem;
+  font-family: var(--mono);
+  font-size: 0.85rem;
   text-decoration: none;
   cursor: pointer;
 }
 
 .boton:hover {
-  background: var(--color-principal-oscuro);
+  background: var(--terracota-oscuro);
 }
 
 .boton:disabled {
@@ -160,14 +214,26 @@ body {
   cursor: not-allowed;
 }
 
+/* Boton secundario, con borde en vez de relleno */
+.boton-secundario {
+  background: transparent;
+  color: var(--verde);
+  border: 1px solid var(--borde);
+}
+
+.boton-secundario:hover {
+  background: var(--crema-claro);
+}
+
 /* ---------- PIE ---------- */
 
 .pie {
-  padding: 1.5rem;
+  padding: 2rem;
   text-align: center;
-  color: var(--color-suave);
-  font-size: 0.9rem;
-  border-top: 1px solid var(--color-borde);
+  color: var(--texto-suave);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  border-top: 1px solid var(--borde);
 }
 
 .pie p {

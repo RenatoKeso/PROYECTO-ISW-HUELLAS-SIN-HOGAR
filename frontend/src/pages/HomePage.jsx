@@ -1,27 +1,26 @@
 import { Link } from "react-router-dom";
+import perritos from "../assets/perritos.jpg";
 
 function HomePage() {
   return (
     <>
       <section className="portada">
-        <h1>Huellas Sin Hogar</h1>
-        <p className="bajada">
-          Refugio de animales dedicado al rescate, cuidado y adopcion
-          responsable de perros y gatos.
-        </p>
-      </section>
+        <div className="hero">
+          <div>
+            <p className="etiqueta">Refugio Huellas Sin Hogar</p>
+            <h1>
+              Encuentra una <span className="destacado">huella</span> que
+              necesita un hogar.
+            </h1>
+            <p className="bajada">
+              Conoce a los animales disponibles, postula para adoptar, avisanos
+              si viste un animal abandonado, o sumate como voluntario del
+              refugio.
+            </p>
+          </div>
 
-      <section className="bloque">
-        <h2>Quienes somos</h2>
-        <p>
-          Huellas Sin Hogar es una organizacion sin fines de lucro que acoge
-          animales en situacion de abandono. El refugio se sostiene con el
-          trabajo de voluntarios y con el apoyo de la comunidad.
-        </p>
-        <p>
-          Cada animal que ingresa recibe atencion veterinaria, cuidados diarios
-          y acompanamiento hasta encontrar un hogar definitivo.
-        </p>
+          <img src={perritos} alt="Perros del refugio" className="hero-foto" />
+        </div>
       </section>
 
       <section className="bloque">
@@ -48,7 +47,7 @@ function HomePage() {
             <h3>Voluntariado</h3>
             <p>
               Organizamos turnos de cuidado diario donde los voluntarios
-              alimentan, pasean y acompanan a los animales.
+              alimentan, pasean y acompañan a los animales.
             </p>
           </article>
         </div>
