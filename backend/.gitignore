@@ -1,8 +1,4 @@
 node_modules/
-coverage/
-uploads/
-*.log
-.DS_Storenode_modules/
 .env
 .env.*
 !.env.example
@@ -14,4 +10,3 @@ uploads/
 *.log
 .DS_Store
 
-/src/generated/prisma

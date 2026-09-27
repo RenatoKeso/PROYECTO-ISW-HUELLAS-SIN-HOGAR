@@ -10,9 +10,9 @@ a su cuidado y gestionar los procesos de adopcion.
 
 ## Tecnologias
 
-- **Frontend:** React
+- **Frontend:** React con Vite
 - **Backend:** Node.js con Express
-- **Base de datos:** PostgreSQL
+- **Base de datos:** PostgreSQL con Prisma
 
 ## Estructura
 
@@ -46,6 +46,7 @@ CREATE DATABASE huellas_sin_hogar;
 cd backend
 npm install
 cp .env.example .env
+npx prisma generate
 npm run dev
 ```
 
@@ -57,10 +58,19 @@ consultar `http://localhost:3000/health`.
 
 ### Frontend
 
+En otra terminal, con el backend ya corriendo:
+
 ```bash
 cd frontend
 npm install
+cp .env.example .env
 npm run dev
 ```
 
 La aplicacion queda disponible en `http://localhost:5173`.
+
+## Notas
+
+- El backend debe levantarse antes que el frontend.
+- Cada vez que cambie `prisma/schema.prisma`, correr `npx prisma generate`.
+- Toda llamada al backend pasa por `frontend/src/services/api.js`.
