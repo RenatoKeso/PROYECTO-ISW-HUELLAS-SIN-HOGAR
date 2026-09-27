@@ -71,5 +71,16 @@ model IngresoAnimal{
 
 }
 
+model Voluntario {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String   @unique
+  telefono  String?
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  ingresosRecibidos IngresoAnimal[]
+}
+
 
  // fin modulo animales
