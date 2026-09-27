@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Esqueleto del backend para la gestion del refugio Huellas Sin Hogar.",
   "private": true,
-  "type" : "module",
+  "type": "module",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -14,7 +14,7 @@
     "prisma:studio": "npx prisma studio"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.3",
+    "@prisma/client": "^7.10.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^16.4.7",
