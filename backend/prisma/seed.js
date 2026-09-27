@@ -3,8 +3,9 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Se borra de adentro hacia afuera: IngresoAnimal apunta a las
-  // otras dos tablas, asi que tiene que irse primero.
+  // Se borra de adentro hacia afuera: Postulacion y IngresoAnimal apuntan a las
+  // otras dos tablas, asi que tienen que irse primero.
+  await prisma.postulacion.deleteMany();
   await prisma.ingresoAnimal.deleteMany();
   await prisma.fichaAnimal.deleteMany();
   await prisma.voluntario.deleteMany();
@@ -70,6 +71,36 @@ async function main() {
       fechaIngreso: new Date("2026-09-02"),
       procedencia: "ENTREGA_VOLUNTARIA",
       estadoSalud: "Sano",
+    },
+  });
+
+  // ---------- POSTULACIONES ----------
+
+  await prisma.postulacion.create({
+    data: {
+      fichaAnimalId: Gretel.id,
+      nombrePostulante: "Juan Perez",
+      rutPostulante: "12345678-9",
+      telefonoPostulante: "912345678",
+      tipoVivienda: "DEPARTAMENTO",
+      disponibilidadTiempo: "Trabaja desde casa",
+    },
+  });
+
+  await prisma.postulacion.create({
+    data: {
+      fichaAnimalId: Gretel.id,
+      nombrePostulante: "Maria Gonzalez",
+      rutPostulante: "98765432-1",
+      telefonoPostulante: "987654321",
+      tipoVivienda: "CASA",
+      disponibilidadTiempo: "Trabaja fuera de casa",
+      estado: "APROBADA",
+      revisorId: Martina.id,
+      fechaResolucion: new Date("2026-09-10"),
+      observaciones: "Postulante tiene experiencia previa con perros y cuenta con un espacio adecuado para su cuidado.",
+      emailPostulante: "benja@gmail.com",
+      otrasMascotas: "Si, tiene un perro y un gato.",
     },
   });
 
