@@ -13,3 +13,74 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+
+// modulo animales
+
+// requisito ingreso de animales
+
+enum Especie {
+  PERRO
+  GATO
+  OTRO
+}
+
+enum SexoAnimal {
+  MACHO
+  HEMBRA
+  DESCONOCIDO
+}
+
+enum EstadoEstadiaAnimal {
+  ACTIVO // esta dentro del refugio
+  ADOPTADO // ya fue adoptado
+  ESPERA_ADOPCION // esta en espera de adopcion
+  EGRESADO // ya no esta en el refugio por x motivo
+  FALLECIDO // ya no esta en el refugio por fallecimiento
+  TRANSFERIDO // transferido a otro refugio u hogar temporal
+}
+
+
+
+
+model FichaAnimal {
+  id              Int      @id @default(autoincrement())
+  codigoAnimal    String   @unique // identificador en el sistema para el animal
+  nombre          String? //opcional
+  sexoAnimal      SexoAnimal //opcional  
+  especie         Especie // perro, gato, etc
+  raza            String? //inferida
+  edad            Int? //opcional inferida 
+  estadoEstadia EstadoEstadiaAnimal @default(ACTIVO) 
+  observaciones   String? //opcional
+  createdAt       DateTime @default(now())
+
+  ingresoAnimal IngresoAnimal[]
+}
+
+model IngresoAnimal{
+  id             Int      @id @default(autoincrement())
+  fichaAnimalId Int     
+  fichaAnimal         FichaAnimal @relation(fields: [fichaAnimalId], references: [id])
+  receptorId    Int
+  receptor Voluntario @relation(fields: [receptorId], references: [id])
+  fechaIngreso   DateTime
+  procedencia     String
+  ubicacionEncontrado      String? //opcional en caso de que se haya encontado en la calle  
+  estadoSalud     String? //opcional normal/enfermo/desnutricion, etc
+
+}
+model Voluntario {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String   @unique
+  telefono  String?
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  ingresosRecibidos IngresoAnimal[]
+}
+
+
+ // fin modulo animales
