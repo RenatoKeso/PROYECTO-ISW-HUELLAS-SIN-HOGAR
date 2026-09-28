@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { crearAnimalController } from "../controllers/animalController.js";
 import { crearAnimalRouter } from "./animalRoutes.js";
+import { crearVoluntarioRouter } from "./voluntarioRoutes.js";
 
 export function crearRouter({ registrarIngresoAnimal } = {}) {
   const router = Router();
@@ -10,7 +11,8 @@ export function crearRouter({ registrarIngresoAnimal } = {}) {
       controlador: crearAnimalController({ registrarIngresoAnimal }),
     }),
   );
-
+  router.use(crearVoluntarioRouter());
+  
   return router;
 }
 
