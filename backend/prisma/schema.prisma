@@ -51,7 +51,7 @@ model FichaAnimal {
   createdAt     DateTime            @default(now())
 
   ingresoAnimal IngresoAnimal[]
-  postulaciones Postulacion[]
+  postulacionesAdopcion Postulacion[]
 }
 
 model IngresoAnimal {
