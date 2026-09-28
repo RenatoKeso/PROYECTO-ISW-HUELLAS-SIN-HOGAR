@@ -1,6 +1,6 @@
 import { Routes, Route, Link } from "react-router-dom";
 import HomePage from "./pages/HomePage.jsx";
-import NuevaFichaPage from "./pages/NuevaFichaPage.jsx";
+import RegistroPage from "./pages/RegistroPage.jsx";
 
 function App() {
   return (
@@ -12,14 +12,14 @@ function App() {
 
         <nav>
           <Link to="/">Inicio</Link>
-          <Link to="/fichas/nueva">Nueva ficha</Link>
+          <Link to="/registro">Registro</Link>
         </nav>
       </header>
 
       <main className="contenido">
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/fichas/nueva" element={<NuevaFichaPage />} />
+          <Route path="/registro" element={<RegistroPage />} />
 
           {/* Cada uno agrega su ruta aqui abajo, una linea por persona */}
 
