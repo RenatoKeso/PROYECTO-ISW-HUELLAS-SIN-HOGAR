@@ -30,7 +30,7 @@ async function main() {
   // ---------- ANIMALES ----------
   const Gretel = await prisma.fichaAnimal.create({
     data: {
-      codigoAnimal: "A-001",
+      codigoAnimal: "anim-001",
       nombre: "Gretel",
       sexoAnimal: "HEMBRA",
       especie: "PERRO",
@@ -43,7 +43,7 @@ async function main() {
 
   const Galileo = await prisma.fichaAnimal.create({
     data: {
-      codigoAnimal: "A-002",
+      codigoAnimal: "anim-002",
       nombre: "Galileo",
       sexoAnimal: "MACHO",
       especie: "GATO",

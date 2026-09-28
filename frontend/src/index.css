@@ -225,6 +225,98 @@ body {
   background: var(--crema-claro);
 }
 
+/* ---------- FORMULARIOS ---------- */
+
+.formulario {
+  border: 1px solid #000;
+  background: var(--crema-claro);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.formulario h2 {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--verde);
+  margin: 0 0 1.25rem;
+}
+
+.formulario-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.campo-ancho {
+  grid-column: 1 / -1;
+}
+
+.campo label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: #fff;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  color: var(--texto);
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  outline: 2px solid var(--verde);
+  outline-offset: 1px;
+}
+
+.campo textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.campo-error {
+  font-size: 0.8rem;
+  color: var(--terracota);
+}
+
+.formulario .boton {
+  margin-top: 1.25rem;
+}
+
+.mensaje {
+  margin: 1rem 0 0;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  font-size: 0.9rem;
+}
+
+.mensaje-exito {
+  border-color: var(--verde);
+  color: var(--verde);
+}
+
+.mensaje-error {
+  border-color: var(--terracota);
+  color: var(--terracota);
+}
+
 /* ---------- PIE ---------- */
 
 .pie {

@@ -60,8 +60,8 @@ function HomePage() {
           de los animales.
         </p>
 
-        <Link to="/fichas/nueva" className="boton">
-          Crear ficha de un animal
+        <Link to="/registro" className="boton">
+          Registrar ficha e ingreso
         </Link>
       </section>
     </>

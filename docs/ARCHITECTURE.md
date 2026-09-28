@@ -22,6 +22,15 @@ La organizacion sigue el estilo por capas utilizado en el proyecto de referencia
 
 Por ahora las carpetas contienen solo documentacion. Los archivos de cada requisito se agregaran cuando el equipo distribuya el trabajo.
 
+## Modulo de animales
+
+La API de fichas e ingresos esta documentada en `API_FICHAS_INGRESOS.md`: `POST /api/fichas`
+crea una ficha suelta y `POST /api/animales/ingresos` resuelve el ingreso inicial y el
+reingreso por devolucion. El flujo se decide en `services/animalService.js` a partir de la
+presencia de `codigoAnimal` en el cuerpo de la peticion. Los fallos de negocio viajan como
+`AnimalError` desde `entities/animalErrors.js` y el manejador central de errores los traduce
+a respuestas HTTP.
+
 ## Frontend
 
 El directorio `frontend` usa React con Vite. La organizacion de `src` es:

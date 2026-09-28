@@ -1,8 +1,17 @@
 import { Router } from "express";
-import saludRoutes from "./salud.routes.js";
+import { crearAnimalController } from "../controllers/animalController.js";
+import { crearAnimalRouter } from "./animalRoutes.js";
 
-const router = Router();
+export function crearRouter({ registrarIngresoAnimal } = {}) {
+  const router = Router();
 
-router.use("/salud", saludRoutes);
+  router.use(
+    crearAnimalRouter({
+      controlador: crearAnimalController({ registrarIngresoAnimal }),
+    }),
+  );
 
-export default router;
+  return router;
+}
+
+export default crearRouter();
