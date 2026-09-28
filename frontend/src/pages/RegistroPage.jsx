@@ -2,7 +2,9 @@ import Campo from "../components/ui/Campo.jsx";
 import { useFormulario } from "../hooks/useFormulario.js";
 import { crearFicha, registrarIngreso } from "../services/animalesService.js";
 import { fichaFormSchema } from "../validations/fichaValidation.js";
-import { ingresoFormSchema, RECEPTORES } from "../validations/ingresoValidation.js";
+import { ingresoFormSchema } from "../validations/ingresoValidation.js";
+import { useState, useEffect } from "react";
+import { listarVoluntarios } from "../services/voluntariosService.js";
 
 const OPCIONES_SEXO = [
   { valor: "", texto: "Seleccione..." },
@@ -18,10 +20,7 @@ const OPCIONES_ESPECIE = [
   { valor: "OTRO", texto: "Otro" },
 ];
 
-const OPCIONES_RECEPTOR = [
-  { valor: "", texto: "Seleccione..." },
-  ...RECEPTORES,
-];
+
 
 const FICHA_INICIAL = {
   nombre: "",
@@ -70,6 +69,19 @@ function RegistroPage() {
     enviar: enviarIngreso,
     mensajeExito: (respuesta) => `Ingreso registrado: ${respuesta.codigoAnimal}`,
   });
+const [receptores, setReceptores] = useState([]);
+
+useEffect(() => {
+  listarVoluntarios()
+    .then((respuesta) => setReceptores(respuesta.voluntarios))
+    .catch(() => setReceptores([]));
+}, []);
+
+const opcionesReceptor = [
+  { valor: "", texto: "Seleccione..." },
+  ...receptores.map((v) => ({ valor: String(v.id), texto: v.nombre })),
+];
+
 
   return (
     <section className="bloque">
@@ -174,7 +186,7 @@ function RegistroPage() {
             etiqueta="Receptor"
             nombre="receptorId"
             control="select"
-            opciones={OPCIONES_RECEPTOR}
+            opciones={opcionesReceptor}
             valor={ingreso.valores.receptorId}
             error={ingreso.errores.receptorId}
             onChange={(evento) =>
