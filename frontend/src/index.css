@@ -1,0 +1,333 @@
+:root {
+  /* Paleta de la propuesta */
+  --crema: #ede3cf;
+  --crema-claro: #f7f1e3;
+  --verde: #1f3d2b;
+  --verde-claro: #2d5440;
+  --terracota: #c0563a;
+  --terracota-oscuro: #a4462e;
+  --texto: #2a2520;
+  --texto-suave: #6f6659;
+  --borde: #d9cdb4;
+
+  --radio: 6px;
+  --ancho-maximo: 1080px;
+
+  --serif: "Fraunces", Georgia, serif;
+  --sans: "DM Sans", system-ui, sans-serif;
+  --mono: "DM Mono", ui-monospace, monospace;
+
+  font-family: var(--sans);
+  color: var(--texto);
+  background-color: var(--crema);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ---------- ESTRUCTURA ---------- */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.contenido {
+  flex: 1;
+  width: 100%;
+  max-width: var(--ancho-maximo);
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* ---------- BARRA SUPERIOR ---------- */
+
+.barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 2rem;
+  background: var(--crema-claro);
+  border-bottom: 1px solid var(--borde);
+}
+
+.marca {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--verde);
+  text-decoration: none;
+}
+
+.barra nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.barra nav a {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+  text-decoration: none;
+}
+
+.barra nav a:hover {
+  color: var(--terracota);
+}
+
+/* ---------- PORTADA ---------- */
+
+.portada {
+  padding: 3rem 0 1rem;
+}
+
+/* Etiqueta pequena en mayusculas, como el mockup */
+.etiqueta {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  margin-bottom: 0.75rem;
+}
+
+.portada h1 {
+  font-family: var(--serif);
+  font-size: 3rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--verde);
+  margin: 0 0 1rem;
+  max-width: 600px;
+}
+
+/* Para la palabra en cursiva del titulo */
+.destacado {
+  font-style: italic;
+  font-weight: 400;
+}
+
+.bajada {
+  font-size: 1.05rem;
+  color: var(--texto-suave);
+  max-width: 520px;
+  margin: 0 0 1.75rem;
+}
+
+/* ---------- HERO CON FOTO ---------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+@media (max-width: 800px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hero-foto {
+  width: 100%;
+  height: 340px;
+  object-fit: cover;
+  border-radius: var(--radio);
+  border: 1px solid var(--borde);
+}
+
+/* ---------- BLOQUES ---------- */
+
+.bloque {
+  margin-top: 3.5rem;
+}
+
+.bloque h2 {
+  font-family: var(--serif);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--verde);
+  margin: 0 0 0.75rem;
+}
+
+/* ---------- TARJETAS ---------- */
+
+.tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.tarjeta {
+  background: var(--crema-claro);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1.5rem;
+}
+
+.tarjeta h3 {
+  font-family: var(--serif);
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--verde);
+}
+
+.tarjeta p {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.95rem;
+}
+
+/* ---------- BOTONES ---------- */
+
+.boton {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: var(--terracota);
+  color: var(--crema-claro);
+  border: none;
+  border-radius: var(--radio);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.boton:hover {
+  background: var(--terracota-oscuro);
+}
+
+.boton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Boton secundario, con borde en vez de relleno */
+.boton-secundario {
+  background: transparent;
+  color: var(--verde);
+  border: 1px solid var(--borde);
+}
+
+.boton-secundario:hover {
+  background: var(--crema-claro);
+}
+
+/* ---------- FORMULARIOS ---------- */
+
+.formulario {
+  border: 1px solid #000;
+  background: var(--crema-claro);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.formulario h2 {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--verde);
+  margin: 0 0 1.25rem;
+}
+
+.formulario-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.campo-ancho {
+  grid-column: 1 / -1;
+}
+
+.campo label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: #fff;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  color: var(--texto);
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  outline: 2px solid var(--verde);
+  outline-offset: 1px;
+}
+
+.campo textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.campo-error {
+  font-size: 0.8rem;
+  color: var(--terracota);
+}
+
+.formulario .boton {
+  margin-top: 1.25rem;
+}
+
+.mensaje {
+  margin: 1rem 0 0;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  font-size: 0.9rem;
+}
+
+.mensaje-exito {
+  border-color: var(--verde);
+  color: var(--verde);
+}
+
+.mensaje-error {
+  border-color: var(--terracota);
+  color: var(--terracota);
+}
+
+/* ---------- PIE ---------- */
+
+.pie {
+  padding: 2rem;
+  text-align: center;
+  color: var(--texto-suave);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  border-top: 1px solid var(--borde);
+}
+
+.pie p {
+  margin: 0;
+}

@@ -22,13 +22,27 @@ La organizacion sigue el estilo por capas utilizado en el proyecto de referencia
 
 Por ahora las carpetas contienen solo documentacion. Los archivos de cada requisito se agregaran cuando el equipo distribuya el trabajo.
 
+## Modulo de animales
+
+La API de fichas e ingresos esta documentada en `API_FICHAS_INGRESOS.md`: `POST /api/fichas`
+crea una ficha suelta y `POST /api/animales/ingresos` resuelve el ingreso inicial y el
+reingreso por devolucion. El flujo se decide en `services/animalService.js` a partir de la
+presencia de `codigoAnimal` en el cuerpo de la peticion. Los fallos de negocio viajan como
+`AnimalError` desde `entities/animalErrors.js` y el manejador central de errores los traduce
+a respuestas HTTP.
+
 ## Frontend
 
-El directorio `frontend` sigue la organizacion del proyecto de referencia:
+El directorio `frontend` usa React con Vite. La organizacion de `src` es:
 
-- `api`: comunicacion con el backend.
-- `components`: piezas visuales reutilizables.
-- `layouts`: estructuras compartidas entre paginas.
-- `pages`: pantallas organizadas por requisito.
-- `routes`: navegacion de la aplicacion.
-- `styles`: estilos globales.
+- `pages`: pantallas completas de la aplicacion.
+- `components`: piezas visuales que se repiten entre pantallas.
+- `components/ui`: elementos basicos como botones, tarjetas y campos.
+- `services`: comunicacion con el backend. Toda llamada al API pasa por aqui.
+- `hooks`: logica reutilizable de React, nombrada con el prefijo `use`.
+- `context`: estado que necesitan varias pantallas al mismo tiempo.
+- `utils`: funciones independientes que no dependen de React.
+
+La URL del backend se define en la variable de entorno `VITE_API_URL` y se
+consume unicamente desde `services/api.js`. No debe escribirse la direccion
+del backend directamente en un componente.
