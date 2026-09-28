@@ -83,4 +83,4 @@ function calcularAlertas(datos) {
   return { fechaReferencia, diasAnticipacion, alertas };
 }
 
-export { calcularAlertas };
+export { calcularAlertas, TIPOS };
