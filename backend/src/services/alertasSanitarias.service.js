@@ -78,7 +78,7 @@ function calcularAlertas(datos) {
     }];
   });
 
-  alertas.sort((a, b) => a.diasRestantes - b.diasRestantes);
+  alertas.sort((a, b) => b.diasRestantes - a.diasRestantes);
 
   return { fechaReferencia, diasAnticipacion, alertas };
 }
