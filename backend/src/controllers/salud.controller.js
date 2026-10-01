@@ -10,7 +10,7 @@ try {
     }
 
     throw error;
-  }
+    }
 }
 
 export { previsualizarAlertas };
