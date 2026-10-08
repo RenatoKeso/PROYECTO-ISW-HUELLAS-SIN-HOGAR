@@ -1,86 +1,70 @@
+import {
+  alertasSanitariasSchema,
+  TIPOS_ATENCION,
+} from "../validations/alertasSanitariasValidation.js";
+
 const DIA_MS = 24 * 60 * 60 * 1000;
-const TIPOS = new Set(["vacuna", "control", "tratamiento"]);
 
-function leerFecha(valor, campo) {
-  if (typeof valor !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
-    throw new TypeError(`${campo} debe tener formato YYYY-MM-DD`);
-  }
+// se conserva esta exportacion porque salud.routes.js la utiliza.
+const TIPOS = new Set(TIPOS_ATENCION);
 
-  const fecha = new Date(`${valor}T00:00:00.000Z`);
+// Obtiene la fecha actual de Chile en formato YYYY-MM-DD.
+function obtenerFechaActual(ahora = new Date()) {
+  const partes = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Santiago",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(ahora);
 
-  if (
-    Number.isNaN(fecha.getTime()) ||
-    fecha.toISOString().slice(0, 10) !== valor
-  ) {
-    throw new TypeError(`${campo} debe ser una fecha valida`);
-  }
+  const valor = (tipo) =>
+    partes.find((parte) => parte.type === tipo).value;
 
-  return fecha;
+  return `${valor("year")}-${valor("month")}-${valor("day")}`;
 }
 
-function calcularAlertas(datos) {
-  if (!datos || typeof datos !== "object" || Array.isArray(datos)) {
-    throw new TypeError("El cuerpo debe ser un objeto JSON");
-  }
+// El segundo parámetro permite probar la fecha actual sin depender del reloj.
+function calcularAlertas(datos, ahora = new Date()) {
+  const entrada = alertasSanitariasSchema.parse(datos);
 
   const fechaReferencia =
-    datos.fechaReferencia ?? new Date().toISOString().slice(0, 10);
+    entrada.fechaReferencia ?? obtenerFechaActual(ahora);
 
-  const referencia = leerFecha(fechaReferencia, "fechaReferencia");
+  const referencia = new Date(`${fechaReferencia}T00:00:00.000Z`);
 
-  const diasAnticipacion =
-    datos.diasAnticipacion === undefined ? 7 : datos.diasAnticipacion;
+  const { diasAnticipacion, eventos } = entrada;
 
-  if (!Number.isInteger(diasAnticipacion) || diasAnticipacion < 0) {
-    throw new RangeError(
-      "diasAnticipacion debe ser un entero mayor o igual a cero"
-    );
-  }
-
-  if (!Array.isArray(datos.eventos)) {
-    throw new TypeError("eventos debe ser un arreglo");
-  }
-
-  const alertas = datos.eventos.flatMap((evento, indice) => {
-    if (!evento || typeof evento !== "object" || Array.isArray(evento)) {
-      throw new TypeError(`eventos[${indice}] debe ser un objeto`);
-    }
-
-    if (!Number.isInteger(evento.animalId) || evento.animalId <= 0) {
-      throw new TypeError(
-        `eventos[${indice}].animalId debe ser un entero positivo`
-      );
-    }
-
-    if (!TIPOS.has(evento.tipo)) {
-      throw new TypeError(
-        `eventos[${indice}].tipo debe ser vacuna, control o tratamiento`
-      );
-    }
-
-    const fecha = leerFecha(
-      evento.fechaProgramada,
-      `eventos[${indice}].fechaProgramada`
+  const alertas = eventos.flatMap((evento) => {
+    const fecha = new Date(
+      `${evento.fechaProgramada}T00:00:00.000Z`,
     );
 
-    const diasRestantes = Math.round((fecha - referencia) / DIA_MS);
+    const diasRestantes = Math.round(
+      (fecha - referencia) / DIA_MS,
+    );
 
-    if (diasRestantes > diasAnticipacion) {
-      return [];
-    }
+    // Excluye los eventos posteriores al límite de anticipación.
+    if (diasRestantes > diasAnticipacion) return [];
 
-    return [{
-      animalId: evento.animalId,
-      tipo: evento.tipo,
-      fechaProgramada: evento.fechaProgramada,
-      estado: diasRestantes < 0 ? "vencido" : "proximo",
-      diasRestantes,
-    }];
+    return [
+      {
+        animalId: evento.animalId,
+        tipo: evento.tipo,
+        fechaProgramada: evento.fechaProgramada,
+        estado: diasRestantes < 0 ? "vencido" : "proximo",
+        diasRestantes,
+      },
+    ];
   });
 
-  alertas.sort((a, b) => b.diasRestantes - a.diasRestantes);
+  // Los vencidos más antiguos aparecen primero.
+  alertas.sort((a, b) => a.diasRestantes - b.diasRestantes);
 
-  return { fechaReferencia, diasAnticipacion, alertas };
+  return {
+    fechaReferencia,
+    diasAnticipacion,
+    alertas,
+  };
 }
 
-export { calcularAlertas, TIPOS };
+export { calcularAlertas, obtenerFechaActual, TIPOS };
