@@ -1,0 +1,69 @@
+.alertas-sanitarias .alertas-fieldset {
+border: 0;
+padding: 0;
+margin: 0;
+min-width: 0;
+}
+
+.alertas-sanitarias legend {
+font-weight: 600;
+margin-bottom: 1rem;
+}
+
+.alertas-evento {
+border: 1px solid var(--borde);
+padding: 1rem;
+margin: 1rem 0;
+}
+
+.alertas-evento h4 {
+margin: 0 0 1rem;
+}
+
+.alertas-acciones {
+display: flex;
+flex-wrap: wrap;
+gap: 1rem;
+}
+
+.alertas-tabla-contenedor {
+overflow-x: auto;
+margin-top: 1rem;
+}
+
+.alertas-tabla {
+width: 100%;
+border-collapse: collapse;
+}
+
+.alertas-tabla caption {
+text-align: left;
+padding-bottom: 0.75rem;
+}
+
+.alertas-tabla th,
+.alertas-tabla td {
+padding: 0.75rem;
+text-align: left;
+border-bottom: 1px solid var(--borde);
+}
+
+.alertas-tabla th {
+color: var(--verde);
+}
+
+.alerta-estado {
+display: inline-block;
+padding: 0.2rem 0.5rem;
+border-radius: var(--radio);
+}
+
+.alerta-vencido {
+color: #842b1c;
+background: #f8ddd5;
+}
+
+.alerta-proximo {
+color: var(--verde);
+background: #dcebdc;
+}
