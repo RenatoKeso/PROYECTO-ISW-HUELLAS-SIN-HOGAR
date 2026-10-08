@@ -1,6 +1,7 @@
 import { Routes, Route, Link } from "react-router-dom";
 import HomePage from "./pages/HomePage.jsx";
 import RegistroPage from "./pages/RegistroPage.jsx";
+import AlertasSanitariasPage from "./pages/AlertasSanitariasPage.jsx";
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
         </Link>
 
         <nav>
+          <Link to="/salud/alertas">Alertas sanitarias</Link>
           <Link to="/">Inicio</Link>
           <Link to="/registro">Registro</Link>
         </nav>
@@ -20,6 +22,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/registro" element={<RegistroPage />} />
+          <Route path="/salud/alertas" element={<AlertasSanitariasPage />}/>
 
           {/* Cada uno agrega su ruta aqui abajo, una linea por persona */}
 
