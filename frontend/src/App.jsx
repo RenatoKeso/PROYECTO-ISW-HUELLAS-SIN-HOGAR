@@ -2,6 +2,7 @@ import { Routes, Route, Link } from "react-router-dom";
 import HomePage from "./pages/HomePage.jsx";
 import RegistroPage from "./pages/RegistroPage.jsx";
 import AlertasSanitariasPage from "./pages/AlertasSanitariasPage.jsx";
+import AdopcionPage from "./pages/AdopcionPage.jsx";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Link to="/salud/alertas">Alertas sanitarias</Link>
           <Link to="/">Inicio</Link>
           <Link to="/registro">Registro</Link>
+          <Link to="/adopcion">Adopcion</Link>
         </nav>
       </header>
 
@@ -25,7 +27,7 @@ function App() {
           <Route path="/salud/alertas" element={<AlertasSanitariasPage />}/>
 
           {/* Cada uno agrega su ruta aqui abajo, una linea por persona */}
-
+          <Route path="/adopcion" element={<AdopcionPage />} />
           <Route path="*" element={<p>Esta pagina no existe.</p>} />
         </Routes>
       </main>
