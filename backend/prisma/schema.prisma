@@ -50,8 +50,9 @@ model FichaAnimal {
   observaciones String? //opcional
   createdAt     DateTime            @default(now())
 
-  ingresoAnimal IngresoAnimal[]
+  ingresoAnimal         IngresoAnimal[]
   postulacionesAdopcion Postulacion[]
+  devoluciones          Devolucion[]
 }
 
 model IngresoAnimal {
@@ -76,6 +77,7 @@ model Voluntario {
 
   ingresosRecibidos      IngresoAnimal[]
   postulacionesRevisadas Postulacion[]
+  devolucionesRecibidas  Devolucion[]
 }
 
 // fin modulo animales
@@ -114,10 +116,34 @@ model Postulacion {
   observaciones        String?
   estado               EstadoPostulacion @default(EN_REVISION)
   createdAt            DateTime          @default(now())
+  devoluciones         Devolucion[]
 
   @@index([fichaAnimalId])
   @@index([estado])
   @@index([rutPostulante])
 }
 
-//fin modulo adopcion
+//fin modulo adopcionS
+
+//--*Modulo devoluciones*--
+
+enum MotivoDevolucion {
+  COMPORTAMIENTO
+  SALUD
+  CAMBIO_SITUACION_FAMILIAR
+  OTRO
+}
+
+model Devolucion {
+  id              Int              @id @default(autoincrement())
+  fichaAnimalId   Int
+  fichaAnimal     FichaAnimal      @relation(fields: [fichaAnimalId], references: [id])
+  receptorId      Int
+  receptor        Voluntario       @relation(fields: [receptorId], references: [id])
+  postulacionId   Int
+  postulacion     Postulacion      @relation(fields: [postulacionId], references: [id])
+  fechaDevolucion DateTime
+  motivo          MotivoDevolucion
+  detalle         String
+  createdAt       DateTime         @default(now())
+}
