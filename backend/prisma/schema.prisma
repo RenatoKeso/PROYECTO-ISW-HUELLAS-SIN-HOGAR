@@ -100,18 +100,18 @@ enum TipoVivienda {
 }
 
 model Postulacion {
-  id                 Int          @id @default(autoincrement())
-  fichaAnimalId      Int
-  fichaAnimal        FichaAnimal  @relation(fields: [fichaAnimalId], references: [id])
-  nombrePostulante   String
-  rutPostulante      String
-  telefonoPostulante String
-  emailPostulante    String?
-  revisorId          Int?
-  revisor            Voluntario?  @relation(fields: [revisorId], references: [id])
-  tipoVivienda       TipoVivienda
-  otrasMascotas      String?
-
+  id                   Int               @id @default(autoincrement())
+  fichaAnimalId        Int
+  fichaAnimal          FichaAnimal       @relation(fields: [fichaAnimalId], references: [id])
+  nombrePostulante     String
+  rutPostulante        String
+  telefonoPostulante   String
+  emailPostulante      String?
+  revisorId            Int?
+  revisor              Voluntario?       @relation(fields: [revisorId], references: [id])
+  tipoVivienda         TipoVivienda
+  otrasMascotas        String?
+  alertaMostradaEn     DateTime?
   disponibilidadTiempo String
   fechaResolucion      DateTime?
   observaciones        String?

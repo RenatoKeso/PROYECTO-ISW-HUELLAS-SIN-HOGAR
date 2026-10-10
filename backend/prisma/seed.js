@@ -3,8 +3,10 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Se borra de adentro hacia afuera: Postulacion y IngresoAnimal apuntan a las
-  // otras dos tablas, asi que tienen que irse primero.
+  // Se borra de adentro hacia afuera: primero las tablas que apuntan a otras
+  // (devoluciones, reportes, postulaciones e ingresos) y al final fichas y voluntarios.
+  await prisma.devolucion.deleteMany();
+  await prisma.reporteDevolucion.deleteMany();
   await prisma.postulacion.deleteMany();
   await prisma.ingresoAnimal.deleteMany();
   await prisma.fichaAnimal.deleteMany();
@@ -80,7 +82,7 @@ async function main() {
     data: {
       fichaAnimalId: Gretel.id,
       nombrePostulante: "Juan Perez",
-      rutPostulante: "12345678-9",
+      rutPostulante: "12345678-5",
       telefonoPostulante: "912345678",
       tipoVivienda: "DEPARTAMENTO",
       disponibilidadTiempo: "Trabaja desde casa",
@@ -91,7 +93,7 @@ async function main() {
     data: {
       fichaAnimalId: Gretel.id,
       nombrePostulante: "Maria Gonzalez",
-      rutPostulante: "98765432-1",
+      rutPostulante: "98765432-5",
       telefonoPostulante: "987654321",
       tipoVivienda: "CASA",
       disponibilidadTiempo: "Trabaja fuera de casa",
@@ -103,9 +105,24 @@ async function main() {
       otrasMascotas: "Si, tiene un perro y un gato.",
     },
   });
+  await prisma.postulacion.create({
+    data: {
+      fichaAnimalId: Gretel.id,
+      nombrePostulante: "Carlos Ramirez",
+      rutPostulante: "11223344-K",
+      telefonoPostulante: "912345678",
+      tipoVivienda: "DEPARTAMENTO",
+      disponibilidadTiempo: "Trabaja desde casa",
+      estado: "RECHAZADA",
+      revisorId: Tomas.id,
+      fechaResolucion: new Date("2026-09-12"),
+      observaciones: "Postulante no tiene experiencia previa con perros y vive en un departamento pequeño.",
+    },
+  });
 
   console.log("Seed completado");
 }
+
 
 main()
   .catch((error) => {
