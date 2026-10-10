@@ -78,6 +78,7 @@ model Voluntario {
   ingresosRecibidos      IngresoAnimal[]
   postulacionesRevisadas Postulacion[]
   devolucionesRecibidas  Devolucion[]
+  reportesGenerados      ReporteDevolucion[]
 }
 
 // fin modulo animales
@@ -123,7 +124,7 @@ model Postulacion {
   @@index([rutPostulante])
 }
 
-//fin modulo adopcionS
+//fin modulo adopcion
 
 //--*Modulo devoluciones*--
 
@@ -146,4 +147,15 @@ model Devolucion {
   motivo          MotivoDevolucion
   detalle         String
   createdAt       DateTime         @default(now())
+}
+
+model ReporteDevolucion {
+  id                Int        @id @default(autoincrement())
+  fechaDesde        DateTime
+  fechaHasta        DateTime
+  totalDevoluciones Int
+  resultado         Json
+  generadoPorId     Int
+  generadoPor       Voluntario @relation(fields: [generadoPorId], references: [id])
+  createdAt         DateTime   @default(now())
 }
