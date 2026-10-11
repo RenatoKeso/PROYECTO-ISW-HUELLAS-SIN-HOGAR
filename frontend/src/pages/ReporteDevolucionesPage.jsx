@@ -4,6 +4,13 @@ import { ApiError } from "../services/api.js";
 import { listarVoluntarios } from "../services/voluntariosService.js";
 import { generarReporteDevoluciones } from "../services/reporteDevolucionService.js";
 
+const NOMBRES_MOTIVO = {
+  COMPORTAMIENTO: "Comportamiento",
+  SALUD: "Salud",
+  CAMBIO_SITUACION_FAMILIAR: "Cambio en situación familiar",
+  OTRO: "Otro",
+};
+
 function ReporteDevolucionesPage() {
   const [valores, setValores] = useState({ fechaDesde: "", fechaHasta: "", generadoPorId: "" });
   const [voluntarios, setVoluntarios] = useState([]);
@@ -59,8 +66,8 @@ function ReporteDevolucionesPage() {
     }
   }
 
-  return (
-    <section className="bloque">
+    return (
+      <section className="bloque">
       <h2>Reporte de devoluciones</h2>
       <p>Elige un rango de fechas para ver las devoluciones agrupadas por motivo.</p>
 
@@ -99,12 +106,38 @@ function ReporteDevolucionesPage() {
       </form>
 
       {mensaje && <p className="mensaje mensaje-error">{mensaje}</p>}
-      {reporte && (
-        <p className="mensaje mensaje-exito">
-          Reporte generado: {reporte.totalDevoluciones} devoluciones encontradas.
-        </p>
-      )}
-        </section>
+       {reporte && (
+        <>
+          <p className="mensaje mensaje-exito">
+            Reporte generado: {reporte.totalDevoluciones} devoluciones encontradas.
+          </p>
+
+          <div className="tarjetas">
+            {Object.entries(reporte.resultado.porMotivo).map(([motivo, grupo]) => (
+              <article key={motivo} className="tarjeta">
+                <h3>{NOMBRES_MOTIVO[motivo]} ({grupo.cantidad})</h3>
+                {grupo.devoluciones.map((devolucion, indice) => (
+                  <p key={indice}>
+                    {devolucion.animal} · {new Date(devolucion.fecha).toLocaleDateString("es-CL", { timeZone: "UTC" })}
+                  </p>
+                ))}
+              </article>
+            ))}
+             </div>
+                <h3>Animales devueltos más de una vez por el mismo motivo</h3>
+                {reporte.resultado.repetidos.length === 0 ? (
+                    <p>No hay animales repetidos en este rango.</p>
+                ) : (
+                reporte.resultado.repetidos.map((repetido) => (
+                     <p key={`${repetido.codigoAnimal}-${repetido.motivo}`} className="mensaje mensaje-error">
+                    ⚠️ {repetido.animal} fue devuelto {repetido.cantidad} veces por {NOMBRES_MOTIVO[repetido.motivo]}
+                 </p>
+                ))
+            )}
+             </>
+        )}
+       </section>
     );
+
 }
 export default ReporteDevolucionesPage;
