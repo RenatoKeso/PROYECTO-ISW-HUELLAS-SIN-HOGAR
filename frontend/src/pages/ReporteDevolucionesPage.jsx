@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Campo from "../components/ui/Campo.jsx";
 import { ApiError } from "../services/api.js";
 import { listarVoluntarios } from "../services/voluntariosService.js";
-import { generarReporteDevoluciones } from "../services/reporteDevolucionService.js";
+import { generarReporteDevoluciones, listarReportesDevoluciones } from "../services/reporteDevolucionService.js";
 
 const NOMBRES_MOTIVO = {
   COMPORTAMIENTO: "Comportamiento",
@@ -11,6 +11,10 @@ const NOMBRES_MOTIVO = {
   OTRO: "Otro",
 };
 
+function formatearFecha(fecha) {
+  return new Date(fecha).toLocaleDateString("es-CL", { timeZone: "UTC" });
+}
+
 function ReporteDevolucionesPage() {
   const [valores, setValores] = useState({ fechaDesde: "", fechaHasta: "", generadoPorId: "" });
   const [voluntarios, setVoluntarios] = useState([]);
@@ -18,11 +22,22 @@ function ReporteDevolucionesPage() {
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
   const [reporte, setReporte] = useState(null);
+  const [reportesGuardados, setReportesGuardados] = useState([]);
+
+  function cargarReportes() {
+    listarReportesDevoluciones()
+      .then((respuesta) => setReportesGuardados(respuesta.reportes))
+      .catch(() => setMensaje("No se pudieron cargar los reportes guardados"));
+  }
 
   useEffect(() => {
     listarVoluntarios()
       .then((respuesta) => setVoluntarios(respuesta.voluntarios))
       .catch(() => setMensaje("No se pudieron cargar los voluntarios"));
+  }, []);
+ 
+  useEffect(() => {
+    cargarReportes();
   }, []);
 
   const opcionesVoluntarios = [
@@ -34,15 +49,15 @@ function ReporteDevolucionesPage() {
   ];
 
   function cambiar(campo, valor) {
-    setValores((prev) => ({ ...prev, [campo]: valor }));
-  }
+      setValores((prev) => ({ ...prev, [campo]: valor }));
+    }
 
     async function generar(evento) {
-    evento.preventDefault();
-    setErrores({});
-    setMensaje("");
-    setReporte(null);
-    setCargando(true);
+       evento.preventDefault();
+       setErrores({});
+       setMensaje("");
+       setReporte(null);
+       setCargando(true);
 
     try {
       const respuesta = await generarReporteDevoluciones({
@@ -51,6 +66,7 @@ function ReporteDevolucionesPage() {
         generadoPorId: Number(valores.generadoPorId),
       });
       setReporte(respuesta.reporte);
+      cargarReportes();
     } catch (error) {
       if (error instanceof ApiError) {
         const erroresPorCampo = (error.detalles ?? [])
@@ -105,14 +121,14 @@ function ReporteDevolucionesPage() {
         </button>
       </form>
 
-      {mensaje && <p className="mensaje mensaje-error">{mensaje}</p>}
-       {reporte && (
-        <>
-          <p className="mensaje mensaje-exito">
+           {mensaje && <p className="mensaje mensaje-error">{mensaje}</p>}
+           {reporte && (
+            <>
+            <p className="mensaje mensaje-exito">
             Reporte generado: {reporte.totalDevoluciones} devoluciones encontradas.
-          </p>
+            </p>
 
-          <div className="tarjetas">
+            <div className="tarjetas">
             {Object.entries(reporte.resultado.porMotivo).map(([motivo, grupo]) => (
               <article key={motivo} className="tarjeta">
                 <h3>{NOMBRES_MOTIVO[motivo]} ({grupo.cantidad})</h3>
@@ -136,7 +152,28 @@ function ReporteDevolucionesPage() {
             )}
              </>
         )}
-       </section>
+        <h3>Reportes guardados</h3>
+        {reportesGuardados.length === 0 ? (
+            <p>Todavía no hay reportes guardados.</p>
+        ) : (
+            <div className="tarjetas">
+            {reportesGuardados.map((guardado) => (
+              <article key={guardado.id} className="tarjeta">
+              <h3>Reporte #{guardado.id}</h3>
+              <p>Del {formatearFecha(guardado.fechaDesde)} al {formatearFecha(guardado.fechaHasta)}</p>
+              <p>{guardado.totalDevoluciones} {guardado.totalDevoluciones === 1 ? "devolución" : "devoluciones"}</p>
+              <p>
+                Generado por {voluntarios.find((voluntario) => voluntario.id === guardado.generadoPorId)?.nombre}
+                {" el "}{new Date(guardado.createdAt).toLocaleString("es-CL")}
+              </p>
+              <button type="button" className="boton boton-secundario" onClick={() => setReporte(guardado)}>
+                Ver reporte
+              </button>
+              </article>
+        ))}
+          </div>
+        )}
+        </section>
     );
 
 }
