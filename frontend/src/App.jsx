@@ -3,6 +3,8 @@ import HomePage from "./pages/HomePage.jsx";
 import RegistroPage from "./pages/RegistroPage.jsx";
 import AlertasSanitariasPage from "./pages/AlertasSanitariasPage.jsx";
 import AdopcionPage from "./pages/AdopcionPage.jsx";
+import ReporteDevolucionesPage from "./pages/ReporteDevolucionesPage.jsx";
+
 
 function App() {
   return (
@@ -17,6 +19,7 @@ function App() {
           <Link to="/">Inicio</Link>
           <Link to="/registro">Registro</Link>
           <Link to="/adopcion">Adopcion</Link>
+          <Link to="/reportes/devoluciones">Devoluciones</Link>
         </nav>
       </header>
 
@@ -28,6 +31,7 @@ function App() {
 
           {/* Cada uno agrega su ruta aqui abajo, una linea por persona */}
           <Route path="/adopcion" element={<AdopcionPage />} />
+          <Route path="/reportes/devoluciones" element={<ReporteDevolucionesPage />} />
           <Route path="*" element={<p>Esta pagina no existe.</p>} />
         </Routes>
       </main>
