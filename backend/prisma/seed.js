@@ -3,8 +3,8 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Se borra de adentro hacia afuera: Postulacion y IngresoAnimal apuntan a las
-  // otras dos tablas, asi que tienen que irse primero.
+  // Se borra de adentro hacia afuera: primero las tablas que apuntan a otras
+  // (devoluciones, reportes, postulaciones e ingresos) y al final fichas y voluntarios.
   await prisma.reporteDevolucion.deleteMany();
   await prisma.devolucion.deleteMany();
   await prisma.postulacion.deleteMany();
@@ -105,6 +105,20 @@ async function main() {
       otrasMascotas: "Si, tiene un perro y un gato.",
     },
   });
+  await prisma.postulacion.create({
+    data: {
+      fichaAnimalId: Gretel.id,
+      nombrePostulante: "Carlos Ramirez",
+      rutPostulante: "11223344-K",
+      telefonoPostulante: "912345678",
+      tipoVivienda: "DEPARTAMENTO",
+      disponibilidadTiempo: "Trabaja desde casa",
+      estado: "RECHAZADA",
+      revisorId: Tomas.id,
+      fechaResolucion: new Date("2026-09-12"),
+      observaciones: "Postulante no tiene experiencia previa con perros y vive en un departamento pequeño.",
+    },
+  });
 
 // *---------- DEVOLUCIONES ----------*
   await prisma.devolucion.create({ 
@@ -143,6 +157,7 @@ async function main() {
 
   console.log("Seed completado");
 }
+
 
 main()
   .catch((error) => {
