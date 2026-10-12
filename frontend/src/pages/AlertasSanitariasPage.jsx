@@ -1,91 +1,38 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Campo from "../components/ui/Campo.jsx";
 import { ApiError } from "../services/api.js";
-import { previsualizarAlertas } from "../services/saludService.js";
-import {alertasFormSchema,TIPOS_ATENCION,} from "../validations/alertasValidation.js";
+import {consultarAlertasPlan,} from "../services/saludService.js";
+import {consultaAlertasFormSchema,} from "../validations/alertasPlanValidation.js";
 import "../styles/alertas.css";
 
 const etiquetas = {
-    vacuna: "Vacuna",
-    tratamiento: "Tratamiento",
-    control: "Control",
+  vacuna: "Vacuna",
+  tratamiento: "Tratamiento",
+  control: "Control",
+  desparasitacion: "Desparasitación",
+  esterilizacion: "Esterilización",
 };
 
-const opciones = TIPOS_ATENCION.map((tipo) => ({
-    valor: tipo,
-    texto: etiquetas[tipo],
-}));
-
-const nuevoEvento = (idLocal) => ({
-    idLocal,
-    animalId: "",
-    tipo: "vacuna",
-    fechaProgramada: "",
-});
-
 export default function AlertasSanitariasPage() {
-    const siguienteId = useRef(2);
-
-    const [valores, setValores] = useState({
+  const [valores, setValores] = useState({
     fechaReferencia: "",
     diasAnticipacion: "7",
-    eventos: [nuevoEvento(1)],
-});
+  });
 
   const [errores, setErrores] = useState({});
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
   const [resultado, setResultado] = useState(null);
 
-  // Evita mostrar resultados de un formulario que ya fue cambiado.
-  function limpiarVista() {
-    setResultado(null);
-    setMensaje("");
-    setErrores({});
-  }
-
   function cambiar(campo, valor) {
-    limpiarVista();
-
     setValores((prev) => ({
       ...prev,
       [campo]: valor,
     }));
-  }
 
-  function cambiarEvento(idLocal, campo, valor) {
-    limpiarVista();
-
-    setValores((prev) => ({
-      ...prev,
-      eventos: prev.eventos.map((evento) =>
-        evento.idLocal === idLocal
-          ? { ...evento, [campo]: valor }
-          : evento,
-      ),
-    }));
-  }
-
-  function agregarEvento() {
-    const evento = nuevoEvento(siguienteId.current++);
-
-    limpiarVista();
-
-    setValores((prev) => ({
-      ...prev,
-      eventos: [...prev.eventos, evento],
-    }));
-  }
-
-  function quitarEvento(idLocal) {
-    limpiarVista();
-
-    setValores((prev) => ({
-      ...prev,
-      eventos: prev.eventos.filter(
-        (evento) => evento.idLocal !== idLocal,
-      ),
-    }));
+    setResultado(null);
+    setErrores({});
+    setMensaje("");
   }
 
   async function generar(evento) {
@@ -93,9 +40,12 @@ export default function AlertasSanitariasPage() {
 
     if (cargando) return;
 
-    limpiarVista();
+    setResultado(null);
+    setErrores({});
+    setMensaje("");
 
-    const validacion = alertasFormSchema.safeParse(valores);
+    const validacion =
+      consultaAlertasFormSchema.safeParse(valores);
 
     if (!validacion.success) {
       setErrores(
@@ -103,12 +53,12 @@ export default function AlertasSanitariasPage() {
           validacion.error.issues.map((issue) => [
             issue.path.join("."),
             issue.message,
-          ]),
-        ),
+          ])
+        )
       );
 
       setMensaje(
-        "Revisa los campos indicados antes de generar la vista previa",
+        "Revisa los filtros antes de consultar las alertas."
       );
 
       return;
@@ -117,8 +67,8 @@ export default function AlertasSanitariasPage() {
     setCargando(true);
 
     try {
-      const respuesta = await previsualizarAlertas(
-        validacion.data,
+      const respuesta = await consultarAlertasPlan(
+        validacion.data
       );
 
       setResultado(respuesta);
@@ -131,19 +81,17 @@ export default function AlertasSanitariasPage() {
               .map((detalle) => [
                 detalle.campo,
                 detalle.mensaje,
-              ]),
-          ),
-        );
-
-        setMensaje(error.message);
-      } else {
-        setMensaje(
-          error instanceof TypeError
-            ? "No se pudo contactar con el servidor. Intenta nuevamente."
-            : error.message ||
-                "No se pudo generar la vista previa",
+              ])
+          )
         );
       }
+
+      setMensaje(
+        error instanceof TypeError
+          ? "No se pudo contactar con el servidor. Intenta nuevamente."
+          : error.message ||
+              "No se pudieron consultar las alertas."
+      );
     } finally {
       setCargando(false);
     }
@@ -154,8 +102,8 @@ export default function AlertasSanitariasPage() {
       <h2>Alertas sanitarias</h2>
 
       <p>
-        Agrega los eventos programados para identificar atenciones
-        vencidas o proximas.
+        Consulta las atenciones pendientes del plan sanitario
+        de los animales a cargo del refugio.
       </p>
 
       <form
@@ -164,213 +112,136 @@ export default function AlertasSanitariasPage() {
         noValidate
       >
         <fieldset
-          disabled={cargando}
           className="alertas-fieldset"
+          disabled={cargando}
         >
-          <legend>Configurar vista previa</legend>
+          <legend>Filtros de consulta</legend>
 
           <div className="formulario-campos">
             <Campo
-            etiqueta="Dias de anticipacion"
-            nombre="diasAnticipacion"
-            type="number"
-            min={0}
-            step={1}
-            valor={valores.diasAnticipacion}
-            error={errores.diasAnticipacion}
-            onChange={(e) =>
+              etiqueta="Días de anticipación"
+              nombre="diasAnticipacion"
+              type="number"
+              min={0}
+              step={1}
+              valor={valores.diasAnticipacion}
+              error={errores.diasAnticipacion}
+              onChange={(e) =>
                 cambiar("diasAnticipacion", e.target.value)
-            }
+              }
             />
 
             <Campo
-            etiqueta="Fecha de referencia (opcional)"
-            nombre="fechaReferencia"
-            type="date"
-            valor={valores.fechaReferencia}
-            error={errores.fechaReferencia}
-            onChange={(e) =>
+              etiqueta="Fecha de referencia (opcional)"
+              nombre="fechaReferencia"
+              type="date"
+              valor={valores.fechaReferencia}
+              error={errores.fechaReferencia}
+              onChange={(e) =>
                 cambiar("fechaReferencia", e.target.value)
-            }
+              }
             />
-        </div>
+          </div>
 
-        <p>
-            Si dejas la fecha vacia, se utilizara la fecha actual
-            de Chile.
-        </p>
+          <p>
+            Si dejas la fecha vacía, se utiliza la fecha
+            actual de Chile.
+          </p>
 
-        <h3>Eventos programados</h3>
-
-        <p>
-            Usa el identificador numerico del animal, por ejemplo 3.
-        </p>
-
-        {valores.eventos.map((evento, indice) => (
-            <div
-            className="alertas-evento"
-            key={evento.idLocal}
-            >
-            <h4>Evento {indice + 1}</h4>
-
-            <div className="formulario-campos">
-                <Campo
-                    etiqueta="Identificador del animal"
-                    nombre={`eventos.${indice}.animalId`}
-                    type="number"
-                    min={1}
-                    step={1}
-                    valor={evento.animalId}
-                    error={errores[`eventos.${indice}.animalId`]}
-                    onChange={(e) =>
-                    cambiarEvento(
-                    evento.idLocal,
-                    "animalId",
-                    e.target.value,
-                    )
-                  }
-                />
-
-                <Campo
-                etiqueta="Tipo de atencion"
-                nombre={`eventos.${indice}.tipo`}
-                control="select"
-                opciones={opciones}
-                valor={evento.tipo}
-                error={errores[`eventos.${indice}.tipo`]}
-                onChange={(e) =>
-                    cambiarEvento(
-                    evento.idLocal,
-                    "tipo",
-                    e.target.value,
-                    )
-                }
-                />
-
-                <Campo
-                etiqueta="Fecha programada"
-                nombre={`eventos.${indice}.fechaProgramada`}
-                type="date"
-                valor={evento.fechaProgramada}
-                error={
-                    errores[`eventos.${indice}.fechaProgramada`]
-                }
-                onChange={(e) =>
-                    cambiarEvento(
-                        evento.idLocal,
-                        "fechaProgramada",
-                        e.target.value,
-                    )
-                }
-                />
-            </div>
-
-            <button
-                className="boton boton-secundario"
-                type="button"
-                onClick={() => quitarEvento(evento.idLocal)}
-            >
-                Quitar evento
-            </button>
-            </div>
-        ))}
-
-        {valores.eventos.length === 0 && (
-            <p>No hay eventos agregados.</p>
-        )}
-
-            <div className="alertas-acciones">
-            <button
-            className="boton boton-secundario"
-            type="button"
-            onClick={agregarEvento}
-            >
-            Agregar evento
-            </button>
-
-            <button className="boton" type="submit">
+          <button className="boton" type="submit">
             {cargando
-                ? "Generando..."
-                : "Generar vista previa"}
-            </button>
-        </div>
+              ? "Consultando..."
+              : "Consultar alertas"}
+          </button>
         </fieldset>
 
         {mensaje && (
-        <p
+          <p
             className="mensaje mensaje-error"
             role="alert"
-        >
+          >
             {mensaje}
-        </p>
+          </p>
         )}
 
         {cargando && (
-            <p role="status">
-            Calculando alertas sanitarias...
-            </p>
+          <p role="status">
+            Consultando el plan sanitario...
+          </p>
         )}
-    </form>
+      </form>
 
-    {resultado && (
+      {resultado && (
         <div className="tarjeta" aria-live="polite">
-        <h3>Vista previa de alertas</h3>
+          <h3>Vista previa de alertas</h3>
 
-        <p>
+          <p>
             Fecha de referencia: {resultado.fechaReferencia}
             {" | "}
-            Anticipacion: {resultado.diasAnticipacion} dias
-        </p>
+            Anticipación: {resultado.diasAnticipacion} días
+          </p>
 
-        {resultado.alertas.length === 0 ? (
+          {resultado.alertas.length === 0 ? (
             <p>
-            No hay atenciones vencidas ni proximas para los
-            eventos proporcionados.
+              No hay atenciones vencidas ni próximas para
+              los filtros indicados.
             </p>
-            ) : (
+          ) : (
             <div className="alertas-tabla-contenedor">
-            <table className="alertas-tabla">
+              <table className="alertas-tabla">
                 <caption>
-                Alertas ordenadas de menor a mayor cantidad
-                de dias restantes
+                  Atenciones pendientes ordenadas por días
+                  restantes
                 </caption>
 
                 <thead>
-                <tr>
+                  <tr>
                     <th scope="col">Animal</th>
-                    <th scope="col">Atencion</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Atención</th>
                     <th scope="col">Fecha programada</th>
                     <th scope="col">Estado</th>
-                    <th scope="col">Dias restantes</th>
-                </tr>
+                    <th scope="col">Días restantes</th>
+                  </tr>
                 </thead>
 
                 <tbody>
-                {resultado.alertas.map((alerta, indice) => (
-                    <tr key={indice}>
-                    <td>{alerta.animalId}</td>
-                    <td>{etiquetas[alerta.tipo]}</td>
-                    <td>{alerta.fechaProgramada}</td>
+                  {resultado.alertas.map((alerta) => (
+                    <tr key={alerta.atencionId}>
+                      <td>
+                        {alerta.codigoAnimal}
+                        {" "}
+                        (ID: {alerta.animalId})
+                      </td>
 
-                    <td>
+                      <td>
+                        {alerta.nombreAnimal || "Sin nombre"}
+                      </td>
+
+                      <td>{etiquetas[alerta.tipo]}</td>
+                      <td>{alerta.fechaProgramada}</td>
+
+                      <td>
                         <span
-                        className={`alerta-estado alerta-${alerta.estado}`}
+                          className={
+                            `alerta-estado alerta-${alerta.estado}`
+                          }
                         >
-                        {alerta.estado === "vencido"
+                          {alerta.estado === "vencido"
                             ? "Vencida"
-                            : "Proxima"}
+                            : "Próxima"}
                         </span>
-                    </td>
+                      </td>
 
-                    <td>{alerta.diasRestantes}</td>
+                      <td>{alerta.diasRestantes}</td>
                     </tr>
-                ))}
+                  ))}
                 </tbody>
-                </table>
+              </table>
             </div>
-            )}
+          )}
         </div>
-        )}
+      )}
     </section>
-    );
+  );
 }

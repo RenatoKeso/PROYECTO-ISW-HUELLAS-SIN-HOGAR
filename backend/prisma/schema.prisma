@@ -53,7 +53,7 @@ model FichaAnimal {
   ingresoAnimal         IngresoAnimal[]
   postulacionesAdopcion Postulacion[]
   devoluciones          Devolucion[]
-  atencionesSanitarias AtencioneSanitaria[]
+  atencionesSanitarias  AtencionSanitaria[]
 }
 
 model IngresoAnimal {
@@ -180,13 +180,13 @@ model AtencionSanitaria {
   fichaAnimalId     Int
   fichaAnimal       FichaAnimal             @relation(fields: [fichaAnimalId], references: [id], onDelete: Restrict)
   tipo              TipoAtencionSanitaria
-  fechaProgramada   DateTime                 @db.Date
+  fechaProgramada   DateTime                @db.Date
   estado            EstadoAtencionSanitaria @default(PENDIENTE)
-  fechaRealizacion  DateTime?                @db.Date
+  fechaRealizacion  DateTime?               @db.Date
   motivoCancelacion String?
   observaciones     String?
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
 
   @@index([estado, fechaProgramada])
   @@index([fichaAnimalId, fechaProgramada])
