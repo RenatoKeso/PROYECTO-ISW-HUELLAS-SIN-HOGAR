@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,9 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// modulo animales
-
-// requisito ingreso de animales
+// MODULO DE ANIMALES
 
 enum Especie {
   PERRO
@@ -30,28 +22,29 @@ enum SexoAnimal {
 }
 
 enum EstadoEstadiaAnimal {
-  ACTIVO // esta dentro del refugio
-  ADOPTADO // ya fue adoptado
-  ESPERA_ADOPCION // esta en espera de adopcion
-  EGRESADO // ya no esta en el refugio por x motivo
-  FALLECIDO // ya no esta en el refugio por fallecimiento
-  TRANSFERIDO // transferido a otro refugio u hogar temporal
+  ACTIVO
+  ADOPTADO
+  ESPERA_ADOPCION
+  EGRESADO
+  FALLECIDO
+  TRANSFERIDO
 }
 
 model FichaAnimal {
   id            Int                 @id @default(autoincrement())
-  codigoAnimal  String              @unique // identificador en el sistema para el animal
-  nombre        String? //opcional
-  sexoAnimal    SexoAnimal //opcional  
-  especie       Especie // perro, gato, etc
-  raza          String? //inferida
-  edad          Int? //opcional inferida 
+  codigoAnimal  String              @unique
+  nombre        String?
+  sexoAnimal    SexoAnimal
+  especie       Especie
+  raza          String?
+  edad          Int?
   estadoEstadia EstadoEstadiaAnimal @default(ACTIVO)
-  observaciones String? //opcional
+  observaciones String?
   createdAt     DateTime            @default(now())
 
-  ingresoAnimal IngresoAnimal[]
+  ingresoAnimal        IngresoAnimal[]
   postulacionesAdopcion Postulacion[]
+  atencionesSanitarias AtencionSanitaria[]
 }
 
 model IngresoAnimal {
@@ -62,8 +55,8 @@ model IngresoAnimal {
   receptor            Voluntario  @relation(fields: [receptorId], references: [id])
   fechaIngreso        DateTime
   procedencia         String
-  ubicacionEncontrado String? //opcional en caso de que se haya encontado en la calle  
-  estadoSalud         String? //opcional normal/enfermo/desnutricion, etc
+  ubicacionEncontrado String?
+  estadoSalud         String?
 }
 
 model Voluntario {
@@ -78,9 +71,7 @@ model Voluntario {
   postulacionesRevisadas Postulacion[]
 }
 
-// fin modulo animales
-
-// modulo de adopcion
+// MODULO DE ADOPCION
 
 enum EstadoPostulacion {
   EN_REVISION
@@ -97,27 +88,60 @@ enum TipoVivienda {
 }
 
 model Postulacion {
-  id                 Int          @id @default(autoincrement())
-  fichaAnimalId      Int
-  fichaAnimal        FichaAnimal  @relation(fields: [fichaAnimalId], references: [id])
-  nombrePostulante   String
-  rutPostulante      String
+  id                Int          @id @default(autoincrement())
+  fichaAnimalId     Int
+  fichaAnimal       FichaAnimal  @relation(fields: [fichaAnimalId], references: [id])
+  nombrePostulante  String
+  rutPostulante     String
   telefonoPostulante String
-  emailPostulante    String?
-  revisorId          Int?
-  revisor            Voluntario?  @relation(fields: [revisorId], references: [id])
-  tipoVivienda       TipoVivienda
-  otrasMascotas      String?
+  emailPostulante   String?
+  revisorId         Int?
+  revisor           Voluntario?  @relation(fields: [revisorId], references: [id])
+  tipoVivienda      TipoVivienda
+  otrasMascotas     String?
 
   disponibilidadTiempo String
   fechaResolucion      DateTime?
   observaciones        String?
   estado               EstadoPostulacion @default(EN_REVISION)
   createdAt            DateTime          @default(now())
+  updateAt             DateTime          @updatedAt
 
   @@index([fichaAnimalId])
   @@index([estado])
   @@index([rutPostulante])
 }
 
-//fin modulo adopcion
+// PLAN SANITARIO
+// Cada atención está asociada a la ficha de un animal.
+
+enum TipoAtencionSanitaria {
+  vacuna
+  tratamiento
+  control
+  desparasitacion
+  esterilizacion
+}
+
+enum EstadoAtencionSanitaria {
+  PENDIENTE
+  REALIZADA
+  CANCELADA
+}
+
+model AtencionSanitaria {
+  id                Int                     @id @default(autoincrement())
+  fichaAnimalId     Int
+  fichaAnimal       FichaAnimal             @relation(fields: [fichaAnimalId], references: [id], onDelete: Restrict)
+  tipo              TipoAtencionSanitaria
+  fechaProgramada   DateTime                 @db.Date
+  estado            EstadoAtencionSanitaria @default(PENDIENTE)
+  fechaRealizacion  DateTime?                @db.Date
+  motivoCancelacion String?
+  observaciones     String?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  @@index([estado, fechaProgramada])
+  @@index([fichaAnimalId, fechaProgramada])
+}
