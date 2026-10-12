@@ -17,6 +17,9 @@ function HomePage() {
               si viste un animal abandonado, o sumate como voluntario del
               refugio.
             </p>
+            <Link to="/adopcion" className="boton">
+              Ver animales en adopción
+            </Link>
           </div>
 
           <img src={perritos} alt="Perros del refugio" className="hero-foto" />

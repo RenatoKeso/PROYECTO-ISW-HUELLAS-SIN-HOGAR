@@ -3,8 +3,10 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Se borra de adentro hacia afuera: Postulacion y IngresoAnimal apuntan a las
-  // otras dos tablas, asi que tienen que irse primero.
+  // Se borra de adentro hacia afuera: primero las tablas que apuntan a otras
+  // (devoluciones, reportes, postulaciones e ingresos) y al final fichas y voluntarios.
+  await prisma.reporteDevolucion.deleteMany();
+  await prisma.devolucion.deleteMany();
   await prisma.postulacion.deleteMany();
   await prisma.ingresoAnimal.deleteMany();
   await prisma.fichaAnimal.deleteMany();
@@ -76,10 +78,10 @@ async function main() {
 
   // ---------- POSTULACIONES ----------
 
-  await prisma.postulacion.create({
+  const postulacionNicolas = await prisma.postulacion.create({
     data: {
       fichaAnimalId: Gretel.id,
-      nombrePostulante: "Juan Perez",
+      nombrePostulante: "Nicolas Chamorro",
       rutPostulante: "12345678-9",
       telefonoPostulante: "912345678",
       tipoVivienda: "DEPARTAMENTO",
@@ -87,10 +89,10 @@ async function main() {
     },
   });
 
-  await prisma.postulacion.create({
+  const postulacionEsperanza = await prisma.postulacion.create({
     data: {
       fichaAnimalId: Gretel.id,
-      nombrePostulante: "Maria Gonzalez",
+      nombrePostulante: "Esperanza Pereira",
       rutPostulante: "98765432-1",
       telefonoPostulante: "987654321",
       tipoVivienda: "CASA",
@@ -99,13 +101,63 @@ async function main() {
       revisorId: Martina.id,
       fechaResolucion: new Date("2026-09-10"),
       observaciones: "Postulante tiene experiencia previa con perros y cuenta con un espacio adecuado para su cuidado.",
-      emailPostulante: "benja@gmail.com",
+      emailPostulante: "Espe@gmail.com",
       otrasMascotas: "Si, tiene un perro y un gato.",
     },
   });
+  await prisma.postulacion.create({
+    data: {
+      fichaAnimalId: Gretel.id,
+      nombrePostulante: "Carlos Ramirez",
+      rutPostulante: "11223344-K",
+      telefonoPostulante: "912345678",
+      tipoVivienda: "DEPARTAMENTO",
+      disponibilidadTiempo: "Trabaja desde casa",
+      estado: "RECHAZADA",
+      revisorId: Tomas.id,
+      fechaResolucion: new Date("2026-09-12"),
+      observaciones: "Postulante no tiene experiencia previa con perros y vive en un departamento pequeño.",
+    },
+  });
+
+// *---------- DEVOLUCIONES ----------*
+  await prisma.devolucion.create({ 
+   data: {  
+      fichaAnimalId: Gretel.id,
+      receptorId: Martina.id,
+      postulacionId: postulacionEsperanza.id,
+      fechaDevolucion: new Date("2026-09-09"),
+      motivo: "COMPORTAMIENTO",
+      detalle: "Mordio a un vecino",
+    },
+  });
+
+  await prisma.devolucion.create({ 
+   data: {  
+      fichaAnimalId: Gretel.id,
+      receptorId: Martina.id,
+      postulacionId: postulacionNicolas.id,
+      fechaDevolucion: new Date("2026-07-21"),
+      motivo: "COMPORTAMIENTO",
+      detalle: "El perro mostraba signos de agresividad hacia otros animales.",
+    },
+  });
+
+  await prisma.devolucion.create({ 
+   data: {  
+      fichaAnimalId: Galileo.id,
+      receptorId: Tomas.id,
+      postulacionId: postulacionNicolas.id,
+      fechaDevolucion: new Date("2026-08-17"),
+      motivo: "SALUD",
+      detalle: "El gato presentaba problemas de salud que no fueron detectados durante la adopción.",
+    },
+  });
+
 
   console.log("Seed completado");
 }
+
 
 main()
   .catch((error) => {
