@@ -3,6 +3,7 @@ import Campo from "../components/ui/Campo.jsx";
 import { ApiError } from "../services/api.js";
 import { listarVoluntarios } from "../services/voluntariosService.js";
 import { generarReporteDevoluciones, listarReportesDevoluciones } from "../services/reporteDevolucionService.js";
+import "../styles/reporteDevoluciones.css";
 
 const NOMBRES_MOTIVO = {
   COMPORTAMIENTO: "Comportamiento",
@@ -36,6 +37,8 @@ function ReporteDevolucionesPage() {
   const [reporte, setReporte] = useState(null);
   const [reportesGuardados, setReportesGuardados] = useState([]);
   const [fichaAbierta, setFichaAbierta] = useState(null);
+  const [pantalla, setPantalla] = useState("portada");
+  const [pestana, setPestana] = useState("generar");
 
   function cargarReportes() {
     listarReportesDevoluciones()
@@ -95,106 +98,170 @@ function ReporteDevolucionesPage() {
     }
   }
 
-    return (
-      <section className="bloque">
-      <h2>Reporte de devoluciones</h2>
-      <p>Elige un rango de fechas para ver las devoluciones agrupadas por motivo.</p>
+  return (
+          <section className="bloque devoluciones">
+          {pantalla === "portada" && (
+          <div className="portada">
+          <h2>Devoluciones</h2>
+          <p className="bajada">¿Qué quieres hacer hoy?</p>
+          <div className="opciones">
+          <button type="button" className="opcion" onClick={() => setPantalla("registrar")}>
+          <span className="opcion-icono">🐾</span>
+          <span className="opcion-titulo">Registrar devolución</span>
+          <span className="opcion-texto">Anota cuando un animal vuelve al refugio, con su motivo.</span>
+          </button>
+          <button type="button" className="opcion opcion-cafe" onClick={() => setPantalla("reporte")}>
+          <span className="opcion-icono">📋</span>
+          <span className="opcion-titulo">Generar reporte</span>
+          <span className="opcion-texto">Revisa las devoluciones por fecha y motivo, y los reportes guardados.</span>
+         </button>
+    </div>
+  </div>
+)}
+{pantalla === "registrar" && (
+  <div className="pantalla">
+    <button type="button" className="volver" onClick={() => setPantalla("portada")}>← Volver</button>
+    <h2>Registrar devolución</h2>
+    <p className="bajada">Esta parte todavía no está disponible.</p>
+  </div>
+)}
+      {pantalla === "reporte" && (
+        <div className="pantalla">
+          <button type="button" className="volver" onClick={() => setPantalla("portada")}>← Volver</button>
+          <h2>Reporte de devoluciones</h2>
+          <p className="bajada">Revisa las devoluciones registradas en un rango de fechas.</p>
 
-      <form className="formulario" onSubmit={generar} noValidate>
-        <div className="formulario-campos">
-          <Campo
-            etiqueta="Desde"
-            nombre="fechaDesde"
-            type="date"
-            valor={valores.fechaDesde}
-            error={errores.fechaDesde}
-            onChange={(e) => cambiar("fechaDesde", e.target.value)}
-          />
-          <Campo
-            etiqueta="Hasta"
-            nombre="fechaHasta"
-            type="date"
-            valor={valores.fechaHasta}
-            error={errores.fechaHasta}
-            onChange={(e) => cambiar("fechaHasta", e.target.value)}
-          />
-          <Campo
-            etiqueta="Generado por"
-            nombre="generadoPorId"
-            control="select"
-            opciones={opcionesVoluntarios}
-            valor={valores.generadoPorId}
-            error={errores.generadoPorId}
-            onChange={(e) => cambiar("generadoPorId", e.target.value)}
-          />
-        </div>
-
-        <button type="submit" className="boton" disabled={cargando}>
-          {cargando ? "Generando..." : "Generar reporte"}
-        </button>
-      </form>
-
-           {mensaje && <p className="mensaje mensaje-error">{mensaje}</p>}
-           {reporte && (
-            <>
-            <p className="mensaje mensaje-exito">
-            Reporte generado: {reporte.totalDevoluciones} devoluciones encontradas.
-            </p>
-
-           <div className="tarjetas">
-             {Object.entries(reporte.resultado.porMotivo).flatMap(([motivo, grupo]) =>
-              grupo.devoluciones.map((devolucion, indice) => (
-                 <article key={`${motivo}-${indice}`} className="tarjeta tarjeta-devolucion">
-                 <h3>{devolucion.animal}</h3>
-                 <p><strong>Fecha:</strong> {formatearFecha(devolucion.fecha)}</p>
-                 <p><strong>Motivo:</strong> {NOMBRES_MOTIVO[motivo]}</p>
-                  <p><strong>Recibió:</strong> {devolucion.receptor ?? "Sin registrar"}</p>
-                 <p><strong>Devolvió:</strong> {devolucion.postulante ?? "Sin registrar"}</p>
-                {devolucion.ficha && (
-                 <button type="button" className="boton boton-secundario" onClick={() => setFichaAbierta(devolucion)}>
-                Ver ficha
-               </button>
-              )}
-              </article>
-              ))
-                )}
-            </div>
-                <h3>Animales devueltos más de una vez por el mismo motivo</h3>
-                {reporte.resultado.repetidos.length === 0 ? (
-                    <p>No hay animales repetidos en este rango.</p>
-                ) : (
-                reporte.resultado.repetidos.map((repetido) => (
-                     <p key={`${repetido.codigoAnimal}-${repetido.motivo}`} className="mensaje mensaje-error">
-                    ⚠️ {repetido.animal} fue devuelto {repetido.cantidad} veces por {NOMBRES_MOTIVO[repetido.motivo]}
-                 </p>
-                ))
-            )}
-             </>
-        )}
-        <h3>Reportes guardados</h3>
-        {reportesGuardados.length === 0 ? (
-            <p>Todavía no hay reportes guardados.</p>
-        ) : (
-            <div className="tarjetas">
-            {reportesGuardados.map((guardado) => (
-              <article key={guardado.id} className="tarjeta">
-              <h3>Reporte #{guardado.id}</h3>
-              <p>Del {formatearFecha(guardado.fechaDesde)} al {formatearFecha(guardado.fechaHasta)}</p>
-              <p>{guardado.totalDevoluciones} {guardado.totalDevoluciones === 1 ? "devolución" : "devoluciones"}</p>
-              <p>
-                Generado por {voluntarios.find((voluntario) => voluntario.id === guardado.generadoPorId)?.nombre}
-                {" el "}{new Date(guardado.createdAt).toLocaleString("es-CL")}
-              </p>
-              <button type="button" className="boton boton-secundario" onClick={() => setReporte(guardado)}>
-                Ver reporte
-              </button>
-              </article>
-        ))}
+          <div className="pestanas">
+            <button
+              type="button"
+              className={pestana === "generar" ? "pestana activa" : "pestana"}
+              onClick={() => setPestana("generar")}
+            >
+              Generar reporte
+            </button>
+            <button
+              type="button"
+              className={pestana === "guardados" ? "pestana activa" : "pestana"}
+              onClick={() => setPestana("guardados")}
+            >
+              Reportes guardados
+            </button>
           </div>
-        )}
-        {fichaAbierta && (
+
+          {pestana === "generar" && (
+            <>
+              <form className="formulario" onSubmit={generar} noValidate>
+                <div className="formulario-campos">
+                  <Campo
+                    etiqueta="Desde"
+                    nombre="fechaDesde"
+                    type="date"
+                    valor={valores.fechaDesde}
+                    error={errores.fechaDesde}
+                    onChange={(e) => cambiar("fechaDesde", e.target.value)}
+                  />
+                  <Campo
+                    etiqueta="Hasta"
+                    nombre="fechaHasta"
+                    type="date"
+                    valor={valores.fechaHasta}
+                    error={errores.fechaHasta}
+                    onChange={(e) => cambiar("fechaHasta", e.target.value)}
+                  />
+                  <Campo
+                    etiqueta="Generado por"
+                    nombre="generadoPorId"
+                    control="select"
+                    opciones={opcionesVoluntarios}
+                    valor={valores.generadoPorId}
+                    error={errores.generadoPorId}
+                    onChange={(e) => cambiar("generadoPorId", e.target.value)}
+                  />
+                </div>
+
+                <button type="submit" className="boton" disabled={cargando}>
+                  {cargando ? "Generando..." : "Generar reporte"}
+                </button>
+              </form>
+
+              {reporte && (
+                <>
+                  <p className="mensaje mensaje-exito">
+                    Reporte generado: {reporte.totalDevoluciones} devoluciones encontradas.
+                  </p>
+
+                  <div className="tarjetas">
+                    {Object.entries(reporte.resultado.porMotivo).flatMap(([motivo, grupo]) =>
+                      grupo.devoluciones.map((devolucion, indice) => (
+                        <article key={`${motivo}-${indice}`} className="tarjeta tarjeta-devolucion">
+                          <h3>{devolucion.animal}</h3>
+                          <p><strong>Fecha:</strong> {formatearFecha(devolucion.fecha)}</p>
+                          <p><strong>Motivo:</strong> {NOMBRES_MOTIVO[motivo]}</p>
+                          <p><strong>Recibió:</strong> {devolucion.receptor ?? "Sin registrar"}</p>
+                          <p><strong>Devolvió:</strong> {devolucion.postulante ?? "Sin registrar"}</p>
+                          {devolucion.ficha && (
+                            <button type="button" className="boton boton-secundario" onClick={() => setFichaAbierta(devolucion)}>
+                              Ver ficha
+                            </button>
+                          )}
+                        </article>
+                      ))
+                    )}
+                  </div>
+
+                  <h3>Animales devueltos más de una vez por el mismo motivo</h3>
+                  {reporte.resultado.repetidos.length === 0 ? (
+                    <p>No hay animales repetidos en este rango.</p>
+                  ) : (
+                    reporte.resultado.repetidos.map((repetido) => (
+                      <p key={`${repetido.codigoAnimal}-${repetido.motivo}`} className="mensaje mensaje-error">
+                        ⚠️ {repetido.animal} fue devuelto {repetido.cantidad} veces por {NOMBRES_MOTIVO[repetido.motivo]}
+                      </p>
+                    ))
+                  )}
+                </>
+              )}
+            </>
+          )}
+
+          {pestana === "guardados" && (
+            reportesGuardados.length === 0 ? (
+              <p>Todavía no hay reportes guardados.</p>
+            ) : (
+              <div className="tarjetas">
+                {reportesGuardados.map((guardado) => (
+                  <article key={guardado.id} className="tarjeta">
+                    <h3>Reporte #{guardado.id}</h3>
+                    <p>Del {formatearFecha(guardado.fechaDesde)} al {formatearFecha(guardado.fechaHasta)}</p>
+                    <p>{guardado.totalDevoluciones} {guardado.totalDevoluciones === 1 ? "devolución" : "devoluciones"}</p>
+                    <p>
+                      Generado por {voluntarios.find((voluntario) => voluntario.id === guardado.generadoPorId)?.nombre}
+                      {" el "}{new Date(guardado.createdAt).toLocaleString("es-CL")}
+                    </p>
+                    <button
+                      type="button"
+                      className="boton boton-secundario"
+                      onClick={() => {
+                        setReporte(guardado);
+                        setPestana("generar");
+                      }}
+                    >
+                      Ver reporte
+                    </button>
+                  </article>
+                ))}
+              </div>
+            )
+          )}
+
+          {mensaje && <p className="mensaje mensaje-error">{mensaje}</p>}
+        </div>
+      )}
+
+    {fichaAbierta && (
            <div className="fondo-ficha" onClick={() => setFichaAbierta(null)}>
            <div className="ficha-animal" onClick={(e) => e.stopPropagation()}>
+          <div className="cabecera-ficha"></div>
            <button type="button" className="cerrar-ficha" onClick={() => setFichaAbierta(null)}>✕</button>
            <div className="avatar-ficha">{EMOJI_ESPECIE[fichaAbierta.ficha.especie]}</div>
            <h3>{fichaAbierta.animal}</h3>
