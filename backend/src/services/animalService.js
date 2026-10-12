@@ -103,7 +103,12 @@ async function registrarReingresoPorDevolucion({ ingreso }, dependencias) {
       cliente,
     );
 
-    return fichaEncontrada;
+    // El reingreso vuelve a poner al animal a cargo del refugio.
+    return dependencias.actualizarFichaAnimal(
+    fichaEncontrada.id,
+    { estadoEstadia: "ACTIVO" },
+    cliente
+);
   }, dependencias);
 
   return { ficha: fichaExistente, reingreso: true };

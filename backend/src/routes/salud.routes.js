@@ -1,13 +1,24 @@
 import { Router } from "express";
-import { previsualizarAlertas } from "../controllers/salud.controller.js";
-import { TIPOS } from "../services/alertasSanitarias.service.js";
+import {previsualizarAlertas,} from "../controllers/salud.controller.js";
 
-const router = Router();
+import {crearConsultaAlertasPlan,} from "../controllers/alertasPlan.controller.js";
+import {TIPOS,} from "../services/alertasSanitarias.service.js";
 
-router.get("/tipos", (request, response) => {
+export function crearSaludRouter({ consultar } = {}) {
+    const router = Router();
+
+    router.get("/tipos", (request, response) => {
     response.json({ tipos: [...TIPOS] });
 });
 
-router.post("/alertas/preview", previsualizarAlertas);
+    router.post("/alertas/preview", previsualizarAlertas);
 
-export default router;
+    router.get(
+    "/alertas",
+    crearConsultaAlertasPlan(consultar)
+);
+
+    return router;
+}
+
+export default crearSaludRouter();
