@@ -53,6 +53,7 @@ model FichaAnimal {
   ingresoAnimal         IngresoAnimal[]
   postulacionesAdopcion Postulacion[]
   devoluciones          Devolucion[]
+  atencionesSanitarias AtencioneSanitaria[]
 }
 
 model IngresoAnimal {
@@ -158,4 +159,35 @@ model ReporteDevolucion {
   generadoPorId     Int
   generadoPor       Voluntario @relation(fields: [generadoPorId], references: [id])
   createdAt         DateTime   @default(now())
+}
+
+enum TipoAtencionSanitaria {
+  vacuna
+  tratamiento
+  control
+  desparasitacion
+  esterilizacion
+}
+
+enum EstadoAtencionSanitaria {
+  PENDIENTE
+  REALIZADA
+  CANCELADA
+}
+
+model AtencionSanitaria {
+  id                Int                     @id @default(autoincrement())
+  fichaAnimalId     Int
+  fichaAnimal       FichaAnimal             @relation(fields: [fichaAnimalId], references: [id], onDelete: Restrict)
+  tipo              TipoAtencionSanitaria
+  fechaProgramada   DateTime                 @db.Date
+  estado            EstadoAtencionSanitaria @default(PENDIENTE)
+  fechaRealizacion  DateTime?                @db.Date
+  motivoCancelacion String?
+  observaciones     String?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  @@index([estado, fechaProgramada])
+  @@index([fichaAnimalId, fechaProgramada])
 }
