@@ -11,6 +11,18 @@ const NOMBRES_MOTIVO = {
   OTRO: "Otro",
 };
 
+const NOMBRES_ESPECIE = { PERRO: "Perro", GATO: "Gato", OTRO: "Otro" };
+const EMOJI_ESPECIE = { PERRO: "🐶", GATO: "🐱", OTRO: "🐾" };
+const NOMBRES_SEXO = { MACHO: "Macho", HEMBRA: "Hembra", DESCONOCIDO: "Desconocido" };
+const NOMBRES_ESTADO = {
+  ACTIVO: "En el refugio",
+  ESPERA_ADOPCION: "Esperando adopción",
+  ADOPTADO: "Adoptado",
+  EGRESADO: "Egresado",
+  FALLECIDO: "Fallecido",
+  TRANSFERIDO: "Transferido",
+};
+
 function formatearFecha(fecha) {
   return new Date(fecha).toLocaleDateString("es-CL", { timeZone: "UTC" });
 }
@@ -23,6 +35,7 @@ function ReporteDevolucionesPage() {
   const [cargando, setCargando] = useState(false);
   const [reporte, setReporte] = useState(null);
   const [reportesGuardados, setReportesGuardados] = useState([]);
+  const [fichaAbierta, setFichaAbierta] = useState(null);
 
   function cargarReportes() {
     listarReportesDevoluciones()
@@ -128,18 +141,24 @@ function ReporteDevolucionesPage() {
             Reporte generado: {reporte.totalDevoluciones} devoluciones encontradas.
             </p>
 
-            <div className="tarjetas">
-            {Object.entries(reporte.resultado.porMotivo).map(([motivo, grupo]) => (
-              <article key={motivo} className="tarjeta">
-                <h3>{NOMBRES_MOTIVO[motivo]} ({grupo.cantidad})</h3>
-                {grupo.devoluciones.map((devolucion, indice) => (
-                  <p key={indice}>
-                    {devolucion.animal} · {new Date(devolucion.fecha).toLocaleDateString("es-CL", { timeZone: "UTC" })}
-                  </p>
-                ))}
+           <div className="tarjetas">
+             {Object.entries(reporte.resultado.porMotivo).flatMap(([motivo, grupo]) =>
+              grupo.devoluciones.map((devolucion, indice) => (
+                 <article key={`${motivo}-${indice}`} className="tarjeta tarjeta-devolucion">
+                 <h3>{devolucion.animal}</h3>
+                 <p><strong>Fecha:</strong> {formatearFecha(devolucion.fecha)}</p>
+                 <p><strong>Motivo:</strong> {NOMBRES_MOTIVO[motivo]}</p>
+                  <p><strong>Recibió:</strong> {devolucion.receptor ?? "Sin registrar"}</p>
+                 <p><strong>Devolvió:</strong> {devolucion.postulante ?? "Sin registrar"}</p>
+                {devolucion.ficha && (
+                 <button type="button" className="boton boton-secundario" onClick={() => setFichaAbierta(devolucion)}>
+                Ver ficha
+               </button>
+              )}
               </article>
-            ))}
-             </div>
+              ))
+                )}
+            </div>
                 <h3>Animales devueltos más de una vez por el mismo motivo</h3>
                 {reporte.resultado.repetidos.length === 0 ? (
                     <p>No hay animales repetidos en este rango.</p>
@@ -173,8 +192,25 @@ function ReporteDevolucionesPage() {
         ))}
           </div>
         )}
+        {fichaAbierta && (
+           <div className="fondo-ficha" onClick={() => setFichaAbierta(null)}>
+           <div className="ficha-animal" onClick={(e) => e.stopPropagation()}>
+           <button type="button" className="cerrar-ficha" onClick={() => setFichaAbierta(null)}>✕</button>
+           <div className="avatar-ficha">{EMOJI_ESPECIE[fichaAbierta.ficha.especie]}</div>
+           <h3>{fichaAbierta.animal}</h3>
+           <span className="codigo-ficha">{fichaAbierta.codigoAnimal}</span>
+           <div className="datos-ficha">
+            <div><small>Especie</small><p>{NOMBRES_ESPECIE[fichaAbierta.ficha.especie]}</p></div>
+            <div><small>Sexo</small><p>{NOMBRES_SEXO[fichaAbierta.ficha.sexo]}</p></div>
+            <div><small>Raza</small><p>{fichaAbierta.ficha.raza ?? "Sin registrar"}</p></div>
+            <div><small>Edad</small><p>{fichaAbierta.ficha.edad != null ? `${fichaAbierta.ficha.edad} ${fichaAbierta.ficha.edad === 1 ? "año" : "años"}` : "Sin registrar"}</p></div>
+           </div>
+           <span className="estado-ficha">{NOMBRES_ESTADO[fichaAbierta.ficha.estado]}</span>
+          </div>
+         </div>
+       )}
         </section>
-    );
+    );  
 
 }
 export default ReporteDevolucionesPage;
