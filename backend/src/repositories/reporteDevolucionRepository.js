@@ -21,3 +21,7 @@ export async function listarReportesDevolucion(cliente = prisma) {
     orderBy: { createdAt: "desc" },
   });
 }
+
+export async function buscarVoluntarioPorId(id, cliente = prisma) {
+  return cliente.voluntario.findUnique({ where: { id } });
+}
