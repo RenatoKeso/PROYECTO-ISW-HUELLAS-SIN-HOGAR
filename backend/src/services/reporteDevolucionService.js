@@ -1,5 +1,8 @@
+
+import { ZodError } from "zod";
 import {
   buscarDevolucionesPorFecha,
+  buscarVoluntarioPorId,
   guardarReporteDevolucion,
   listarReportesDevolucion,
 } from "../repositories/reporteDevolucionRepository.js";
@@ -54,8 +57,15 @@ function buscarRepetidos(devoluciones) {
 }
 
 export async function generarReporteDevoluciones({ fechaDesde, fechaHasta, generadoPorId }) {
-  const devoluciones = await buscarDevolucionesPorFecha(fechaDesde, finDelDia(fechaHasta));
+  const voluntario = await buscarVoluntarioPorId(generadoPorId);
 
+  if (!voluntario) {
+    throw new ZodError([
+      { code: "custom", path: ["generadoPorId"], message: "El voluntario seleccionado no existe" },
+    ]);
+  }
+
+  const devoluciones = await buscarDevolucionesPorFecha(fechaDesde, finDelDia(fechaHasta));
   const resultado = {
     porMotivo: agruparPorMotivo(devoluciones),
     repetidos: buscarRepetidos(devoluciones),
