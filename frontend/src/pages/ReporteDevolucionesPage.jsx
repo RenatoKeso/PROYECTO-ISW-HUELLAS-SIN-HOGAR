@@ -48,6 +48,37 @@ function contarPorMotivo(devoluciones) {
   return conteo;
 }
 
+// Arma una ficha por animal con todas sus devoluciones de los reportes guardados
+function agruparPorAnimal(reportes) {
+  const vistas = new Set();
+  const animales = {};
+
+  reportes.forEach((reporte) => {
+    devolucionesDelReporte(reporte).forEach((devolucion) => {
+      const clave = `${devolucion.codigoAnimal}-${devolucion.fecha}-${devolucion.motivo}`;
+      if (vistas.has(clave)) return;
+      vistas.add(clave);
+
+      if (!animales[devolucion.codigoAnimal]) {
+        animales[devolucion.codigoAnimal] = {
+          animal: devolucion.animal,
+          codigoAnimal: devolucion.codigoAnimal,
+          ficha: null,
+          devoluciones: [],
+        };
+      }
+      const datosAnimal = animales[devolucion.codigoAnimal];
+      if (devolucion.ficha) datosAnimal.ficha = devolucion.ficha;
+      datosAnimal.devoluciones.push(devolucion);
+    });
+  });
+
+  return Object.values(animales).map((datosAnimal) => ({
+    ...datosAnimal,
+    devoluciones: datosAnimal.devoluciones.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)),
+  }));
+}
+
 function ReporteDevolucionesPage() {
   const [valores, setValores] = useState({ fechaDesde: "", fechaHasta: "", generadoPorId: "" });
   const [voluntarios, setVoluntarios] = useState([]);
@@ -84,6 +115,8 @@ function ReporteDevolucionesPage() {
     })),
   ];
 
+  const animales = agruparPorAnimal(reportesGuardados);
+
   function cambiar(campo, valor) {
       setValores((prev) => ({ ...prev, [campo]: valor }));
     }
@@ -104,6 +137,28 @@ function ReporteDevolucionesPage() {
   function cerrarVentana() {
     setVentana(null);
     setFichaAbierta(null);
+  }
+
+  function abrirReporteAnimal(datosAnimal) {
+    const repetidos = Object.entries(contarPorMotivo(datosAnimal.devoluciones))
+      .filter(([, cantidad]) => cantidad > 1)
+      .map(([motivo, cantidad]) => ({
+        animal: datosAnimal.animal,
+        codigoAnimal: datosAnimal.codigoAnimal,
+        motivo,
+        cantidad,
+      }));
+
+    setVentana({
+      icono: EMOJI_ESPECIE[datosAnimal.ficha?.especie] ?? "🐾",
+      titulo: `Reporte de ${datosAnimal.animal}`,
+      subtitulo: datosAnimal.codigoAnimal,
+      devoluciones: datosAnimal.devoluciones,
+      repetidos,
+      mostrarNombres: false,
+      animal: datosAnimal.ficha ? datosAnimal : null,
+      pie: "",
+    });
   }
 
     async function generar(evento) {
@@ -224,24 +279,21 @@ function ReporteDevolucionesPage() {
           )}
 
           {pestana === "guardados" && (
-            reportesGuardados.length === 0 ? (
-              <p>Todavía no hay reportes guardados.</p>
+            animales.length === 0 ? (
+              <p className="bajada">Todavía no hay reportes guardados.</p>
             ) : (
-              <div className="tarjetas">
-                {reportesGuardados.map((guardado) => (
-                  <article key={guardado.id} className="tarjeta">
-                    <h3>Reporte #{guardado.id}</h3>
-                    <p>Del {formatearFecha(guardado.fechaDesde)} al {formatearFecha(guardado.fechaHasta)}</p>
-                    <p>{guardado.totalDevoluciones} {guardado.totalDevoluciones === 1 ? "devolución" : "devoluciones"}</p>
-                    <p>
-                      Generado por {voluntarios.find((voluntario) => voluntario.id === guardado.generadoPorId)?.nombre}
-                      {" el "}{new Date(guardado.createdAt).toLocaleString("es-CL")}
-                    </p>
-                    <button
-                      type="button"
-                      className="boton boton-secundario"
-                      onClick={() => abrirReporteGenerado(guardado)}
-                    >
+              <div className="lista-animales">
+                {animales.map((datosAnimal) => (
+                  <article key={datosAnimal.codigoAnimal} className="fila-animal">
+                    <div className="avatar-fila">{EMOJI_ESPECIE[datosAnimal.ficha?.especie] ?? "🐾"}</div>
+                    <div className="info-fila">
+                      <h3>{datosAnimal.animal}</h3>
+                      <p>
+                        {datosAnimal.codigoAnimal} · {textoDevoluciones(datosAnimal.devoluciones.length)} · última el{" "}
+                        {formatearFecha(datosAnimal.devoluciones[datosAnimal.devoluciones.length - 1].fecha)}
+                      </p>
+                    </div>
+                    <button type="button" className="boton boton-secundario" onClick={() => abrirReporteAnimal(datosAnimal)}>
                       Ver reporte
                     </button>
                   </article>
