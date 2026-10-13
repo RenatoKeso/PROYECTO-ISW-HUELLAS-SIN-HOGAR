@@ -61,27 +61,48 @@ body {
 }
 
 .marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
   font-family: var(--serif);
-  font-size: 1.2rem;
+  font-size: 1.8rem;
   font-weight: 600;
-  color: var(--verde);
+  color: #56643f;
   text-decoration: none;
+}
+
+.marca::before {
+  content: "🐾";
+  display: grid;
+  place-items: center;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  background: #d6c9ae;
+  font-size: 1.35rem;
 }
 
 .barra nav {
   display: flex;
-  gap: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
 .barra nav a {
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  background: #fffdf9;
+  color: #56643f;
   font-family: var(--mono);
   font-size: 0.8rem;
-  color: var(--texto-suave);
   text-decoration: none;
+  box-shadow: 0 4px 12px rgba(86, 100, 63, 0.12);
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .barra nav a:hover {
-  color: var(--terracota);
+  background: #d6c9ae;
+  transform: translateY(-2px);
 }
 
 /* ---------- PORTADA ---------- */
