@@ -594,6 +594,170 @@
   color: var(--cafe-suave);
 }
 
+/* ---------- Decoración de la portada ---------- */
+.decoracion {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  padding: 2.25rem 2rem;
+  border-radius: 26px;
+  background: var(--rosado);
+  box-shadow: inset 0 -10px 0 var(--rosado-oscuro);
+}
+
+.huella {
+  position: absolute;
+  font-size: 2.6rem;
+  opacity: 0.2;
+  filter: grayscale(1) sepia(1);
+}
+
+.huella-1 {
+  top: 14px;
+  left: 62%;
+  transform: rotate(-20deg);
+}
+
+.huella-2 {
+  bottom: -8px;
+  left: 70%;
+  transform: rotate(15deg);
+}
+
+.huella-3 {
+  top: 12px;
+  right: 4%;
+  transform: rotate(35deg);
+}
+
+.decoracion-texto {
+  position: relative;
+  flex: 1 1 320px;
+  max-width: 640px;
+}
+
+.decoracion-titulo {
+  margin: 0 0 0.4rem;
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--cafe);
+}
+
+.decoracion-bajada {
+  margin: 0;
+  color: var(--cafe-suave);
+}
+
+.mascotas {
+  position: relative;
+  align-self: flex-end;
+  width: 460px;
+  max-width: 100%;
+  margin-bottom: calc(-2.25rem + 10px);
+}
+
+/* Patitas decorativas en el fondo de la página */
+.huellas-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.huella-fondo {
+  position: absolute;
+  font-size: 2.4rem;
+  opacity: 0.2;
+  filter: grayscale(1) sepia(1);
+}
+
+/* Caritas de mascotas dibujadas a los lados */
+.carita {
+  position: absolute;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 6px var(--blanco-dev), 0 0 0 12px var(--rosado), 0 16px 30px rgba(85, 56, 32, 0.16);
+}
+
+.f1 { top: 15%; left: 4.5%; transform: rotate(-6deg); }
+.f2 { top: 54%; left: 9%; width: 135px; height: 135px; transform: rotate(6deg); }
+.f3 { top: 18%; right: 8%; width: 135px; height: 135px; transform: rotate(6deg); }
+.f4 { top: 50%; right: 4%; transform: rotate(-5deg); }
+
+/* Patitas entre las caritas */
+.h1 { top: 42%; left: 3%; transform: rotate(-20deg); }
+.h2 { top: 82%; left: 6%; transform: rotate(10deg); }
+.h3 { top: 40%; right: 3%; transform: rotate(20deg); }
+.h4 { top: 82%; right: 9%; transform: rotate(-10deg); }
+
+/* En pantallas chicas no hay espacio a los lados */
+@media (max-width: 1350px) {
+  .huellas-fondo {
+    display: none;
+  }
+}
+
+/* Fila de mascotas abajo en la pantalla del reporte, de borde a borde */
+.app:has(.fila-mascotas) {
+  overflow-x: clip;
+}
+
+.contenido:has(.fila-mascotas) {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+.devoluciones:has(.fila-mascotas) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.fila-mascotas {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-top: auto;
+  padding-top: 8rem;
+  overflow: hidden;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Las mascotas se ven suaves, como una sombra */
+.fila-mascotas img {
+  flex: 0 0 auto;
+  width: 70vw;
+  height: auto;
+  display: block;
+  opacity: 0.3;
+}
+
+/* Patitas que caminan sobre las mascotas */
+.patita {
+  position: absolute;
+  font-size: 2.8rem;
+  opacity: 0.28;
+  filter: grayscale(1) sepia(1);
+}
+
+.p1 { top: 1.5rem; left: 6%; transform: rotate(-15deg); }
+.p2 { top: 4rem; left: 20%; transform: rotate(10deg); }
+.p3 { top: 0.5rem; left: 36%; transform: rotate(-8deg); }
+.p4 { top: 3.5rem; left: 58%; transform: rotate(15deg); }
+.p5 { top: 0.5rem; left: 76%; transform: rotate(-12deg); }
+.p6 { top: 4rem; left: 90%; transform: rotate(8deg); }
+
 @media (prefers-reduced-motion: reduce) {
   .opcion {
     transition: none;

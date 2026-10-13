@@ -4,6 +4,11 @@ import { ApiError } from "../services/api.js";
 import { listarVoluntarios } from "../services/voluntariosService.js";
 import { generarReporteDevoluciones, listarReportesDevoluciones } from "../services/reporteDevolucionService.js";
 import "../styles/reporteDevoluciones.css";
+import mascotas from "../assets/mascotas.svg";
+import caritaGato from "../assets/carita-gato.svg";
+import caritaPerro from "../assets/carita-perro.svg";
+import caritaConejo from "../assets/carita-conejo.svg";
+import caritaGatoCafe from "../assets/carita-gato-cafe.svg";
 
 const NOMBRES_MOTIVO = {
   COMPORTAMIENTO: "Comportamiento",
@@ -208,6 +213,28 @@ function ReporteDevolucionesPage() {
           <span className="opcion-texto">Revisa las devoluciones por fecha y motivo, y los reportes guardados.</span>
          </button>
     </div>
+
+          <div className="decoracion">
+            <span className="huella huella-1">🐾</span>
+            <span className="huella huella-2">🐾</span>
+            <span className="huella huella-3">🐾</span>
+            <div className="decoracion-texto">
+              <p className="decoracion-titulo">Cada regreso también es una nueva oportunidad</p>
+              <p className="decoracion-bajada">Saber por qué volvió nos ayuda a encontrarle el hogar ideal.</p>
+            </div>
+            <img src={mascotas} alt="" className="mascotas" />
+          </div>
+
+          <div className="huellas-fondo" aria-hidden="true">
+            <img src={caritaGato} alt="" className="carita f1" />
+            <img src={caritaConejo} alt="" className="carita f2" />
+            <img src={caritaGatoCafe} alt="" className="carita f3" />
+            <img src={caritaPerro} alt="" className="carita f4" />
+            <span className="huella-fondo h1">🐾</span>
+            <span className="huella-fondo h2">🐾</span>
+            <span className="huella-fondo h3">🐾</span>
+            <span className="huella-fondo h4">🐾</span>
+          </div>
   </div>
 )}
 {pantalla === "registrar" && (
@@ -303,6 +330,19 @@ function ReporteDevolucionesPage() {
           )}
 
           {mensaje && <p className="mensaje mensaje-error">{mensaje}</p>}
+        </div>
+      )}
+
+      {pantalla === "reporte" && (
+        <div className="fila-mascotas" aria-hidden="true">
+          <span className="patita p1">🐾</span>
+          <span className="patita p2">🐾</span>
+          <span className="patita p3">🐾</span>
+          <span className="patita p4">🐾</span>
+          <span className="patita p5">🐾</span>
+          <span className="patita p6">🐾</span>
+          <img src={mascotas} alt="" />
+          <img src={mascotas} alt="" />
         </div>
       )}
 
