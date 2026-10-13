@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -4 621 104" role="img" aria-label="Mascotas sentadas de espaldas">
+  <defs>
+  <symbol id="gato" viewBox="0 0 70 90" overflow="visible">
+    <path d="M52 86 C68 84 70 66 60 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+    <path d="M12 90 C8 64 16 40 33 40 C50 40 58 64 54 90 Z" fill="currentColor"/>
+    <circle cx="33" cy="27" r="16" fill="currentColor"/>
+    <path d="M19 20 L17 3 L30 13 Z" fill="currentColor"/>
+    <path d="M47 20 L49 3 L36 13 Z" fill="currentColor"/>
+  </symbol>
+  <symbol id="perro" viewBox="0 0 80 90" overflow="visible">
+    <path d="M62 70 C72 62 74 50 70 44" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+    <path d="M10 90 C6 62 18 38 40 38 C62 38 74 62 70 90 Z" fill="currentColor"/>
+    <circle cx="40" cy="24" r="18" fill="currentColor"/>
+    <ellipse cx="21" cy="26" rx="7" ry="14" transform="rotate(18 21 26)" fill="currentColor"/>
+    <ellipse cx="59" cy="26" rx="7" ry="14" transform="rotate(-18 59 26)" fill="currentColor"/>
+    <ellipse cx="21" cy="28" rx="5" ry="11" transform="rotate(18 21 28)" fill="#000" opacity="0.12"/>
+    <ellipse cx="59" cy="28" rx="5" ry="11" transform="rotate(-18 59 28)" fill="#000" opacity="0.12"/>
+  </symbol>
+  <symbol id="conejo" viewBox="0 0 60 90" overflow="visible">
+    <path d="M10 90 C6 66 14 50 30 50 C46 50 54 66 50 90 Z" fill="currentColor"/>
+    <circle cx="30" cy="40" r="13" fill="currentColor"/>
+    <ellipse cx="23" cy="16" rx="5.5" ry="17" transform="rotate(-8 23 16)" fill="currentColor"/>
+    <ellipse cx="37" cy="16" rx="5.5" ry="17" transform="rotate(8 37 16)" fill="currentColor"/>
+    <circle cx="30" cy="80" r="7" fill="#fffdf9" opacity="0.9"/>
+  </symbol>
+  </defs>
+  <use href="#perro" x="0.0" y="5.5" width="84.0" height="94.5" style="color:#8a6a52"/>
+  <use href="#gato" x="81.0" y="28.0" width="56.0" height="72.0" style="color:#fffdf9"/>
+  <use href="#conejo" x="134.0" y="35.2" width="43.2" height="64.8" style="color:#b9aea3"/>
+  <use href="#perro" x="174.2" y="19.0" width="72.0" height="81.0" style="color:#553820"/>
+  <use href="#gato" x="243.2" y="14.5" width="66.5" height="85.5" style="color:#d9a77a"/>
+  <use href="#perro" x="306.7" y="29.8" width="62.4" height="70.2" style="color:#e8d8c0"/>
+  <use href="#gato" x="366.1" y="20.8" width="61.6" height="79.2" style="color:#d99aa5"/>
+  <use href="#conejo" x="424.7" y="28.0" width="48.0" height="72.0" style="color:#8a6a52"/>
+  <use href="#perro" x="469.7" y="1.0" width="88.0" height="99.0" style="color:#553820"/>
+  <use href="#gato" x="554.7" y="26.2" width="57.4" height="73.8" style="color:#b9aea3"/>
+</svg>
