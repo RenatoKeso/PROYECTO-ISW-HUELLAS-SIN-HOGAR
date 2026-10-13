@@ -1,11 +1,11 @@
-/* Página de devoluciones: rosado, crema y café */
+
 .devoluciones {
-  --rosado: #efcfd4;
-  --rosado-oscuro: #d99aa5;
-  --crema-dev: #f6f2e8;
-  --blanco-dev: #fffdf9;
-  --cafe: #553820;
-  --cafe-suave: #8a6a52;
+  --rosado: #d6c9ae;
+  --rosado-oscuro: #8f9d6c;
+  --crema-dev: #f4ecdc;
+  --blanco-dev: #fbf7ee;
+  --cafe: #56643f;
+  --cafe-suave: #7a7560;
 }
 
 .devoluciones h2 {
@@ -201,7 +201,7 @@
 }
 
 .devoluciones .boton:hover {
-  background: #6e4a2c;
+    background: #8f9d6c;
 }
 
 .devoluciones .boton-secundario {
@@ -293,7 +293,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background: rgba(217, 154, 165, 0.55);
+  background: rgba(214, 201, 174, 0.6);
 }
 
 /* El reporte y la ficha uno al lado del otro */
