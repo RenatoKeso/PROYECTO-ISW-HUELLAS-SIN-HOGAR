@@ -1,0 +1,408 @@
+{
+  "version": "32.4.5",
+  "pages": [
+    {
+      "id": "wVberCTn7GZvb7eARN6F",
+      "name": "Página-1",
+      "cells": [
+        {
+          "id": "1",
+          "type": "layer"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-1",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-3",
+          "target": "5WvJyVOZwXUH4AuUDRh2-4"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-2",
+          "type": "node",
+          "parent": "1",
+          "label": "FichaAnimal"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-3",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-2",
+          "label": "id\ncodigoAnimal\nnombre\nsexoAnimal\nespecie\nraza\nobservaciones\nestadoAnimal\ncreatedAt",
+          "html": "<div>id</div><div>codigoAnimal</div><div>nombre</div><div>sexoAnimal</div><div>especie</div><div>raza</div><div>observaciones</div><div>estadoAnimal</div><div>createdAt</div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-4",
+          "type": "node",
+          "parent": "1",
+          "label": "IngresoAnimal"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-5",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-4",
+          "label": "id\nfichaAnimalId\nreceptorId \nfechaIngreso\nprocedencia\nubicacionEncontrado",
+          "html": "<div>id</div><div>fichaAnimalId</div><div>receptorId&nbsp;</div><div>fechaIngreso</div><div>procedencia</div><div>ubicacionEncontrado</div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-6",
+          "type": "node",
+          "parent": "1",
+          "label": "1:N"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-7",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-8",
+          "target": "5WvJyVOZwXUH4AuUDRh2-49"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-8",
+          "type": "node",
+          "parent": "1",
+          "label": "RevisionInicial"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-9",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-8",
+          "label": "id\nregistroMedicoId\nclasificacionSalud\nprioridadAtencion\ncuarentena?\nobservacionEstadoSalud\ncreatedAt\ncreatedBy\nupdatedAt\nestadoRevisionInicial",
+          "html": "<div>id</div><div>registroMedicoId</div><div>clasificacionSalud</div><div>prioridadAtencion</div><div>cuarentena?</div><div>observacionEstadoSalud</div><div>createdAt</div><div>createdBy</div><div>updatedAt</div><div>estadoRevisionInicial</div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-10",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-35",
+          "target": "5WvJyVOZwXUH4AuUDRh2-3"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-11",
+          "type": "node",
+          "parent": "1",
+          "label": "RegistroMedicoAnimal"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-12",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-11",
+          "label": "id\nanimalId\nestadoValidacion\ncreatedAt",
+          "html": "<div>id</div><div>animalId</div><div>estadoValidacion</div><div>createdAt</div><div><br></div><div><br></div><div><br></div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-13",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-14",
+          "target": "5WvJyVOZwXUH4AuUDRh2-49"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-14",
+          "type": "node",
+          "parent": "1",
+          "label": "RevisionCompleta"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-15",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-14",
+          "label": "id\nregistroMedicoId\nedad\npeso\ndescripcionCuidadosEspeciales\ndescripcionCondicionMedica\nestadoSalud (normal, estable,en observacion, critico)\ncreatedAt\ncreatedby\nupdatedBy\nupdatedAt",
+          "html": "<div>id</div><div>registroMedicoId</div><div>edad</div><div>peso</div><div>descripcionCuidadosEspeciales</div><div>descripcionCondicionMedica</div><div>estadoSalud <font>(normal, estable,en observacion, critico)</font></div><div><font>createdAt</font></div><div><font>createdby</font></div><div><font>updatedBy</font></div><div><font>updatedAt</font></div><div><br></div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-16",
+          "type": "node",
+          "parent": "1",
+          "label": "TratamientoAnimal"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-17",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-16",
+          "label": "id\nregistroMedicoId\ndescripcionTratamiento\nfechaInicio\nfechaFin\nobservaciones\ncreatedAt\ncreatedBy",
+          "html": "<div>id</div><div>registroMedicoId</div><div>descripcionTratamiento</div><div>fechaInicio</div><div>fechaFin</div><div>observaciones</div><div>createdAt</div><div>createdBy</div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-18",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-19",
+          "target": "5WvJyVOZwXUH4AuUDRh2-49"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-19",
+          "type": "node",
+          "parent": "1",
+          "label": "seguimentoMedicoAnimal"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-20",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-19",
+          "label": "id\nregistroMedicoId\nfechaRegistro\ncreatedBy\npeso\nobservacionSeguimiento\nestadoSalud (normal, estable,en observacion, critico)\ncreatedAt",
+          "html": "<div>id</div><div>registroMedicoId</div><div>fechaRegistro</div><div>createdBy</div><div>peso</div><div>observacionSeguimiento</div><div>estadoSalud <font>(normal, estable,en observacion, critico)</font></div><div>createdAt</div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-21",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-19",
+          "label": "",
+          "html": "<div><br></div><div><br></div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-22",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-23",
+          "target": "5WvJyVOZwXUH4AuUDRh2-45"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-23",
+          "type": "node",
+          "parent": "1",
+          "label": "seguimentoTratamientoAnimal"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-24",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-23",
+          "label": "id\nregistroMedicoId\nseguimientoMedicoId\ntratamientoId\nobservacionSeguimiento\nestadoTrataniento",
+          "html": "<div>id</div><div>registroMedicoId</div><div>seguimientoMedicoId</div><div>tratamientoId</div><div>observacionSeguimiento</div><div>estadoTrataniento</div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-25",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-23",
+          "label": "",
+          "html": "<div><br></div><div><br></div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-26",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-27",
+          "target": "5WvJyVOZwXUH4AuUDRh2-38"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-27",
+          "type": "node",
+          "parent": "1",
+          "label": "ControlSanitarioAnimal"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-28",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-27",
+          "label": "id\nregistroMedicoId\ntipo\nfechaControl\nestado\nobservaciones\ncreatedAt",
+          "html": "<div>id</div><div>registroMedicoId</div><div>tipo</div><div>fechaControl</div><div>estado</div><div>observaciones</div><div>createdAt</div><div><br></div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-29",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-27",
+          "label": "",
+          "html": "<div><br></div><div><br></div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-30",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-31",
+          "target": "5WvJyVOZwXUH4AuUDRh2-38"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-31",
+          "type": "node",
+          "parent": "1",
+          "label": "EnfermedadAnimal"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-32",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-31",
+          "label": "id\nregistroMedicoId\ndescripcionEnfermedad\ntipoEnfermedad\ncreatedAt",
+          "html": "<div>id</div><div>registroMedicoId</div><div>descripcionEnfermedad</div><div>tipoEnfermedad</div><div>createdAt</div><div><br></div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-33",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-11",
+          "target": "5WvJyVOZwXUH4AuUDRh2-35"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-34",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-33",
+          "label": "1:1"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-35",
+          "type": "node",
+          "parent": "1",
+          "label": "se crea un"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-36",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-16",
+          "target": "5WvJyVOZwXUH4AuUDRh2-38"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-37",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-38",
+          "target": "5WvJyVOZwXUH4AuUDRh2-11"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-38",
+          "type": "node",
+          "parent": "1",
+          "label": "parte de"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-39",
+          "type": "node",
+          "parent": "1",
+          "label": "1:N"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-40",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-41",
+          "target": "5WvJyVOZwXUH4AuUDRh2-45"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-41",
+          "type": "node",
+          "parent": "1",
+          "label": "seguimentoEnfermedadAnimal"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-42",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-41",
+          "label": "id\nregistroMedicoId\nseguimientoMedicoId\nenfermedadId\nobservacionSeguimiento\nestadoEnfermedad",
+          "html": "<div>id</div><div>registroMedicoId</div><div>seguimientoMedicoId</div><div>enfermedadId</div><div>observacionSeguimiento</div><div>estadoEnfermedad</div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-43",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-41",
+          "label": "",
+          "html": "<div><br></div><div><br></div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-44",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-45"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-45",
+          "type": "node",
+          "parent": "1",
+          "label": "parte de"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-46",
+          "type": "node",
+          "parent": "1",
+          "label": "AtencionVeterinaria"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-47",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-46",
+          "label": "id\nregistroMedicoId\nlugarAtencion\nnombreClinicaExterna\nnombreMedico\nfechaAtencion\ndescripcionAtencion",
+          "html": "<div>id</div><div>registroMedicoId</div><div>lugarAtencion</div><div>nombreClinicaExterna</div><div>nombreMedico</div><div>fechaAtencion</div><div>descripcionAtencion</div><div><br></div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-48",
+          "type": "node",
+          "parent": "1",
+          "label": "N:1"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-49",
+          "type": "node",
+          "parent": "1",
+          "label": "Parte de"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-50",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-47",
+          "target": "5WvJyVOZwXUH4AuUDRh2-49"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-51",
+          "type": "node",
+          "parent": "1",
+          "label": "1:1"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-52",
+          "type": "node",
+          "parent": "1",
+          "label": "N:1"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-53",
+          "type": "node",
+          "parent": "1",
+          "label": "N:1"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-54",
+          "type": "node",
+          "parent": "1",
+          "label": "N:1"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-55",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-49",
+          "target": "5WvJyVOZwXUH4AuUDRh2-12"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-56",
+          "type": "node",
+          "parent": "1",
+          "label": "ActualizacionEstadoAnimal"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-57",
+          "type": "node",
+          "parent": "5WvJyVOZwXUH4AuUDRh2-56",
+          "label": "id\nanimalId\nestadoAnterior\nestadoNuevo\nupdatedBy\nfechaActualizacion",
+          "html": "<div>id</div><div>animalId</div><div>estadoAnterior</div><div>estadoNuevo</div><div>updatedBy</div><div>fechaActualizacion</div>"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-58",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-60",
+          "target": "5WvJyVOZwXUH4AuUDRh2-3"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-59",
+          "type": "edge",
+          "parent": "1",
+          "source": "5WvJyVOZwXUH4AuUDRh2-57",
+          "target": "5WvJyVOZwXUH4AuUDRh2-60"
+        },
+        {
+          "id": "5WvJyVOZwXUH4AuUDRh2-60",
+          "type": "node",
+          "parent": "1",
+          "label": "Perte de"
+        }
+      ]
+    }
+  ]
+}
