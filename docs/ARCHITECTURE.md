@@ -31,6 +31,30 @@ presencia de `codigoAnimal` en el cuerpo de la peticion. Los fallos de negocio v
 `AnimalError` desde `entities/animalErrors.js` y el manejador central de errores los traduce
 a respuestas HTTP.
 
+## Modulo medico (requisito 2)
+
+Cubre los requisitos `r1` a `r6` de `docs/requisitos/requisitos_modulo_animales/requisito2.md`.
+El modelo de datos esta en `schema.prisma` y la guia de implementacion, con el orden de
+ejecucion paso a paso, en `docs/requisitos/requisitos_modulo_animales/guia_requisito2.md`.
+
+`RegistroMedicoAnimal` es 1:1 con `FichaAnimal` (garantizado por `@unique` sobre `animalId`).
+Nace en `PROVISIONAL` cuando se crean la ficha y el ingreso, y avanza por
+`VALIDACION_PENDIENTE`, `REVISANDO` y `ACTUALIZADO` hasta `REALIZADO`. De el cuelgan la
+`RevisionInicial` (voluntario o veterinaria), la `RevisionCompleta` (solo veterinaria), los
+`TratamientoAnimal` y `EnfermedadAnimal`, los `SeguimientoMedicoAnimal` y las
+`AtencionVeterinaria`. El paso a `ACTUALIZADO` y a `REALIZADO` queda registrado en
+`HistorialRegistroMedico`, y la unica actualizacion que admite la revision inicial queda
+auditada campo por campo en `AuditoriaRevisionInicial`.
+
+Los autores se referencian a `Usuario`, no a `Voluntario`, porque es `Usuario` quien tiene el
+`RolUsuario` que exigen r2, r3, r4, r5 y r6. El control de acceso se resuelve con funciones
+puras de `services/permisosUsuario.js`.
+
+El control sanitario de r3 se guarda en `AtencionSanitaria` y no en un modelo propio: ese
+modelo ya existia con los tipos `vacuna`, `desparasitacion` y `esterilizacion` que pide r3, y
+alimenta el modulo de alertas sanitarias del frontend. La revision final lo enlaza al
+registro medico mediante `AtencionSanitaria.registroMedicoId`, que es nullable.
+
 ## Frontend
 
 El directorio `frontend` usa React con Vite. La organizacion de `src` es:
