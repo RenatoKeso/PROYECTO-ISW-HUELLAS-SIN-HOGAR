@@ -34,7 +34,7 @@ export async function crearPrimeraDirectora(datos) {
 
 return prisma.$transaction(async (tx) => {
     // Impide que dos ejecuciones creen la cuenta inicial simultáneamente.
-    await tx.$queryRaw`SELECT pg_advisory_xact_lock(731204)`;
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(731204)::text AS bloqueo`;
 
     if ((await tx.usuario.count()) !== 0) {
         throw new Error(

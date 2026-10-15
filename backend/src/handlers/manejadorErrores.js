@@ -26,7 +26,10 @@ function construirDetalleDeZod(error) {
       return [{ mensaje: issue.message }];
     }
 
-    return [{ campo: issue.path.join("."), mensaje: issue.message }];
+    return [{
+      campo: issue.path.join("."),
+      mensaje: issue.message,
+    }];
   });
 }
 
@@ -36,6 +39,7 @@ export function manejadorErrores(error, request, response, next) {
     return;
   }
 
+  // Errores de validación.
   if (error instanceof ZodError) {
     response.status(400).json({
       message: "Los datos enviados no son validos",
@@ -45,6 +49,16 @@ export function manejadorErrores(error, request, response, next) {
     return;
   }
 
+  // Errores de autenticación: sesión o credenciales inválidas.
+  if (error instanceof AuthError) {
+    response.status(error.estadoHttp).json({
+      message: error.message,
+      code: error.codigo,
+    });
+    return;
+  }
+
+  // Errores del módulo de animales.
   if (esErrorAnimal(error)) {
     response.status(error.estadoHttp).json({
       message: error.message,
@@ -56,7 +70,7 @@ export function manejadorErrores(error, request, response, next) {
     return;
   }
 
-  //Error inesperado
+  // Errores inesperados.
   console.error(error);
 
   response.status(500).json({
