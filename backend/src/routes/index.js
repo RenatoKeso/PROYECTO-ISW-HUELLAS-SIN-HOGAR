@@ -5,8 +5,11 @@ import { crearVoluntarioRouter } from "./voluntarioRoutes.js";
 import { crearReporteDevolucionRouter } from "./reporteDevolucionRoutes.js";
 import saludRoutes from "./salud.routes.js";
 import { crearAdopcionRouter } from "./adopcionRoutes.js";
+import { crearAuthRouter } from "./authRoutes.js";
+
 export function crearRouter({ registrarIngresoAnimal } = {}) {
   const router = Router();
+  router.use("/auth", crearAuthRouter());
 
   router.use(
     crearAnimalRouter({
@@ -17,6 +20,7 @@ export function crearRouter({ registrarIngresoAnimal } = {}) {
   router.use("/salud", saludRoutes);
   router.use(crearReporteDevolucionRouter());
   router.use("/adopciones", crearAdopcionRouter());
+  
   return router;
 }
 
