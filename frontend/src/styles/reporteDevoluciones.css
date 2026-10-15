@@ -1,0 +1,769 @@
+
+.devoluciones {
+  --rosado: #d6c9ae;
+  --rosado-oscuro: #8f9d6c;
+  --crema-dev: #f4ecdc;
+  --blanco-dev: #fbf7ee;
+  --cafe: #56643f;
+  --cafe-suave: #7a7560;
+}
+
+.devoluciones h2 {
+  color: var(--cafe);
+  margin-bottom: 0.25rem;
+}
+
+.devoluciones h3 {
+  font-family: var(--serif);
+  color: var(--cafe);
+}
+
+.devoluciones .bajada {
+  color: var(--cafe-suave);
+  margin: 0 0 1.5rem;
+}
+
+/* ---------- Portada con los 2 botones ---------- */
+.opciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.opcion {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 2rem 1.6rem;
+  border: none;
+  border-radius: 26px;
+  background: var(--blanco-dev);
+  color: var(--cafe);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(85, 56, 32, 0.1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.opcion::before {
+  content: "";
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: var(--rosado);
+}
+
+.opcion > * {
+  position: relative;
+}
+
+.opcion:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(85, 56, 32, 0.16);
+}
+
+.opcion-cafe {
+  background: var(--cafe);
+  color: var(--crema-dev);
+}
+
+.opcion-cafe::before {
+  background: var(--rosado-oscuro);
+  opacity: 0.7;
+}
+
+.opcion-icono {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--crema-dev);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+}
+
+.opcion-titulo {
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.opcion-texto {
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+/* ---------- Volver y pestañas ---------- */
+.volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1.1rem;
+  margin-bottom: 1.25rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--blanco-dev);
+  color: var(--cafe);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(85, 56, 32, 0.1);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.volver:hover {
+  background: var(--rosado);
+  transform: translateX(-3px);
+}
+
+.pestanas {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px;
+  margin-bottom: 1.5rem;
+  border-radius: 999px;
+  background: var(--blanco-dev);
+  box-shadow: 0 4px 14px rgba(85, 56, 32, 0.08);
+}
+
+.pestana {
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.25rem;
+  background: transparent;
+  color: var(--cafe);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.pestana:hover {
+  background: var(--crema-dev);
+}
+
+.pestana.activa {
+  background: var(--cafe);
+  color: var(--crema-dev);
+}
+
+/* ---------- Formulario ---------- */
+.devoluciones .formulario {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  border-radius: 22px;
+  background: var(--blanco-dev);
+  box-shadow: 0 10px 30px rgba(85, 56, 32, 0.1);
+}
+
+.devoluciones .formulario::after {
+  content: "";
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: var(--rosado);
+  opacity: 0.6;
+}
+
+.devoluciones .formulario > * {
+  position: relative;
+  z-index: 1;
+}
+
+.devoluciones .campo input,
+.devoluciones .campo select {
+  border: 1.5px solid var(--rosado);
+  border-radius: 12px;
+  background: var(--crema-dev);
+}
+
+.devoluciones .campo input:focus,
+.devoluciones .campo select:focus {
+  outline: 2px solid var(--rosado-oscuro);
+}
+
+/* ---------- Botones ---------- */
+.devoluciones .boton {
+  border-radius: 999px;
+  background: var(--cafe);
+  color: var(--crema-dev);
+}
+
+.devoluciones .boton:hover {
+    background: #8f9d6c;
+}
+
+.devoluciones .boton-secundario {
+  background: var(--rosado);
+  color: var(--cafe);
+  border: none;
+}
+
+.devoluciones .boton-secundario:hover {
+  background: var(--rosado-oscuro);
+}
+
+.boton-mini {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  background: var(--rosado);
+  color: var(--cafe);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.boton-mini:hover {
+  background: var(--rosado-oscuro);
+}
+
+/* ---------- Reportes guardados (uno por animal) ---------- */
+.lista-animales {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.fila-animal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 18px;
+  background: var(--blanco-dev);
+  box-shadow: 0 4px 14px rgba(85, 56, 32, 0.06);
+}
+
+.avatar-fila {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--rosado);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+}
+
+.info-fila {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.info-fila h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.info-fila p,
+.info-fila span {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--cafe-suave);
+}
+
+.fila-animal .boton {
+  margin-top: 0;
+}
+
+/* ---------- Ventanas (ficha y reporte) ---------- */
+.fondo-ficha {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(214, 201, 174, 0.6);
+}
+
+/* El reporte y la ficha uno al lado del otro */
+.ventanas-juntas {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 1500px;
+}
+
+.ventanas-juntas .ventana-reporte {
+  flex: 1 1 auto;
+}
+
+/* Con la ficha abierta, el reporte se hace más angosto */
+.con-ficha .ventana-reporte {
+  flex: 0 1 58%;
+}
+
+.ficha-lado {
+  flex: 1 1 0;
+  max-width: 600px;
+  max-height: 95vh;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: entrar-ficha 0.25s ease;
+}
+
+.ficha-lado .cabecera-ficha {
+  align-self: stretch;
+  height: 140px;
+}
+
+.ficha-lado .avatar-ficha {
+  width: 150px;
+  height: 150px;
+  margin-top: -75px;
+  font-size: 4.2rem;
+}
+
+.ficha-animal.ficha-lado h3 {
+  font-size: 2.8rem;
+}
+
+.ficha-lado .codigo-ficha {
+  font-size: 0.95rem;
+}
+
+.ficha-lado .datos-ficha {
+  align-self: stretch;
+  gap: 0.9rem;
+  padding: 1.75rem 1.75rem 1.25rem;
+}
+
+.ficha-lado .datos-ficha div {
+  padding: 1.1rem 0.75rem;
+}
+
+.ficha-lado .datos-ficha small {
+  font-size: 0.9rem;
+}
+
+.ficha-lado .datos-ficha p {
+  font-size: 1.5rem;
+}
+
+.ficha-lado .estado-ficha {
+  font-size: 1.25rem;
+  padding: 0.5rem 1.4rem;
+}
+
+@keyframes entrar-ficha {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* En pantallas chicas la ficha queda abajo del reporte */
+@media (max-width: 900px) {
+  .fondo-ficha {
+    overflow-y: auto;
+    align-items: flex-start;
+  }
+
+  .ventanas-juntas {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .con-ficha .ventana-reporte,
+  .ficha-lado {
+    flex: none;
+    width: 100%;
+  }
+}
+
+.ficha-animal {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding-bottom: 1.5rem;
+  border-radius: 26px;
+  background: var(--blanco-dev);
+  text-align: center;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+}
+
+.ventana-reporte {
+  max-width: 1000px;
+  max-height: 95vh;
+  min-height: 80vh;
+}
+
+.ventana-reporte .lista-ventana {
+  padding: 0 1.75rem;
+  gap: 0.75rem;
+}
+
+.ventana-reporte .lista-ventana li {
+  padding: 0.9rem 1.1rem;
+  font-size: 1.35rem;
+}
+
+.ventana-reporte .info-fila span {
+  font-size: 1.15rem;
+}
+
+.ventana-reporte .datos-ficha {
+  padding: 1.25rem 1.75rem;
+}
+
+.ficha-animal.ventana-reporte h3 {
+  font-size: 2.4rem;
+}
+
+.ventana-reporte .avatar-ficha {
+  width: 110px;
+  height: 110px;
+  margin-top: -55px;
+  font-size: 3rem;
+}
+
+.cabecera-ficha {
+  height: 110px;
+  background: var(--cafe);
+}
+
+.cerrar-ficha {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: var(--crema-dev);
+  color: var(--cafe);
+  cursor: pointer;
+}
+
+.avatar-ficha {
+  width: 120px;
+  height: 120px;
+  margin: -60px auto 0.8rem;
+  border: 5px solid var(--blanco-dev);
+  border-radius: 50%;
+  background: var(--rosado);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.4rem;
+}
+
+.ficha-animal h3 {
+  margin: 0 0 0.4rem;
+  font-size: 2.2rem;
+}
+
+.codigo-ficha {
+  display: inline-block;
+  padding: 0.15rem 0.75rem;
+  border-radius: 999px;
+  background: var(--crema-dev);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+
+.datos-ficha {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  padding: 1.1rem 1.25rem;
+}
+
+.datos-ficha div {
+  display: flex;
+  flex-direction: column;
+  padding: 0.6rem;
+  border-radius: 14px;
+  background: var(--crema-dev);
+}
+
+.datos-ficha small {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cafe-suave);
+}
+
+.datos-ficha p {
+  margin: 0.2rem 0 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--cafe);
+}
+
+.datos-ficha b {
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  color: var(--cafe);
+}
+
+.estado-ficha {
+  display: inline-block;
+  margin-top: 0.6rem;
+  padding: 0.35rem 1rem;
+  border-radius: 999px;
+  background: var(--rosado);
+  color: var(--cafe);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.lista-ventana {
+  list-style: none;
+  margin: 0;
+  padding: 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.lista-ventana li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border: 1.5px solid var(--crema-dev);
+  border-radius: 12px;
+}
+
+.lista-ventana strong {
+  color: var(--cafe);
+}
+
+.sello {
+  align-self: flex-start;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--rosado);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+}
+
+.info-fila .sello {
+  color: var(--cafe);
+}
+
+.devoluciones .mensaje-alerta {
+  margin: 0.75rem 1.25rem 0;
+  border: none;
+  border-left: 5px solid var(--rosado-oscuro);
+  background: var(--rosado);
+  color: var(--cafe);
+  text-align: left;
+}
+
+.ventana-reporte .boton {
+  margin-top: 1rem;
+}
+
+.pie-ventana {
+  margin: 1rem 0 0;
+  font-size: 0.8rem;
+  color: var(--cafe-suave);
+}
+
+/* ---------- Decoración de la portada ---------- */
+.decoracion {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  padding: 2.25rem 2rem;
+  border-radius: 26px;
+  background: var(--rosado);
+  box-shadow: inset 0 -10px 0 var(--rosado-oscuro);
+}
+
+.huella {
+  position: absolute;
+  font-size: 2.6rem;
+  opacity: 0.2;
+  filter: grayscale(1) sepia(1);
+}
+
+.huella-1 {
+  top: 14px;
+  left: 62%;
+  transform: rotate(-20deg);
+}
+
+.huella-2 {
+  bottom: -8px;
+  left: 70%;
+  transform: rotate(15deg);
+}
+
+.huella-3 {
+  top: 12px;
+  right: 4%;
+  transform: rotate(35deg);
+}
+
+.decoracion-texto {
+  position: relative;
+  flex: 1 1 320px;
+  max-width: 640px;
+}
+
+.decoracion-titulo {
+  margin: 0 0 0.4rem;
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--cafe);
+}
+
+.decoracion-bajada {
+  margin: 0;
+  color: var(--cafe-suave);
+}
+
+.mascotas {
+  position: relative;
+  align-self: flex-end;
+  width: 460px;
+  max-width: 100%;
+  margin-bottom: calc(-2.25rem + 10px);
+}
+
+/* Patitas decorativas en el fondo de la página */
+.huellas-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.huella-fondo {
+  position: absolute;
+  font-size: 2.4rem;
+  opacity: 0.2;
+  filter: grayscale(1) sepia(1);
+}
+
+/* Caritas de mascotas dibujadas a los lados */
+.carita {
+  position: absolute;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 6px var(--blanco-dev), 0 0 0 12px var(--rosado), 0 16px 30px rgba(85, 56, 32, 0.16);
+}
+
+.f1 { top: 15%; left: 4.5%; transform: rotate(-6deg); }
+.f2 { top: 54%; left: 9%; width: 135px; height: 135px; transform: rotate(6deg); }
+.f3 { top: 18%; right: 8%; width: 135px; height: 135px; transform: rotate(6deg); }
+.f4 { top: 50%; right: 4%; transform: rotate(-5deg); }
+
+/* Patitas entre las caritas */
+.h1 { top: 42%; left: 3%; transform: rotate(-20deg); }
+.h2 { top: 82%; left: 6%; transform: rotate(10deg); }
+.h3 { top: 40%; right: 3%; transform: rotate(20deg); }
+.h4 { top: 82%; right: 9%; transform: rotate(-10deg); }
+
+/* En pantallas chicas no hay espacio a los lados */
+@media (max-width: 1350px) {
+  .huellas-fondo {
+    display: none;
+  }
+}
+
+/* Fila de mascotas abajo en la pantalla del reporte, de borde a borde */
+.app:has(.fila-mascotas) {
+  overflow-x: clip;
+}
+
+.contenido:has(.fila-mascotas) {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+.devoluciones:has(.fila-mascotas) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.fila-mascotas {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-top: auto;
+  padding-top: 8rem;
+  overflow: hidden;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Las mascotas se ven suaves, como una sombra */
+.fila-mascotas img {
+  flex: 0 0 auto;
+  width: 70vw;
+  height: auto;
+  display: block;
+  opacity: 0.3;
+}
+
+/* Patitas que caminan sobre las mascotas */
+.patita {
+  position: absolute;
+  font-size: 2.8rem;
+  opacity: 0.28;
+  filter: grayscale(1) sepia(1);
+}
+
+.p1 { top: 1.5rem; left: 6%; transform: rotate(-15deg); }
+.p2 { top: 4rem; left: 20%; transform: rotate(10deg); }
+.p3 { top: 0.5rem; left: 36%; transform: rotate(-8deg); }
+.p4 { top: 3.5rem; left: 58%; transform: rotate(15deg); }
+.p5 { top: 0.5rem; left: 76%; transform: rotate(-12deg); }
+.p6 { top: 4rem; left: 90%; transform: rotate(8deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .opcion {
+    transition: none;
+  }
+
+  .ficha-lado {
+    animation: none;
+  }
+}

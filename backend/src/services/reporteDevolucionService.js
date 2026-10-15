@@ -29,6 +29,15 @@ function agruparPorMotivo(devoluciones) {
       codigoAnimal: devolucion.fichaAnimal.codigoAnimal,
       fecha: devolucion.fechaDevolucion,
       detalle: devolucion.detalle,
+      receptor: devolucion.receptor.nombre,
+      postulante: devolucion.postulacion.nombrePostulante,
+      ficha: {
+        especie: devolucion.fichaAnimal.especie,
+        sexo: devolucion.fichaAnimal.sexoAnimal,
+        raza: devolucion.fichaAnimal.raza,
+        edad: devolucion.fichaAnimal.edad,
+        estado: devolucion.fichaAnimal.estadoEstadia,
+      },
     });
   }
 

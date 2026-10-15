@@ -6,7 +6,20 @@ export async function buscarDevolucionesPorFecha (fechaDesde, fechaHasta, client
       fechaDevolucion: { gte: fechaDesde, lte: fechaHasta },
     },
     include: {
-      fichaAnimal: { select: { id: true, codigoAnimal: true, nombre: true } },
+      fichaAnimal: {
+        select: {
+          id: true,
+          codigoAnimal: true,
+          nombre: true,
+          especie: true,
+          sexoAnimal: true,
+          raza: true,
+          edad: true,
+          estadoEstadia: true,
+        },
+      },
+      receptor: { select: { nombre: true } },
+      postulacion: { select: { nombrePostulante: true } },
     },
     orderBy: { fechaDevolucion: "asc" },
   });

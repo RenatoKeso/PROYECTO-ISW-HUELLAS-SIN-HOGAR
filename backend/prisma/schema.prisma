@@ -31,21 +31,25 @@ enum EstadoEstadiaAnimal {
 }
 
 model FichaAnimal {
-  id            Int                 @id @default(autoincrement())
-  codigoAnimal  String              @unique
-  nombre        String?
-  sexoAnimal    SexoAnimal
-  especie       Especie
-  raza          String?
-  edad          Int?
-  estadoEstadia EstadoEstadiaAnimal @default(ACTIVO)
-  observaciones String?
-  createdAt     DateTime            @default(now())
+  id             Int                 @id @default(autoincrement())
+  codigoAnimal   String              @unique
+  nombre         String?
+  sexoAnimal     SexoAnimal
+  especie        Especie
+  raza           String?
+  edad           Int?
+  estadoEstadia  EstadoEstadiaAnimal @default(ACTIVO)
+  estadoAdopcion EstadoAdopcion?
+  observaciones  String?
+  createdAt      DateTime            @default(now())
 
   ingresoAnimal         IngresoAnimal[]
   postulacionesAdopcion Postulacion[]
   devoluciones          Devolucion[]
   atencionesSanitarias  AtencionSanitaria[]
+
+  registroMedicoAnimal  RegistroMedicoAnimal?
+  actualizacionesEstado ActualizacionEstadoAnimal[]
 }
 
 model IngresoAnimal {
@@ -58,6 +62,8 @@ model IngresoAnimal {
   procedencia         String
   ubicacionEncontrado String?
   estadoSalud         String?
+
+  registroMedicoAnimal RegistroMedicoAnimal?
 }
 
 model Voluntario {
@@ -171,6 +177,8 @@ model AtencionSanitaria {
   id                Int                     @id @default(autoincrement())
   fichaAnimalId     Int
   fichaAnimal       FichaAnimal             @relation(fields: [fichaAnimalId], references: [id], onDelete: Restrict)
+  registroMedicoId  Int?
+  registroMedico    RegistroMedicoAnimal?   @relation(fields: [registroMedicoId], references: [id], onDelete: SetNull)
   tipo              TipoAtencionSanitaria
   fechaProgramada   DateTime                @db.Date
   estado            EstadoAtencionSanitaria @default(PENDIENTE)
@@ -182,6 +190,7 @@ model AtencionSanitaria {
 
   @@index([estado, fechaProgramada])
   @@index([fichaAnimalId, fechaProgramada])
+  @@index([registroMedicoId])
 }
 
 // Cuentas y roles
@@ -206,7 +215,302 @@ model Usuario {
   voluntarioId Int?        @unique
   voluntario   Voluntario? @relation(fields: [voluntarioId], references: [id], onDelete: Restrict)
 
+  revisionesInicialesCreadas      RevisionInicial[]           @relation("RevisionInicialCreatedBy")
+  revisionesInicialesActualizadas RevisionInicial[]           @relation("RevisionInicialUpdatedBy")
+  revisionesCompletasCreadas      RevisionCompleta[]          @relation("RevisionCompletaCreatedBy")
+  revisionesCompletasActualizadas RevisionCompleta[]          @relation("RevisionCompletaUpdatedBy")
+  tratamientosCreados             TratamientoAnimal[]
+  enfermedadesCreadas             EnfermedadAnimal[]
+  seguimientosCreados             SeguimientoMedicoAnimal[]
+  atencionesRegistradas           AtencionVeterinaria[]
+  actualizacionesEstadoAnimal     ActualizacionEstadoAnimal[]
+  auditoriasRealizadas            AuditoriaRevisionInicial[]
+  versionesHistorial              HistorialRegistroMedico[]
+  notificacionesRecibidas         Notificacion[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+// Módulo de registro médico 
+
+enum EstadoValidacionMedica {
+  PROVISIONAL
+  VALIDACION_PENDIENTE
+  REVISANDO
+  ACTUALIZADO
+  REALIZADO
+}
+
+enum ClasificacionSalud {
+  NORMAL
+  ENFERMO
+  CRITICO
+}
+
+enum EstadoRevisionInicial {
+  PENDIENTE
+  COMPLETADA
+  ACTUALIZADA
+  BLOQUEADA
+}
+
+enum EstadoEnfermedad {
+  EN_CURSO
+  RESUELTO
+  CRONICO
+}
+
+enum EvolucionEstadoSalud {
+  MEJORANDO
+  EMPEORANDO
+  ESTABLE
+}
+
+enum EstadoTratamiento {
+  EN_CURSO
+  RESUELTO
+  CRONICO
+}
+
+enum EstadoAdopcion {
+  ADOPTABLE
+  NO_ADOPTABLE
+}
+
+model RegistroMedicoAnimal {
+  id              Int            @id @default(autoincrement())
+  animalId        Int            @unique
+  animal          FichaAnimal    @relation(fields: [animalId], references: [id], onDelete: Restrict)
+  ingresoAnimalId Int?           @unique
+  ingresoAnimal   IngresoAnimal? @relation(fields: [ingresoAnimalId], references: [id], onDelete: Restrict)
+
+  estadoValidacion EstadoValidacionMedica @default(PROVISIONAL)
+  createdAt        DateTime               @default(now())
+
+  revisionInicial        RevisionInicial?
+  revisionCompleta       RevisionCompleta?
+  tratamientos           TratamientoAnimal[]
+  enfermedades           EnfermedadAnimal[]
+  seguimientos           SeguimientoMedicoAnimal[]
+  atencionesVeterinarias AtencionVeterinaria[]
+  atencionesSanitarias   AtencionSanitaria[]
+  auditorias             AuditoriaRevisionInicial[]
+  historial              HistorialRegistroMedico[]
+  notificaciones         Notificacion[]
+
+  @@index([estadoValidacion])
+}
+
+model RevisionInicial {
+  id               Int                  @id @default(autoincrement())
+  registroMedicoId Int                  @unique
+  registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
+
+  clasificacionSalud     ClasificacionSalud?
+  prioridadAtencion      Int?
+  cuarentena             Boolean?
+  observacionEstadoSalud String?
+  estadoRevisionInicial  EstadoRevisionInicial @default(PENDIENTE)
+
+  createdAt   DateTime  @default(now())
+  createdById Int
+  createdBy   Usuario   @relation("RevisionInicialCreatedBy", fields: [createdById], references: [id])
+  updatedById Int?
+  updatedBy   Usuario?  @relation("RevisionInicialUpdatedBy", fields: [updatedById], references: [id])
+  updatedAt   DateTime? @updatedAt
+
+  @@index([estadoRevisionInicial])
+}
+
+model RevisionCompleta {
+  id               Int                  @id @default(autoincrement())
+  registroMedicoId Int                  @unique
+  registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
+
+  edad                          Int?
+  peso                          Decimal?            @db.Decimal(5, 2)
+  descripcionCuidadosEspeciales String?
+  descripcionCondicionMedica    String?
+  estadoSalud                   ClasificacionSalud?
+
+  createdAt   DateTime  @default(now())
+  createdById Int
+  createdBy   Usuario   @relation("RevisionCompletaCreatedBy", fields: [createdById], references: [id])
+  updatedById Int?
+  updatedBy   Usuario?  @relation("RevisionCompletaUpdatedBy", fields: [updatedById], references: [id])
+  updatedAt   DateTime? @updatedAt
+}
+
+model TratamientoAnimal {
+  id               Int                  @id @default(autoincrement())
+  registroMedicoId Int
+  registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
+
+  descripcionTratamiento String
+  fechaInicio            DateTime
+  fechaFin               DateTime?
+  observaciones          String?
+
+  createdAt   DateTime @default(now())
+  createdById Int
+  createdBy   Usuario  @relation(fields: [createdById], references: [id])
+
+  seguimientos SeguimientoTratamientoAnimal[]
+
+  @@index([registroMedicoId])
+}
+
+model EnfermedadAnimal {
+  id               Int                  @id @default(autoincrement())
+  registroMedicoId Int
+  registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
+
+  descripcionEnfermedad String
+  tipoEnfermedad        String?
+
+  createdAt   DateTime @default(now())
+  createdById Int
+  createdBy   Usuario  @relation(fields: [createdById], references: [id])
+
+  seguimientos SeguimientoEnfermedadAnimal[]
+
+  @@index([registroMedicoId])
+}
+
+model AtencionVeterinaria {
+  id               Int                  @id @default(autoincrement())
+  registroMedicoId Int
+  registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
+
+  lugarAtencion        String?
+  nombreClinicaExterna String?
+  nombreMedico         String? //quien atiende
+  fechaAtencion        DateTime
+  descripcionAtencion  String?
+  resultado            String?
+
+  createdAt   DateTime @default(now())
+  createdById Int
+  createdBy   Usuario  @relation(fields: [createdById], references: [id])
+
+  @@index([registroMedicoId])
+}
+
+model SeguimientoMedicoAnimal {
+  id               Int                  @id @default(autoincrement())
+  registroMedicoId Int
+  registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
+
+  fechaRegistro          DateTime
+  peso                   Decimal?             @db.Decimal(5, 2)
+  observacionSeguimiento String
+  estadoSalud            ClasificacionSalud
+  evolucionEstadoSalud   EvolucionEstadoSalud
+
+  createdAt   DateTime @default(now())
+  createdById Int
+  createdBy   Usuario  @relation(fields: [createdById], references: [id])
+
+  seguimientosEnfermedad  SeguimientoEnfermedadAnimal[]
+  seguimientosTratamiento SeguimientoTratamientoAnimal[]
+
+  @@index([registroMedicoId, fechaRegistro])
+}
+
+model SeguimientoEnfermedadAnimal {
+  id                  Int                     @id @default(autoincrement())
+  seguimientoMedicoId Int
+  seguimientoMedico   SeguimientoMedicoAnimal @relation(fields: [seguimientoMedicoId], references: [id], onDelete: Cascade)
+  enfermedadId        Int
+  enfermedad          EnfermedadAnimal        @relation(fields: [enfermedadId], references: [id], onDelete: Restrict)
+
+  estadoEnfermedad       EstadoEnfermedad
+  observacionSeguimiento String?
+
+  @@index([seguimientoMedicoId])
+  @@index([enfermedadId])
+}
+
+model SeguimientoTratamientoAnimal {
+  id                  Int                     @id @default(autoincrement())
+  seguimientoMedicoId Int
+  seguimientoMedico   SeguimientoMedicoAnimal @relation(fields: [seguimientoMedicoId], references: [id], onDelete: Cascade)
+  tratamientoId       Int
+  tratamiento         TratamientoAnimal       @relation(fields: [tratamientoId], references: [id], onDelete: Restrict)
+
+  estadoTratamiento      EstadoTratamiento
+  observacionSeguimiento String?
+
+  @@index([seguimientoMedicoId])
+  @@index([tratamientoId])
+}
+
+model ActualizacionEstadoAnimal {
+  id       Int         @id @default(autoincrement())
+  animalId Int
+  animal   FichaAnimal @relation(fields: [animalId], references: [id], onDelete: Restrict)
+
+  estadoAnterior     EstadoAdopcion?
+  estadoNuevo        EstadoAdopcion
+  fechaActualizacion DateTime        @default(now())
+
+  updatedById Int
+  updatedBy   Usuario @relation(fields: [updatedById], references: [id])
+
+  @@index([animalId, fechaActualizacion])
+}
+
+model AuditoriaRevisionInicial {
+  id               Int                  @id @default(autoincrement())
+  registroMedicoId Int
+  registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
+
+  campo         String
+  valorAnterior String?
+  valorNuevo    String?
+  hora          String
+
+  fecha   DateTime @default(now())
+  autorId Int
+  autor   Usuario  @relation(fields: [autorId], references: [id])
+
+  @@index([registroMedicoId])
+}
+
+model HistorialRegistroMedico {
+  id               Int                  @id @default(autoincrement())
+  registroMedicoId Int
+  registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
+
+  version                       Int
+  estadoOrigen                  EstadoValidacionMedica
+  peso                          Decimal?               @db.Decimal(5, 2)
+  clasificacionSalud            ClasificacionSalud?
+  descripcionCuidadosEspeciales String?
+  descripcionCondicionMedica    String?
+  descripcionTratamientos       String?
+  descripcionEnfermedades       String?
+
+  fecha            DateTime @default(now())
+  actualizadoPorId Int
+  actualizadoPor   Usuario  @relation(fields: [actualizadoPorId], references: [id])
+
+  @@unique([registroMedicoId, version])
+  @@index([registroMedicoId, version])
+}
+
+model Notificacion {
+  id               Int                   @id @default(autoincrement())
+  destinatarioId   Int
+  destinatario     Usuario               @relation(fields: [destinatarioId], references: [id])
+  tipo             String
+  titulo           String
+  mensaje          String
+  registroMedicoId Int?
+  registroMedico   RegistroMedicoAnimal? @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
+  leida            Boolean               @default(false)
+  createdAt        DateTime              @default(now())
+
+  @@index([destinatarioId, leida])
+}
