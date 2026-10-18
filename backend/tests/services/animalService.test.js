@@ -28,6 +28,7 @@ function crearDependencias(sobrescrituras = {}) {
   const llamadas = {
     fichaAnimal: [],
     ingresoAnimal: [],
+    registroMedico: [],
     consultas: [],
     actualizaciones: [],
     transacciones: 0,
@@ -54,6 +55,10 @@ function crearDependencias(sobrescrituras = {}) {
     crearIngresoAnimal: async (data) => {
       llamadas.ingresoAnimal.push(data);
       return { id: 99, ...data };
+    },
+    crearRegistroMedicoParaIngreso: async (data, cliente) => {
+      llamadas.registroMedico.push({ data, cliente });
+      return { id: 500, estadoValidacion: "PROVISIONAL", ...data };
     },
     ...sobrescrituras,
   };
@@ -93,6 +98,12 @@ test("registrarIngreso crea la ficha y su primer historial en una transaccion", 
       estadoSalud: "En observación",
     },
   ]);
+
+  assert.deepEqual(dependencias.llamadas.registroMedico, [
+    { data: { animalId: 10, ingresoAnimalId: 99 }, cliente: "tx" },
+  ]);
+  assert.equal(resultado.registroMedico.id, 500);
+  assert.equal(resultado.registroMedico.estadoValidacion, "PROVISIONAL");
 });
 
 test("registrarIngreso rechaza una procedencia invalida sin tocar la base", async () => {
@@ -126,6 +137,7 @@ test("registrarIngreso reingresa por devolucion sin crear una ficha nueva", asyn
   assert.deepEqual(dependencias.llamadas.consultas, ["anim-001"]);
   assert.equal(dependencias.llamadas.fichaAnimal.length, 0);
   assert.equal(dependencias.llamadas.ingresoAnimal[0].fichaAnimalId, 1);
+  assert.equal(dependencias.llamadas.registroMedico.length, 0);
 });
 
 test("registrarIngreso exige la referencia de ficha en un reingreso", async () => {

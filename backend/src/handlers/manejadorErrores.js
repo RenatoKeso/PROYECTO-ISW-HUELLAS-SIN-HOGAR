@@ -1,5 +1,6 @@
 import { ZodError } from "zod";
 import { esErrorAnimal } from "../entities/animalErrors.js";
+import { esErrorRegistroMedico } from "../entities/registroMedicoErrors.js";
 
 export const CODIGO_DATOS_INVALIDOS = "DATOS_INVALIDOS";
 export const CODIGO_RUTA_NO_ENCONTRADA = "RUTA_NO_ENCONTRADA";
@@ -53,6 +54,15 @@ export function manejadorErrores(error, request, response, next) {
     return;
   }
 
+  if (esErrorRegistroMedico(error)) {
+    response.status(error.estadoHttp).json({
+      message: error.message,
+      code: error.codigo,
+      ...(error.opcion.codigoAnimal ? { codigoAnimal: error.opcion.codigoAnimal } : {}),
+    });
+    return;
+  }
+
   console.error(error);
 
   response.status(500).json({
@@ -60,3 +70,6 @@ export function manejadorErrores(error, request, response, next) {
     code: CODIGO_ERROR_INTERNO,
   });
 }
+
+
+

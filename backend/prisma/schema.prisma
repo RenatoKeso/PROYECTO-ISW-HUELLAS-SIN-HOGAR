@@ -315,6 +315,8 @@ model RevisionInicial {
   observacionEstadoSalud String?
   estadoRevisionInicial  EstadoRevisionInicial @default(PENDIENTE)
 
+  fechaActualizacion DateTime?
+
   createdAt          DateTime  @default(now())
   createdById        Int
   createdBy          Usuario   @relation("RevisionInicialCreatedBy", fields: [createdById], references: [id])

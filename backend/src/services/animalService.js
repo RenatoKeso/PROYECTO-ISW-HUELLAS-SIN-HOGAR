@@ -9,18 +9,21 @@ import {
   procedenciaInvalida,
   referenciaFichaAusente,
 } from "../entities/animalErrors.js";
+import { esErrorRegistroMedico } from "../entities/registroMedicoErrors.js";
 import {
   actualizarFichaAnimal,
   crearFichaAnimal,
   obtenerFichaAnimalPorCodigo,
 } from "../repositories/fichaAnimalRepository.js";
 import { crearIngresoAnimal } from "../repositories/ingresoAnimalRepository.js";
+import { crearRegistroMedicoParaIngreso } from "./registroMedicoService.js";
 
 const DEPENDENCIAS_POR_DEFECTO = {
   crearFichaAnimal,
   obtenerFichaAnimalPorCodigo,
   actualizarFichaAnimal,
   crearIngresoAnimal,
+  crearRegistroMedicoParaIngreso,
   ejecutarEnTransaccion,
 };
 
@@ -50,6 +53,7 @@ function construirDatosIngreso(ingreso, fichaAnimalId) {
 
 function traducirError(error) {
   if (esErrorAnimal(error)) return error;
+  if (esErrorRegistroMedico(error)) return error;
 
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     if (error.code === CODIGO_CONFLICTO_UNICO) return conflictoIdentificador();
@@ -69,18 +73,30 @@ async function guardarEnTransaccion(operacion, dependencias) {
 }
 
 async function registrarIngresoInicial({ ficha, ingreso }, dependencias) {
-  const nuevaFicha = await guardarEnTransaccion(async (cliente) => {
+  const resultado = await guardarEnTransaccion(async (cliente) => {
     const fichaCreada = await dependencias.crearFichaAnimal(ficha, cliente);
 
-    await dependencias.crearIngresoAnimal(
+    const ingresoCreado = await dependencias.crearIngresoAnimal(
       construirDatosIngreso(ingreso, fichaCreada.id),
       cliente,
     );
 
-    return fichaCreada;
+    const registroMedico = await dependencias.crearRegistroMedicoParaIngreso(
+      {
+        animalId: fichaCreada.id,
+        ingresoAnimalId: ingresoCreado.id,
+      },
+      cliente,
+    );
+
+    return { ficha: fichaCreada, registroMedico };
   }, dependencias);
 
-  return { ficha: nuevaFicha, reingreso: false };
+  return {
+    ficha: resultado.ficha,
+    reingreso: false,
+    registroMedico: resultado.registroMedico,
+  };
 }
 
 async function registrarReingresoPorDevolucion({ ingreso }, dependencias) {
