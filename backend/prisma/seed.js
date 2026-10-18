@@ -141,7 +141,6 @@ async function main() {
       animalId: Galileo.id,
       ingresoAnimalId: ingresoGalileo.id,
       estadoValidacion: "PROVISIONAL",
-      fechaCreacion: new Date("2026-09-02T10:15:00.000Z"),
     },
   });
 
@@ -152,16 +151,15 @@ async function main() {
       animalId: Gretel.id,
       ingresoAnimalId: ingresoGretel.id,
       estadoValidacion: "PROVISIONAL",
-      fechaCreacion: new Date("2026-08-15T09:00:00.000Z"),
     },
   });
 
   // r2: revision inicial hecha por la voluntaria, con la ficha ya bloqueada
-  // porque r4 permite actualizarla una sola vez y ya se uso.
+  // porque r4 permite actualizarla una sola vez y ya se uso. fechaActualizacion
+  // con valor es la marca que bloquea el segundo intento.
   const revisionInicialGretel = await prisma.revisionInicial.create({
     data: {
       registroMedicoId: registroGretel.id,
-      peso: 12.4,
       clasificacionSalud: "ENFERMO",
       prioridadAtencion: 2,
       cuarentena: true,
@@ -179,9 +177,9 @@ async function main() {
     data: [
       {
         registroMedicoId: registroGretel.id,
-        campo: "peso",
-        valorAnterior: "12.90",
-        valorNuevo: "12.40",
+        campo: "observacionEstadoSalud",
+        valorAnterior: "Sin observacion registrada.",
+        valorNuevo: "Tos persistente y baja de apetito. Se observa delgada.",
         autorId: cuentaVoluntaria.id,
         fecha: new Date("2026-08-15T19:30:00.000Z"),
         hora: "19:30:00",
@@ -327,9 +325,10 @@ async function main() {
       registroMedicoId: registroGretel.id,
       fechaRegistro: new Date("2026-08-25T15:00:00.000Z"),
       peso: 12.8,
-      observacionSeguimiento: "La tos baja de intensidad y vuelve a comer con normalidad.",
+      observacionSeguimiento:
+        "La tos baja de intensidad y vuelve a comer con normalidad. Debe terminar el antibiotico y tener un control antes de la esterilizacion.",
       estadoSalud: "ENFERMO",
-      necesidades: "Terminar el antibiotico y un control antes de la esterilizacion.",
+      evolucionEstadoSalud: "MEJORANDO",
       createdAt: new Date("2026-08-25T15:00:00.000Z"),
       createdById: cuentaVeterinaria.id,
     },

@@ -1,9 +1,11 @@
-import { Prisma } from "@prisma/client";
-import prisma from "../config/prisma.js";
+import {Prisma} from "@prisma/client";
+import  prisma from "../config/prisma.js";
+
 
 const PREFIJO_CODIGO_ANIMAL = "anim-";
 const LARGO_SECUENCIAL = 3;
 const MAX_INTENTOS = 5;
+
 
 function formatearCodigoAnimal(secuencial) {
   return `${PREFIJO_CODIGO_ANIMAL}${String(secuencial).padStart(LARGO_SECUENCIAL, "0")}`;
@@ -31,6 +33,7 @@ async function obtenerUltimoSecuencial(cliente) {
 export async function obtenerFichaAnimalPorCodigo(codigoAnimal, cliente = prisma) {
   return cliente.fichaAnimal.findUnique({ where: { codigoAnimal } });
 }
+
 
 export async function crearFichaAnimal(data, cliente = prisma) {
   for (let intento = 1; intento <= MAX_INTENTOS; intento += 1) {

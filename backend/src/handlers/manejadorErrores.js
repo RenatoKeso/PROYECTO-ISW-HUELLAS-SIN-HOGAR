@@ -1,6 +1,7 @@
 import { ZodError } from "zod";
 import { esErrorAnimal } from "../entities/animalErrors.js";
 import { AuthError } from "../entities/authErrors.js";
+import { esErrorRegistroMedico } from "../entities/registroMedicoErrors.js";
 
 export const CODIGO_DATOS_INVALIDOS = "DATOS_INVALIDOS";
 export const CODIGO_RUTA_NO_ENCONTRADA = "RUTA_NO_ENCONTRADA";
@@ -60,6 +61,18 @@ export function manejadorErrores(error, request, response, next) {
 
   // Errores del módulo de animales.
   if (esErrorAnimal(error)) {
+    response.status(error.estadoHttp).json({
+      message: error.message,
+      code: error.codigo,
+      ...(error.opcion.codigoAnimal
+        ? { codigoAnimal: error.opcion.codigoAnimal }
+        : {}),
+    });
+    return;
+  }
+
+  // Errores del módulo médico.
+  if (esErrorRegistroMedico(error)) {
     response.status(error.estadoHttp).json({
       message: error.message,
       code: error.codigo,
