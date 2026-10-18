@@ -1,5 +1,6 @@
 import { ZodError } from "zod";
 import { esErrorAnimal } from "../entities/animalErrors.js";
+import { AuthError } from "../entities/authErrors.js";
 import { esErrorRegistroMedico } from "../entities/registroMedicoErrors.js";
 
 export const CODIGO_DATOS_INVALIDOS = "DATOS_INVALIDOS";
@@ -26,7 +27,10 @@ function construirDetalleDeZod(error) {
       return [{ mensaje: issue.message }];
     }
 
-    return [{ campo: issue.path.join("."), mensaje: issue.message }];
+    return [{
+      campo: issue.path.join("."),
+      mensaje: issue.message,
+    }];
   });
 }
 
@@ -36,6 +40,7 @@ export function manejadorErrores(error, request, response, next) {
     return;
   }
 
+  // Errores de validación.
   if (error instanceof ZodError) {
     response.status(400).json({
       message: "Los datos enviados no son validos",
@@ -45,24 +50,40 @@ export function manejadorErrores(error, request, response, next) {
     return;
   }
 
+  // Errores de autenticación: sesión o credenciales inválidas.
+  if (error instanceof AuthError) {
+    response.status(error.estadoHttp).json({
+      message: error.message,
+      code: error.codigo,
+    });
+    return;
+  }
+
+  // Errores del módulo de animales.
   if (esErrorAnimal(error)) {
     response.status(error.estadoHttp).json({
       message: error.message,
       code: error.codigo,
-      ...(error.opcion.codigoAnimal ? { codigoAnimal: error.opcion.codigoAnimal } : {}),
+      ...(error.opcion.codigoAnimal
+        ? { codigoAnimal: error.opcion.codigoAnimal }
+        : {}),
     });
     return;
   }
 
+  // Errores del módulo médico.
   if (esErrorRegistroMedico(error)) {
     response.status(error.estadoHttp).json({
       message: error.message,
       code: error.codigo,
-      ...(error.opcion.codigoAnimal ? { codigoAnimal: error.opcion.codigoAnimal } : {}),
+      ...(error.opcion.codigoAnimal
+        ? { codigoAnimal: error.opcion.codigoAnimal }
+        : {}),
     });
     return;
   }
 
+  // Errores inesperados.
   console.error(error);
 
   response.status(500).json({
@@ -70,6 +91,3 @@ export function manejadorErrores(error, request, response, next) {
     code: CODIGO_ERROR_INTERNO,
   });
 }
-
-
-
