@@ -6,6 +6,7 @@ import AdopcionPage from "./pages/AdopcionPage.jsx";
 import ReporteDevolucionesPage from "./pages/ReporteDevolucionesPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import useSesion from "./hooks/useSesion.js";
+import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
 
 function App() {
   const {
@@ -25,10 +26,24 @@ function App() {
     );
   }
 
-  function proteger(pagina) {
-    return usuario
-      ? pagina
-      : <Navigate to="/login" replace />;
+  function proteger(pagina, comprobarPermiso) {
+    if (!usuario) {
+      return <Navigate to="/login" replace />;
+    }
+
+    if (!comprobarPermiso(usuario)) {
+      return (
+        <section className="bloque">
+          <h2>Acceso restringido</h2>
+          <p>
+            Tu perfil no tiene permiso para utilizar este módulo.
+          </p>
+          <Link to="/">Volver al inicio</Link>
+        </section>
+      );
+    }
+
+    return pagina;
   }
 
   return (
@@ -44,13 +59,25 @@ function App() {
 
           {usuario ? (
             <>
-              <Link to="/registro">Registro</Link>
-              <Link to="/salud/alertas">Alertas sanitarias</Link>
-              <Link to="/reportes/devoluciones">
-                Devoluciones
-              </Link>
+              {puedeGestionarFichas(usuario) && (
+                <Link to="/registro">Registro</Link>
+              )}
 
-              <span>{usuario.nombre}</span>
+              {puedeConsultarAlertas(usuario) && (
+                <Link to="/salud/alertas">
+                  Alertas sanitarias
+                </Link>
+              )}
+
+              {puedeConsultarReportesDevolucion(usuario) && (
+                <Link to="/reportes/devoluciones">
+                  Devoluciones
+                </Link>
+              )}
+
+              <span>
+                {usuario.nombre} · {NOMBRES_ROL[usuario.rol]}
+              </span>
 
               <button
                 type="button"
@@ -58,7 +85,9 @@ function App() {
                 onClick={cerrarSesion}
                 disabled={cerrandoSesion}
               >
-                {cerrandoSesion ? "Cerrando..." : "Cerrar sesión"}
+                {cerrandoSesion
+                  ? "Cerrando..."
+                  : "Cerrar sesión"}
               </button>
             </>
           ) : (
@@ -87,19 +116,31 @@ function App() {
 
           <Route
             path="/registro"
-            element={proteger(<RegistroPage />)}
+            element={proteger(
+              <RegistroPage />,
+              puedeGestionarFichas
+            )}
           />
 
           <Route
             path="/salud/alertas"
-            element={proteger(<AlertasSanitariasPage />)}
+            element={proteger(
+              <AlertasSanitariasPage />,
+              puedeConsultarAlertas
+            )}
           />
 
-          <Route path="/adopcion" element={<AdopcionPage />} />
+          <Route
+            path="/adopcion"
+            element={<AdopcionPage />}
+          />
 
           <Route
             path="/reportes/devoluciones"
-            element={proteger(<ReporteDevolucionesPage />)}
+            element={proteger(
+              <ReporteDevolucionesPage />,
+              puedeConsultarReportesDevolucion
+            )}
           />
 
           <Route
