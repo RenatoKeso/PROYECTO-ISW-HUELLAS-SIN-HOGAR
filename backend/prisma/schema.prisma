@@ -313,12 +313,14 @@ model RevisionInicial {
   observacionEstadoSalud String?
   estadoRevisionInicial  EstadoRevisionInicial @default(PENDIENTE)
 
-  createdAt   DateTime  @default(now())
-  createdById Int
-  createdBy   Usuario   @relation("RevisionInicialCreatedBy", fields: [createdById], references: [id])
-  updatedById Int?
-  updatedBy   Usuario?  @relation("RevisionInicialUpdatedBy", fields: [updatedById], references: [id])
-  updatedAt   DateTime? @updatedAt
+fechaActualizacion DateTime?
+
+  createdAt          DateTime  @default(now())
+  createdById        Int
+  createdBy          Usuario   @relation("RevisionInicialCreatedBy", fields: [createdById], references: [id])
+  updatedById        Int?
+  updatedBy          Usuario?  @relation("RevisionInicialUpdatedBy", fields: [updatedById], references: [id])
+  updatedAt          DateTime? @updatedAt
 
   @@index([estadoRevisionInicial])
 }
