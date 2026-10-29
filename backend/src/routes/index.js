@@ -8,7 +8,7 @@ import { crearAdopcionRouter } from "./adopcionRoutes.js";
 import { crearAuthRouter } from "./authRoutes.js";
 import { crearAutenticacion } from "../middlewares/autenticarUsuario.js";
 import { autorizarAccion } from "../middlewares/autorizarAccion.js";
-import { puedeConsultarAlertas } from "../services/permisosUsuario.js";
+import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeConsultarVoluntarios,} from "../services/permisosUsuario.js";
 import authService from "../services/authService.js";
 
 export function crearRouter({
@@ -21,12 +21,27 @@ export function crearRouter({
 
   router.use("/auth", crearAuthRouter(servicioAuth));
 
+  // El catálogo de adopción sigue siendo público.
+  router.use("/adopciones", crearAdopcionRouter());
+
+  router.use(
+    ["/fichas", "/animales/ingresos"],
+    autenticar,
+    autorizarAccion(puedeGestionarFichas)
+  );
+
   router.use(
     crearAnimalRouter({
       controlador: crearAnimalController({
         registrarIngresoAnimal,
       }),
     })
+  );
+
+  router.use(
+    "/voluntarios",
+    autenticar,
+    autorizarAccion(puedeConsultarVoluntarios)
   );
 
   router.use(crearVoluntarioRouter());
@@ -40,8 +55,13 @@ export function crearRouter({
     })
   );
 
+  router.use(
+    "/reportes/devoluciones",
+    autenticar,
+    autorizarAccion(puedeConsultarReportesDevolucion)
+  );
+
   router.use(crearReporteDevolucionRouter());
-  router.use("/adopciones", crearAdopcionRouter());
 
   return router;
 }
