@@ -1,9 +1,6 @@
 import express from "express";
 import cors from "cors";
-import {
-  manejadorErrores,
-  manejarRutaNoEncontrada,
-} from "./handlers/manejadorErrores.js";
+import {manejadorErrores,manejarRutaNoEncontrada,} from "./handlers/manejadorErrores.js";
 import { crearRouter } from "./routes/index.js";
 
 export function crearApp({ registrarIngresoAnimal } = {}) {
