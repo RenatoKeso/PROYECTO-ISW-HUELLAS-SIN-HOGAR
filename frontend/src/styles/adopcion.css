@@ -94,6 +94,11 @@
     font-size: 0.88rem;
 }
 
+.boton-postular {
+    margin-top: 0.75rem;
+    padding: 0.5rem 1.1rem;
+}
+
 .sexo {
     margin-left: 0.3rem;
     font-family: var(--sans);

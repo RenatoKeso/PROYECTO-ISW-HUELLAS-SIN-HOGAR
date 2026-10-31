@@ -5,9 +5,11 @@ import AlertasSanitariasPage from "./pages/AlertasSanitariasPage.jsx";
 import AdopcionPage from "./pages/AdopcionPage.jsx";
 import ReporteDevolucionesPage from "./pages/ReporteDevolucionesPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import PostulacionPage from "./pages/PostulacionPage.jsx";
+import PostulacionesPage from "./pages/PostulacionesPage.jsx";
+import PostulacionDetallePage from "./pages/PostulacionDetallePage.jsx";
 import useSesion from "./hooks/useSesion.js";
-import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
-
+import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeGestionarAdopciones,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
 function App() {
   const {
     usuario,
@@ -74,7 +76,11 @@ function App() {
                   Devoluciones
                 </Link>
               )}
-
+              {puedeGestionarAdopciones(usuario) && (
+                <Link to="/postulaciones">
+                  Postulaciones
+                </Link>
+              )}
               <span>
                 {usuario.nombre} · {NOMBRES_ROL[usuario.rol]}
               </span>
@@ -134,7 +140,26 @@ function App() {
             path="/adopcion"
             element={<AdopcionPage />}
           />
+          <Route
+            path="/adopcion/:animalId/postular"
+            element={<PostulacionPage />}
+          />
 
+          <Route
+            path="/postulaciones"
+            element={proteger(
+              <PostulacionesPage />,
+              puedeGestionarAdopciones
+            )}
+          />
+
+          <Route
+            path="/postulaciones/:id"
+            element={proteger(
+              <PostulacionDetallePage />,
+              puedeGestionarAdopciones
+            )}
+          />
           <Route
             path="/reportes/devoluciones"
             element={proteger(

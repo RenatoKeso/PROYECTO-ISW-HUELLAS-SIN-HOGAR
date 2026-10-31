@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { listarAnimalesEnAdopcion } from "../services/adopcionesService.js";
 import {
   FILTROS,
@@ -63,6 +64,9 @@ function TarjetaAnimal({ animal }) {
       </h3>
       <p>{primeraLinea.filter(Boolean).join(" · ")}</p>
       <p>{segundaLinea.filter(Boolean).join(" · ")}</p>
+      <Link to={`/adopcion/${animal.id}/postular`} className="boton boton-postular">
+        Postular
+      </Link>
     </article>
   );
 }
