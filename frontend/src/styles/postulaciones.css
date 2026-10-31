@@ -1,0 +1,246 @@
+/* ---------- ELEMENTOS COMUNES ---------- */
+
+.volver-link {
+    display: inline-block;
+    margin-bottom: 1rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--verde);
+    text-decoration: none;
+}
+
+.volver-link:hover {
+    text-decoration: underline;
+}
+
+.texto-suave {
+    color: var(--texto-suave);
+}
+
+.etiqueta-pequena {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--texto-suave);
+}
+
+/* ---------- FORMULARIO PUBLICO ---------- */
+
+.postulacion-animal {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.postulacion-animal h2 {
+    margin: 0.1rem 0;
+}
+
+.postulacion-animal p {
+    margin: 0;
+}
+
+.postulacion-animal-dibujo {
+    display: grid;
+    place-items: center;
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radio);
+    background: var(--crema-claro);
+    border: 1px solid var(--borde);
+    font-size: 2.5rem;
+}
+
+/* ---------- BANDEJA ---------- */
+
+.pestanas-estado {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1.25rem 0;
+}
+
+.pestana-estado {
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--borde);
+    border-radius: 999px;
+    background: transparent;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--verde);
+    cursor: pointer;
+}
+
+.pestana-estado:hover {
+    background: var(--crema-claro);
+}
+
+.pestana-estado.activa {
+    background: var(--verde);
+    border-color: var(--verde);
+    color: var(--crema-claro);
+}
+
+.tabla-contenedor {
+    overflow-x: auto;
+}
+
+.tabla-postulaciones {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--crema-claro);
+    font-size: 0.92rem;
+}
+
+.tabla-postulaciones th,
+.tabla-postulaciones td {
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid var(--borde);
+    text-align: left;
+}
+
+.tabla-postulaciones th {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--texto-suave);
+}
+
+.enlace-accion {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--terracota);
+}
+
+/* ---------- ESTADOS ---------- */
+
+.estado-chip {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+.estado-EN_REVISION {
+    background: #f3e2b8;
+    color: #7a5a12;
+}
+
+.estado-APROBADA {
+    background: #d5e6d8;
+    color: var(--verde);
+}
+
+.estado-ENTREGADA {
+    background: var(--verde);
+    color: var(--crema-claro);
+}
+
+.estado-RECHAZADA {
+    background: #f2d3c9;
+    color: var(--terracota-oscuro);
+}
+
+.estado-CERRADA {
+    background: #e2ddd3;
+    color: var(--texto-suave);
+}
+
+/* ---------- DETALLE ---------- */
+
+.detalle-encabezado {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.detalle-encabezado h2 {
+    margin: 0;
+}
+
+.detalle-columnas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.datos {
+    margin: 0;
+}
+
+.dato {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px dashed var(--borde);
+}
+
+.dato:last-child {
+    border-bottom: 0;
+}
+
+.dato dt {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--texto-suave);
+}
+
+.dato dd {
+    margin: 0;
+}
+
+.acciones-resolucion {
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* ---------- ALERTA DE ANTECEDENTES ---------- */
+
+.alerta-antecedentes {
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--terracota);
+    border-left-width: 5px;
+    border-radius: var(--radio);
+    background: #fbeee8;
+}
+
+.alerta-antecedentes ul {
+    margin: 0.5rem 0;
+    padding-left: 1.2rem;
+}
+
+.alerta-antecedentes li {
+    margin: 0.25rem 0;
+    font-size: 0.92rem;
+}
+
+.alerta-titulo {
+    margin: 0;
+    font-weight: 600;
+    color: var(--terracota-oscuro);
+}
+
+.alerta-nota {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--texto-suave);
+}
+
+@media (max-width: 700px) {
+    .dato {
+        grid-template-columns: 1fr;
+        gap: 0.1rem;
+    }
+}
