@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Campo from "../components/ui/Campo.jsx";
+import ProcesoAdopcion from "../components/adopcion/ProcesoAdopcion.jsx";
 import {
   obtenerPostulacion,
   resolverPostulacion,
@@ -128,6 +129,8 @@ function PostulacionDetallePage() {
   const { id } = useParams();
   const [detalle, setDetalle] = useState(null);
   const [error, setError] = useState("");
+  // Cada vez que cambia, se vuelve a pedir el detalle (despues de una visita o la entrega).
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     let vigente = true;
@@ -139,7 +142,11 @@ function PostulacionDetallePage() {
     return () => {
       vigente = false;
     };
-  }, [id]);
+  }, [id, version]);
+
+  function recargar() {
+    setVersion((actual) => actual + 1);
+  }
 
   // La respuesta de la resolucion trae la postulacion actualizada; los
   // antecedentes no cambian, asi que se conservan.
@@ -215,12 +222,22 @@ function PostulacionDetallePage() {
         <div className="tarjeta">
           <h3>Resolución</h3>
           <dl className="datos">
-            <Dato etiqueta="Decisión">{ESTADOS_POSTULACION[postulacion.estado]}</Dato>
+            <Dato etiqueta="Decisión">
+              {/* Una postulación entregada fue aprobada antes de la entrega. */}
+              {postulacion.estado === "ENTREGADA"
+                ? ESTADOS_POSTULACION.APROBADA
+                : ESTADOS_POSTULACION[postulacion.estado]}
+            </Dato>
             <Dato etiqueta="Fecha">{formatearFecha(postulacion.fechaResolucion)}</Dato>
             <Dato etiqueta="Revisor">{postulacion.revisor?.nombre}</Dato>
             <Dato etiqueta="Observaciones">{postulacion.observaciones}</Dato>
           </dl>
         </div>
+      )}
+
+      {(["APROBADA", "ENTREGADA"].includes(postulacion.estado) ||
+        postulacion.visitas?.length > 0) && (
+        <ProcesoAdopcion postulacion={postulacion} onActualizada={recargar} />
       )}
     </section>
   );

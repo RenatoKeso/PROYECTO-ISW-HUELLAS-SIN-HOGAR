@@ -71,6 +71,12 @@ export async function buscarPostulacionPorId(id, cliente = prisma) {
         },
       },
       revisor: { select: { id: true, nombre: true } },
+      omisionAutorizadaPor: { select: { id: true, nombre: true } },
+      visitas: {
+        include: { registradaPor: { select: { id: true, nombre: true } } },
+        orderBy: { createdAt: "asc" },
+      },
+      seguimientos: { orderBy: { diasDesdeEntrega: "asc" } },
     },
   });
 }
@@ -107,4 +113,61 @@ export async function resolverPostulacionEnRevision(id, data, cliente = prisma) 
   });
 
   return count;
+}
+
+// ---------- Visitas y omision de la visita al hogar ----------
+
+export async function crearVisita(data, cliente = prisma) {
+  return cliente.visitaAdopcion.create({ data });
+}
+
+// Solo guarda la omision si la postulacion sigue APROBADA y no se habia omitido.
+export async function registrarOmisionVisitaHogar(id, data, cliente = prisma) {
+  const { count } = await cliente.postulacion.updateMany({
+    where: { id, estado: "APROBADA", motivoOmisionVisitaHogar: null },
+    data,
+  });
+
+  return count;
+}
+
+// ---------- Entrega (se usan dentro de una transaccion) ----------
+
+export async function marcarPostulacionEntregada(id, data, cliente = prisma) {
+  const { count } = await cliente.postulacion.updateMany({
+    where: { id, estado: "APROBADA" },
+    data: { ...data, estado: "ENTREGADA" },
+  });
+
+  return count;
+}
+
+export async function marcarAnimalAdoptado(fichaAnimalId, cliente = prisma) {
+  const { count } = await cliente.fichaAnimal.updateMany({
+    where: { id: fichaAnimalId, estadoEstadia: "ESPERA_ADOPCION" },
+    data: { estadoEstadia: "ADOPTADO" },
+  });
+
+  return count;
+}
+
+// Cierra las demas postulaciones abiertas del mismo animal.
+export async function cerrarOtrasPostulacionesAbiertas(
+  { fichaAnimalId, postulacionEntregadaId, fecha },
+  cliente = prisma,
+) {
+  const { count } = await cliente.postulacion.updateMany({
+    where: {
+      fichaAnimalId,
+      id: { not: postulacionEntregadaId },
+      estado: { in: ESTADOS_ABIERTOS },
+    },
+    data: { estado: "CERRADA", fechaResolucion: fecha },
+  });
+
+  return count;
+}
+
+export async function crearSeguimientos(seguimientos, cliente = prisma) {
+  return cliente.seguimientoAdopcion.createMany({ data: seguimientos });
 }

@@ -28,6 +28,8 @@ async function main() {
   // Después los modulos de adopción y devoluciones.
   await prisma.reporteDevolucion.deleteMany();
   await prisma.devolucion.deleteMany();
+  await prisma.seguimientoAdopcion.deleteMany();
+  await prisma.visitaAdopcion.deleteMany();
   await prisma.postulacion.deleteMany();
 
   // Y al final los padres.
@@ -108,6 +110,22 @@ async function main() {
       especie: "GATO",
       edad: 1,
       estadoEstadia: "ACTIVO",
+    },
+  });
+
+  // Modulo de adopcion: Luna ya fue evaluada como adoptable, pero todavia no
+  // se publica en el catalogo. Sirve para probar la accion "publicar".
+  await prisma.fichaAnimal.create({
+    data: {
+      codigoAnimal: "anim-003",
+      nombre: "Luna",
+      sexoAnimal: "HEMBRA",
+      especie: "GATO",
+      raza: "Común europeo",
+      edad: 2,
+      estadoEstadia: "ACTIVO",
+      estadoAdopcion: "ADOPTABLE",
+      observaciones: "Tranquila, acostumbrada a convivir con niños.",
     },
   });
 

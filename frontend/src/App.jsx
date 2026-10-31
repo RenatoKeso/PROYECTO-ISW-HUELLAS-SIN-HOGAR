@@ -8,6 +8,7 @@ import LoginPage from "./pages/LoginPage.jsx";
 import PostulacionPage from "./pages/PostulacionPage.jsx";
 import PostulacionesPage from "./pages/PostulacionesPage.jsx";
 import PostulacionDetallePage from "./pages/PostulacionDetallePage.jsx";
+import PublicarAnimalesPage from "./pages/PublicarAnimalesPage.jsx";
 import useSesion from "./hooks/useSesion.js";
 import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeGestionarAdopciones,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
 function App() {
@@ -157,6 +158,13 @@ function App() {
             path="/postulaciones/:id"
             element={proteger(
               <PostulacionDetallePage />,
+              puedeGestionarAdopciones
+            )}
+          />
+                    <Route
+            path="/adopciones/publicar"
+            element={proteger(
+              <PublicarAnimalesPage />,
               puedeGestionarAdopciones
             )}
           />

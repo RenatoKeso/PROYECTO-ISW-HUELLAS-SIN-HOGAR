@@ -244,3 +244,140 @@
         gap: 0.1rem;
     }
 }
+
+/* ---------- PARTE 2: PUBLICAR, VISITAS Y ENTREGA ---------- */
+
+.encabezado-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.encabezado-acciones p {
+    margin-top: 0;
+}
+
+.boton-chico {
+    padding: 0.45rem 1rem;
+    font-size: 0.78rem;
+}
+
+.nota {
+    margin: 0.75rem 0 0;
+    font-size: 0.85rem;
+    color: var(--texto-suave);
+}
+
+.proceso {
+    margin-top: 2rem;
+}
+
+.proceso>h2 {
+    margin-bottom: 1rem;
+}
+
+.paso {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr;
+    gap: 1rem;
+    padding: 1.25rem 0;
+    border-top: 1px solid var(--borde);
+}
+
+.paso-numero {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    border: 1px solid var(--borde);
+    background: var(--crema-claro);
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    color: var(--texto-suave);
+}
+
+.paso-listo .paso-numero {
+    background: var(--verde);
+    border-color: var(--verde);
+    color: var(--crema-claro);
+}
+
+.paso-pendiente .paso-numero {
+    border-color: var(--terracota);
+    color: var(--terracota);
+}
+
+.paso-bloqueado {
+    opacity: 0.75;
+}
+
+.paso-cuerpo h3 {
+    margin: 0.35rem 0 0.75rem;
+    font-family: var(--serif);
+    color: var(--verde);
+}
+
+.formulario-paso {
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    background: var(--crema-claro);
+}
+
+.formulario-paso .boton {
+    margin-top: 1rem;
+}
+
+.selector-modo {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.resultado {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+}
+
+.resultado-FAVORABLE {
+    color: var(--verde);
+}
+
+.resultado-DESFAVORABLE {
+    color: var(--terracota-oscuro);
+}
+
+.subtitulo {
+    margin: 1.25rem 0 0.5rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--texto-suave);
+}
+
+.lista-seguimientos {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.lista-seguimientos li {
+    margin: 0.35rem 0;
+}
+
+.lista-seguimientos .estado-chip {
+    margin-left: 0.5rem;
+}
+
+.seguimiento-PENDIENTE {
+    background: #f3e2b8;
+    color: #7a5a12;
+}
+
+.seguimiento-REALIZADO {
+    background: #d5e6d8;
+    color: var(--verde);
+}
