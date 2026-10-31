@@ -26,15 +26,16 @@ export async function buscarDevolucionesPorFecha (fechaDesde, fechaHasta, client
 } 
 
 export async function guardarReporteDevolucion(data, cliente = prisma) {
-  return cliente.reporteDevolucion.create({ data });
+  return cliente.reporteDevolucion.create({
+    data,
+    include: { generadoPor: { select: { nombre: true } } },
+  });
 }
 
 export async function listarReportesDevolucion(cliente = prisma) {
   return cliente.reporteDevolucion.findMany({
+    include: { generadoPor: { select: { nombre: true } } },
     orderBy: { createdAt: "desc" },
   });
 }
 
-export async function buscarVoluntarioPorId(id, cliente = prisma) {
-  return cliente.voluntario.findUnique({ where: { id } });
-}

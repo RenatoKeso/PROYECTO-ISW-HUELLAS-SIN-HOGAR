@@ -4,8 +4,7 @@ import { reporteDevolucionSchema } from "../../src/validations/reporteDevolucion
 
 const datosValidos = {
   fechaDesde: "2026-07-01",
-  fechaHasta: "2026-09-30",
-  generadoPorId: 1,
+  fechaHasta: "2026-09-30"
 };
 
 test("acepta un rango de fechas valido", () => {
@@ -33,9 +32,9 @@ test("rechaza una fecha con formato incorrecto", () => {
   assert.equal(resultado.success, false);
 });
 
-test("rechaza un voluntario que no es un numero positivo", () => {
-  assert.equal(reporteDevolucionSchema.safeParse({ ...datosValidos, generadoPorId: 0 }).success, false);
-  assert.equal(reporteDevolucionSchema.safeParse({ ...datosValidos, generadoPorId: "1" }).success, false);
+test("rechaza que se mande quien genera el reporte", () => {
+  const resultado = reporteDevolucionSchema.safeParse({ ...datosValidos, generadoPorId: 1 });
+  assert.equal(resultado.success, false);
 });
 
 test("rechaza campos que no pertenecen al reporte", () => {
