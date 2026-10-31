@@ -13,12 +13,40 @@ export const ESTADO_POSTULACION_VALUES = [
 // Al revisar, la encargada solo puede aprobar o rechazar.
 export const DECISION_POSTULACION_VALUES = ["APROBADA", "RECHAZADA"];
 
+export const TIPO_VISITA_VALUES = ["PRIMERA_VISITA", "VISITA_HOGAR"];
+export const RESULTADO_VISITA_VALUES = ["FAVORABLE", "DESFAVORABLE"];
+export const MOTIVO_OMISION_VALUES = [
+  "FALTA_ESPACIO_REFUGIO",
+  "POSTULANTE_CONOCIDO",
+  "DISTANCIA",
+  "SIN_PERSONAL_DISPONIBLE",
+  "OTRO",
+];
+
+// El refugio esta en Chile: "hoy" y "el dia de una fecha" se calculan con la
+// hora de Chile
+const ZONA_HORARIA = "America/Santiago";
+
+// Devuelve el dia de una fecha en Chile, como texto "AAAA-MM-DD".
+export function diaEnChile(fecha = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: ZONA_HORARIA }).format(fecha);
+}
+
+// Fecha sin hora ("AAAA-MM-DD") que no puede ser posterior a hoy.
+// Se guarda como medianoche UTC, igual que las otras fechas sin hora del proyecto.
+const fechaNoFuturaSchema = z.iso
+  .date({ message: "La fecha debe tener el formato AAAA-MM-DD" })
+  .refine((valor) => valor <= diaEnChile(), {
+    message: "La fecha no puede ser posterior a hoy",
+  })
+  .transform((valor) => new Date(`${valor}T00:00:00.000Z`));
+
 const idSchema = z
   .number({ message: "El identificador debe ser un número" })
   .int("El identificador debe ser un número entero")
   .positive("El identificador debe ser mayor que cero");
 
-// "genero" ajusta el mensaje: "El nombre es obligatorio" / "La observacion es obligatoria".
+// "genero" ajusta el mensaje: "El nombre es obligatorio" / "La observación es obligatoria".
 function textoObligatorio(campo, { maximo = 255, genero = "o" } = {}) {
   const mensaje = `${campo} es obligatori${genero}`;
 
@@ -78,6 +106,8 @@ export const postulacionIdParamSchema = z.object({
     .positive("El identificador debe ser mayor que cero"),
 });
 
+export const animalIdParamSchema = postulacionIdParamSchema;
+
 export const listarPostulacionesQuerySchema = z.strictObject({
   estado: z
     .enum(ESTADO_POSTULACION_VALUES, { message: "El estado indicado no es válido" })
@@ -89,4 +119,31 @@ export const resolverPostulacionSchema = z.strictObject({
     message: "La decisión debe ser APROBADA o RECHAZADA",
   }),
   observaciones: textoObligatorio("La observación", { maximo: 1000, genero: "a" }).optional(),
+});
+
+export const registrarVisitaSchema = z.strictObject({
+  tipo: z.enum(TIPO_VISITA_VALUES, { message: "El tipo de visita no es válido" }),
+  fechaVisita: fechaNoFuturaSchema,
+  resultado: z.enum(RESULTADO_VISITA_VALUES, {
+    message: "El resultado debe ser FAVORABLE o DESFAVORABLE",
+  }),
+  observaciones: textoObligatorio("La observación", { maximo: 1000, genero: "a" }).optional(),
+});
+
+export const omitirVisitaHogarSchema = z
+  .strictObject({
+    motivo: z.enum(MOTIVO_OMISION_VALUES, { message: "Selecciona un motivo de la lista" }),
+    observacion: textoObligatorio("La observación", { maximo: 1000, genero: "a" }).optional(),
+  })
+  .refine((datos) => datos.motivo !== "OTRO" || datos.observacion, {
+    message: "Si el motivo es OTRO, explícalo en la observación",
+    path: ["observacion"],
+  });
+
+export const entregaSchema = z.strictObject({
+  fechaEntrega: fechaNoFuturaSchema,
+  documentacionEntregada: textoObligatorio("La documentación entregada", {
+    maximo: 1000,
+    genero: "a",
+  }),
 });

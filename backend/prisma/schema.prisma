@@ -113,15 +113,84 @@ model Postulacion {
   disponibilidadTiempo String
   fechaResolucion      DateTime?
   observaciones        String?
-  estado               EstadoPostulacion @default(EN_REVISION)
+   estado               EstadoPostulacion @default(EN_REVISION)
   createdAt            DateTime          @default(now())
 
+  // Omision de la visita al hogar (RF3): motivo de la lista y quien la autorizo.
+  motivoOmisionVisitaHogar      MotivoOmisionVisita?
+  observacionOmisionVisitaHogar String?
+  fechaOmisionVisitaHogar       DateTime?
+  omisionAutorizadaPorId        Int?
+  omisionAutorizadaPor          Usuario?             @relation("OmisionesVisitaAutorizadas", fields: [omisionAutorizadaPorId], references: [id])
+
+  // Entrega  El modulo de devoluciones usa fechaEntrega para validar la fecha de devolución.
+  fechaEntrega           DateTime? @db.Date
+  documentacionEntregada String?
+
   devoluciones Devolucion[]
+  visitas      VisitaAdopcion[]
+  seguimientos SeguimientoAdopcion[]
 
   @@index([fichaAnimalId])
   @@index([estado])
   @@index([rutPostulante])
 }
+
+enum TipoVisitaAdopcion {
+  PRIMERA_VISITA
+  VISITA_HOGAR
+}
+
+enum ResultadoVisitaAdopcion {
+  FAVORABLE
+  DESFAVORABLE
+}
+
+enum MotivoOmisionVisita {
+  FALTA_ESPACIO_REFUGIO
+  POSTULANTE_CONOCIDO
+  DISTANCIA
+  SIN_PERSONAL_DISPONIBLE
+  OTRO
+}
+
+enum EstadoSeguimientoAdopcion {
+  PENDIENTE
+  REALIZADO
+}
+
+// Primera visita entre el animal y la familia, y visita al hogar del postulante.
+model VisitaAdopcion {
+  id              Int                     @id @default(autoincrement())
+  postulacionId   Int
+  postulacion     Postulacion             @relation(fields: [postulacionId], references: [id])
+  tipo            TipoVisitaAdopcion
+  fechaVisita     DateTime                @db.Date
+  resultado       ResultadoVisitaAdopcion
+  observaciones   String?
+  registradaPorId Int
+  registradaPor   Usuario                 @relation("VisitasAdopcionRegistradas", fields: [registradaPorId], references: [id])
+  createdAt       DateTime                @default(now())
+
+  // Cada postulación tiene a lo mas una visita de cada tipo.
+  @@unique([postulacionId, tipo])
+}
+
+// Tareas de seguimiento que se crean al entregar el animal (a los 15 y 30 días).
+model SeguimientoAdopcion {
+  id               Int                       @id @default(autoincrement())
+  postulacionId    Int
+  postulacion      Postulacion               @relation(fields: [postulacionId], references: [id])
+  diasDesdeEntrega Int
+  fechaProgramada  DateTime                  @db.Date
+  estado           EstadoSeguimientoAdopcion @default(PENDIENTE)
+  observaciones    String?
+  createdAt        DateTime                  @default(now())
+
+  @@unique([postulacionId, diasDesdeEntrega])
+  @@index([estado, fechaProgramada])
+}
+
 
 // Módulo de devoluciones
 
@@ -227,7 +296,8 @@ model Usuario {
   auditoriasRealizadas            AuditoriaRevisionInicial[]
   versionesHistorial              HistorialRegistroMedico[]
   notificacionesRecibidas         Notificacion[]
-
+  visitasAdopcionRegistradas      VisitaAdopcion[]            @relation("VisitasAdopcionRegistradas")
+  omisionesVisitaAutorizadas      Postulacion[]               @relation("OmisionesVisitaAutorizadas")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
