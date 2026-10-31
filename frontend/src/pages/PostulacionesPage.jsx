@@ -50,8 +50,15 @@ function PostulacionesPage() {
 
   return (
     <section className="bloque">
-      <h2>Postulaciones de adopción</h2>
-      <p>Revisa las postulaciones que llegan desde el catálogo público.</p>
+      <div className="encabezado-acciones">
+        <div>
+          <h2>Postulaciones de adopción</h2>
+          <p>Revisa las postulaciones que llegan desde el catálogo público.</p>
+        </div>
+        <Link to="/adopciones/publicar" className="boton boton-secundario">
+          Publicar animales
+        </Link>
+      </div>
 
       <div className="pestanas-estado" role="tablist">
         {PESTANAS.map((pestana) => (

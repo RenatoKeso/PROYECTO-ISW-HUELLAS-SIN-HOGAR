@@ -61,3 +61,45 @@ export const observacionResolucionSchema = z.preprocess(
   vacioAUndefined,
   z.string().trim().max(1000, "La observación no puede superar los 1000 caracteres").optional(),
 );
+
+// ---------- Visitas, omision y entrega ----------
+
+const fechaObligatoria = (mensaje) =>
+  z
+    .string()
+    .min(1, mensaje)
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "La fecha no es válida");
+
+const observacionOpcional = z.preprocess(
+  vacioAUndefined,
+  z.string().trim().max(1000, "No puede superar los 1000 caracteres").optional(),
+);
+
+export const visitaFormSchema = z.strictObject({
+  fechaVisita: fechaObligatoria("Indica la fecha de la visita"),
+  resultado: z.enum(["FAVORABLE", "DESFAVORABLE"], {
+    message: "Indica el resultado de la visita",
+  }),
+  observaciones: observacionOpcional,
+});
+
+export const omisionFormSchema = z
+  .strictObject({
+    motivo: z.enum(
+      ["FALTA_ESPACIO_REFUGIO", "POSTULANTE_CONOCIDO", "DISTANCIA", "SIN_PERSONAL_DISPONIBLE", "OTRO"],
+      { message: "Selecciona un motivo de la lista" },
+    ),
+    observacion: observacionOpcional,
+  })
+  .refine((datos) => datos.motivo !== "OTRO" || datos.observacion, {
+    message: "Si el motivo es Otro, explícalo aquí",
+    path: ["observacion"],
+  });
+
+export const entregaFormSchema = z.strictObject({
+  fechaEntrega: fechaObligatoria("Indica la fecha de entrega"),
+  documentacionEntregada: textoObligatorio("La documentación entregada", {
+    maximo: 1000,
+    genero: "a",
+  }),
+});
