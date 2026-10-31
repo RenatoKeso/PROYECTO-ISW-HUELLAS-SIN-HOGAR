@@ -21,8 +21,9 @@ export function crearRouter({
 
   router.use("/auth", crearAuthRouter(servicioAuth));
 
-  // El catálogo de adopción sigue siendo público.
-  router.use("/adopciones", crearAdopcionRouter());
+  // El catalogo y el formulario de postulación son publicos.
+  // La revisión de postulaciones exige sesión (se protege dentro del router).
+  router.use("/adopciones", crearAdopcionRouter({ autenticar }));
 
   router.use(
     ["/fichas", "/animales/ingresos"],
