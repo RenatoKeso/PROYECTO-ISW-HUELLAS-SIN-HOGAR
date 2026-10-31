@@ -2,6 +2,7 @@ import { ZodError } from "zod";
 import { esErrorAnimal } from "../entities/animalErrors.js";
 import { AuthError } from "../entities/authErrors.js";
 import { esErrorRegistroMedico } from "../entities/registroMedicoErrors.js";
+import { esErrorAdopcion } from "../entities/adopcionErrors.js";
 
 export const CODIGO_DATOS_INVALIDOS = "DATOS_INVALIDOS";
 export const CODIGO_RUTA_NO_ENCONTRADA = "RUTA_NO_ENCONTRADA";
@@ -79,6 +80,15 @@ export function manejadorErrores(error, request, response, next) {
       ...(error.opcion.codigoAnimal
         ? { codigoAnimal: error.opcion.codigoAnimal }
         : {}),
+    });
+    return;
+  }
+
+  // Errores del modulo de adopción.
+  if (esErrorAdopcion(error)) {
+    response.status(error.estadoHttp).json({
+      message: error.message,
+      code: error.codigo,
     });
     return;
   }

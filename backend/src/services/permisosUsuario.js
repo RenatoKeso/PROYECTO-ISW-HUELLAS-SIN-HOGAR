@@ -108,3 +108,13 @@ export function puedeConsultarVoluntarios(usuario) {
     puedeConsultarReportesDevolucion(usuario)
 );
 }
+
+// Estos roles necesitan el listado en sus formularios.
+// La directora y la encargada de adopciones revisan postulaciones,
+// registran visitas y formalizan entregas.
+export function puedeGestionarAdopciones(usuario) {
+    return tieneRol(usuario, [
+    "DIRECTORA",
+    "ENCARGADA_ADOPCIONES",
+]);
+}
