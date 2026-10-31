@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import Campo from "../components/ui/Campo.jsx";
 import { ApiError } from "../services/api.js";
-import { listarVoluntarios } from "../services/voluntariosService.js";
 import { generarReporteDevoluciones, listarReportesDevoluciones } from "../services/reporteDevolucionService.js";
 import "../styles/reporteDevoluciones.css";
 import mascotas from "../assets/mascotas.svg";
@@ -85,8 +84,7 @@ function agruparPorAnimal(reportes) {
 }
 
 function ReporteDevolucionesPage() {
-  const [valores, setValores] = useState({ fechaDesde: "", fechaHasta: "", generadoPorId: "" });
-  const [voluntarios, setVoluntarios] = useState([]);
+  const [valores, setValores] = useState({ fechaDesde: "", fechaHasta: "" });
   const [errores, setErrores] = useState({});
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
@@ -101,24 +99,11 @@ function ReporteDevolucionesPage() {
       .then((respuesta) => setReportesGuardados(respuesta.reportes))
       .catch(() => setMensaje("No se pudieron cargar los reportes guardados"));
   }
-
-  useEffect(() => {
-    listarVoluntarios()
-      .then((respuesta) => setVoluntarios(respuesta.voluntarios))
-      .catch(() => setMensaje("No se pudieron cargar los voluntarios"));
-  }, []);
  
   useEffect(() => {
     cargarReportes();
   }, []);
 
-  const opcionesVoluntarios = [
-    { valor: "", texto: "Elige un voluntario" },
-    ...voluntarios.map((voluntario) => ({
-      valor: String(voluntario.id),
-      texto: voluntario.nombre,
-    })),
-  ];
 
   const animales = agruparPorAnimal(reportesGuardados);
 
@@ -127,7 +112,7 @@ function ReporteDevolucionesPage() {
     }
 
   function abrirReporteGenerado(reporte) {
-    const nombreVoluntario = voluntarios.find((voluntario) => voluntario.id === reporte.generadoPorId)?.nombre;
+  const nombreVoluntario = reporte.generadoPor?.nombre;
     setVentana({
       icono: "📋",
       titulo: "Reporte de devoluciones",
@@ -176,7 +161,6 @@ function ReporteDevolucionesPage() {
       const respuesta = await generarReporteDevoluciones({
         fechaDesde: valores.fechaDesde,
         fechaHasta: valores.fechaHasta,
-        generadoPorId: Number(valores.generadoPorId),
       });
       abrirReporteGenerado(respuesta.reporte);
       cargarReportes();
@@ -286,15 +270,6 @@ function ReporteDevolucionesPage() {
                     valor={valores.fechaHasta}
                     error={errores.fechaHasta}
                     onChange={(e) => cambiar("fechaHasta", e.target.value)}
-                  />
-                  <Campo
-                    etiqueta="Generado por"
-                    nombre="generadoPorId"
-                    control="select"
-                    opciones={opcionesVoluntarios}
-                    valor={valores.generadoPorId}
-                    error={errores.generadoPorId}
-                    onChange={(e) => cambiar("generadoPorId", e.target.value)}
                   />
                 </div>
 
