@@ -6,7 +6,11 @@ import {
 } from "../services/reporteDevolucionService.js";
 
 export async function generarReporte(request, response) {
-  const reporte = await generarReporteDevoluciones(request.body);
+  
+  const reporte = await generarReporteDevoluciones({
+    ...request.body,
+    generadoPorId: request.usuario.id,
+  });
 
   return enviarRespuestaExitosa(response, {
     mensaje: "Reporte de devoluciones generado correctamente",
