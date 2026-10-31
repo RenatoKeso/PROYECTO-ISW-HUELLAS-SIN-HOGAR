@@ -77,7 +77,6 @@ model Voluntario {
   ingresosRecibidos      IngresoAnimal[]
   postulacionesRevisadas Postulacion[]
   devolucionesRecibidas  Devolucion[]
-  reportesGenerados      ReporteDevolucion[]
   usuario                Usuario?
 }
 
@@ -153,7 +152,7 @@ model ReporteDevolucion {
   totalDevoluciones Int
   resultado         Json
   generadoPorId     Int
-  generadoPor       Voluntario @relation(fields: [generadoPorId], references: [id])
+  generadoPor       Usuario    @relation(fields: [generadoPorId], references: [id])
   createdAt         DateTime   @default(now())
 }
 
@@ -227,6 +226,7 @@ model Usuario {
   auditoriasRealizadas            AuditoriaRevisionInicial[]
   versionesHistorial              HistorialRegistroMedico[]
   notificacionesRecibidas         Notificacion[]
+  reportesDevolucionGenerados     ReporteDevolucion[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
