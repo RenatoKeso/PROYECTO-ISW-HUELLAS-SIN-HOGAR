@@ -269,6 +269,7 @@ enum RolUsuario {
   ENCARGADA_ADOPCIONES
   VETERINARIA
   VOLUNTARIO
+  VOLUNTARIO_CONFIANZA
 }
 
 model Usuario {
@@ -303,7 +304,7 @@ model Usuario {
   updatedAt DateTime @updatedAt
 }
 
-// Módulo de registro médico 
+// Módulo de registro médico
 
 enum EstadoValidacionMedica {
   PROVISIONAL
@@ -402,12 +403,12 @@ model RevisionCompleta {
   registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
 
   edad                          Int?
-  peso                          Decimal?            @db.Decimal(5, 2)
+  peso                          Decimal?               @db.Decimal(5, 2)
   descripcionCuidadosEspeciales String?
   descripcionCondicionMedica    String?
   estadoSalud                   ClasificacionSalud?
 
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
   createdById Int
   createdBy   Usuario   @relation("RevisionCompletaCreatedBy", fields: [createdById], references: [id])
   updatedById Int?
@@ -476,7 +477,7 @@ model SeguimientoMedicoAnimal {
   registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
 
   fechaRegistro          DateTime
-  peso                   Decimal?             @db.Decimal(5, 2)
+  peso                   Decimal?          @db.Decimal(5, 2)
   observacionSeguimiento String
   estadoSalud            ClasificacionSalud
   evolucionEstadoSalud   EvolucionEstadoSalud
@@ -574,7 +575,7 @@ model HistorialRegistroMedico {
 }
 
 model Notificacion {
-  id               Int                   @id @default(autoincrement())
+  id               Int                  @id @default(autoincrement())
   destinatarioId   Int
   destinatario     Usuario               @relation(fields: [destinatarioId], references: [id])
   tipo             String
@@ -582,8 +583,8 @@ model Notificacion {
   mensaje          String
   registroMedicoId Int?
   registroMedico   RegistroMedicoAnimal? @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
-  leida            Boolean               @default(false)
-  createdAt        DateTime              @default(now())
+  leida            Boolean              @default(false)
+  createdAt        DateTime             @default(now())
 
   @@index([destinatarioId, leida])
 }
