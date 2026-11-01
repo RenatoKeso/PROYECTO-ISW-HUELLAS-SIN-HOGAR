@@ -1,120 +1,117 @@
 export const ROLES_USUARIO = Object.freeze([
-    "DIRECTORA",
-    "ENCARGADA_VOLUNTARIADO",
-    "ENCARGADA_ADOPCIONES",
-    "VETERINARIA",
-    "VOLUNTARIO",
+  "DIRECTORA",
+  "ENCARGADA_VOLUNTARIADO",
+  "ENCARGADA_ADOPCIONES",
+  "VETERINARIA",
+  "VOLUNTARIO",
+  "VOLUNTARIO_CONFIANZA",
 ]);
 
 function esCuentaActiva(usuario) {
-    return (
+  return (
     usuario?.activo === true &&
     ROLES_USUARIO.includes(usuario.rol)
-    );
+  );
 }
 
 function tieneRol(usuario, roles) {
-    return (
+  return (
     esCuentaActiva(usuario) &&
     roles.includes(usuario.rol)
-    );
+  );
 }
 
-// La directora crea cualquier rol.
-// La encargada de voluntariado solo crea voluntarios.
+// La directora puede crear cuentas de todos los roles.
+// La encargada conserva la creación de voluntarios normales.
 export function puedeCrearUsuario(actor, rolNuevo) {
-    if (
+  if (
     !esCuentaActiva(actor) ||
     !ROLES_USUARIO.includes(rolNuevo)
-    ) {
+  ) {
     return false;
-    }
+  }
 
-    return (
+  return (
     actor.rol === "DIRECTORA" ||
     (
-        actor.rol === "ENCARGADA_VOLUNTARIADO" &&
-        rolNuevo === "VOLUNTARIO"
-        )
-    );
+      actor.rol === "ENCARGADA_VOLUNTARIADO" &&
+      rolNuevo === "VOLUNTARIO"
+    )
+  );
 }
 
 // Solo la directora cambia el rol de otras cuentas.
 export function puedeCambiarRol(
-    actor,
-    usuarioDestino,
-    rolNuevo
+  actor,
+  usuarioDestino,
+  rolNuevo
 ) {
-    return (
+  return (
     esCuentaActiva(actor) &&
     actor.rol === "DIRECTORA" &&
     Number.isInteger(usuarioDestino?.id) &&
     usuarioDestino.id > 0 &&
     actor.id !== usuarioDestino.id &&
     ROLES_USUARIO.includes(rolNuevo)
-    );
+  );
 }
 
-// Desactivar conserva la cuenta y su historial.
 export function puedeDesactivarUsuario(
-    actor,
-    usuarioDestino
+  actor,
+  usuarioDestino
 ) {
-    if (
+  if (
     !esCuentaActiva(actor) ||
     !Number.isInteger(usuarioDestino?.id) ||
     usuarioDestino.id <= 0 ||
     actor.id === usuarioDestino.id ||
     !ROLES_USUARIO.includes(usuarioDestino.rol)
-) {
+  ) {
     return false;
-}
+  }
 
-    return (
+  return (
     actor.rol === "DIRECTORA" ||
     (
-        actor.rol === "ENCARGADA_VOLUNTARIADO" &&
-        usuarioDestino.rol === "VOLUNTARIO"
-        )
-    );
+      actor.rol === "ENCARGADA_VOLUNTARIADO" &&
+      usuarioDestino.rol === "VOLUNTARIO"
+    )
+  );
 }
 
 export function puedeGestionarFichas(usuario) {
-    return tieneRol(usuario, [
+  return tieneRol(usuario, [
     "DIRECTORA",
     "ENCARGADA_VOLUNTARIADO",
     "VOLUNTARIO",
-]);
+    "VOLUNTARIO_CONFIANZA",
+  ]);
 }
 
 export function puedeConsultarAlertas(usuario) {
-    return tieneRol(usuario, [
+  return tieneRol(usuario, [
     "DIRECTORA",
     "VETERINARIA",
-]);
+  ]);
 }
 
 export function puedeConsultarReportesDevolucion(usuario) {
-    return tieneRol(usuario, [
+  return tieneRol(usuario, [
     "DIRECTORA",
     "ENCARGADA_ADOPCIONES",
-]);
+  ]);
 }
 
-// Estos roles necesitan el listado en sus formularios.
 export function puedeConsultarVoluntarios(usuario) {
-    return (
+  return (
     puedeGestionarFichas(usuario) ||
     puedeConsultarReportesDevolucion(usuario)
-);
+  );
 }
 
-// Estos roles necesitan el listado en sus formularios.
-// La directora y la encargada de adopciones revisan postulaciones,
-// registran visitas y formalizan entregas.
 export function puedeGestionarAdopciones(usuario) {
-    return tieneRol(usuario, [
+  return tieneRol(usuario, [
     "DIRECTORA",
     "ENCARGADA_ADOPCIONES",
-]);
+  ]);
 }
