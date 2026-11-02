@@ -3,12 +3,13 @@ import { crearAnimalController } from "../controllers/animalController.js";
 import { crearAnimalRouter } from "./animalRoutes.js";
 import { crearVoluntarioRouter } from "./voluntarioRoutes.js";
 import { crearReporteDevolucionRouter } from "./reporteDevolucionRoutes.js";
+import { crearDevolucionRouter } from "./devolucionRoutes.js";
 import { crearSaludRouter } from "./salud.routes.js";
 import { crearAdopcionRouter } from "./adopcionRoutes.js";
 import { crearAuthRouter } from "./authRoutes.js";
 import { crearAutenticacion } from "../middlewares/autenticarUsuario.js";
 import { autorizarAccion } from "../middlewares/autorizarAccion.js";
-import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeConsultarVoluntarios,} from "../services/permisosUsuario.js";
+import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeConsultarVoluntarios,} from "../services/permisosUsuario.js";
 import authService from "../services/authService.js";
 
 export function crearRouter({
@@ -66,6 +67,14 @@ export function crearRouter({
   );
 
   router.use(crearReporteDevolucionRouter());
+  
+  router.use(
+    "/devoluciones",
+    autenticar,
+    autorizarAccion(puedeRegistrarDevoluciones)
+  );
+
+  router.use(crearDevolucionRouter());
 
   return router;
 }

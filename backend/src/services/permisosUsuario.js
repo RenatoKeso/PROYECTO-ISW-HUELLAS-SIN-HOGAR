@@ -115,3 +115,11 @@ export function puedeGestionarAdopciones(usuario) {
     "ENCARGADA_ADOPCIONES",
   ]);
 }
+
+export function puedeRegistrarDevoluciones(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "ENCARGADA_ADOPCIONES",
+    "VOLUNTARIO_CONFIANZA",
+  ]);
+}
