@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Campo from "../components/ui/Campo.jsx";
 import { ApiError } from "../services/api.js";
 import { generarReporteDevoluciones, listarReportesDevoluciones } from "../services/reporteDevolucionService.js";
+import { puedeConsultarReportesDevolucion } from "../utils/permisosUsuario.js";
 import "../styles/reporteDevoluciones.css";
 import mascotas from "../assets/mascotas.svg";
 import caritaGato from "../assets/carita-gato.svg";
@@ -83,7 +84,7 @@ function agruparPorAnimal(reportes) {
   }));
 }
 
-function ReporteDevolucionesPage() {
+function ReporteDevolucionesPage({ usuario }) {
   const [valores, setValores] = useState({ fechaDesde: "", fechaHasta: "" });
   const [errores, setErrores] = useState({});
   const [mensaje, setMensaje] = useState("");
@@ -93,6 +94,7 @@ function ReporteDevolucionesPage() {
   const [pantalla, setPantalla] = useState("portada");
   const [pestana, setPestana] = useState("generar");
   const [ventana, setVentana] = useState(null);
+  const puedeVerReportes = puedeConsultarReportesDevolucion(usuario);
 
   function cargarReportes() {
     listarReportesDevoluciones()
@@ -101,7 +103,7 @@ function ReporteDevolucionesPage() {
   }
  
   useEffect(() => {
-    cargarReportes();
+    if (puedeVerReportes) cargarReportes();
   }, []);
 
 
@@ -191,11 +193,13 @@ function ReporteDevolucionesPage() {
           <span className="opcion-titulo">Registrar devolución</span>
           <span className="opcion-texto">Anota cuando un animal vuelve al refugio, con su motivo.</span>
           </button>
+          {puedeVerReportes && (
           <button type="button" className="opcion opcion-cafe" onClick={() => setPantalla("reporte")}>
           <span className="opcion-icono">📋</span>
           <span className="opcion-titulo">Generar reporte</span>
           <span className="opcion-texto">Revisa las devoluciones por fecha y motivo, y los reportes guardados.</span>
          </button>
+          )}
     </div>
 
           <div className="decoracion">

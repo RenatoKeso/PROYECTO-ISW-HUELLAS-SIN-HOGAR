@@ -72,7 +72,7 @@ function App() {
                 </Link>
               )}
 
-              {puedeConsultarReportesDevolucion(usuario) && (
+              {(puedeConsultarReportesDevolucion(usuario) || puedeRegistrarDevoluciones(usuario)) && (
                 <Link to="/reportes/devoluciones">
                   Devoluciones
                 </Link>
@@ -170,9 +170,9 @@ function App() {
           />
           <Route
             path="/reportes/devoluciones"
-            element={proteger(
-              <ReporteDevolucionesPage />,
-              puedeConsultarReportesDevolucion
+              element={proteger(
+              <ReporteDevolucionesPage usuario={usuario} />,
+              (u) => puedeConsultarReportesDevolucion(u) || puedeRegistrarDevoluciones(u)
             )}
           />
 
