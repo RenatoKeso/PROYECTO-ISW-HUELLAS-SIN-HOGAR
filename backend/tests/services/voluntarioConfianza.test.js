@@ -6,10 +6,7 @@ import express from "express";
 import { RolUsuario } from "@prisma/client";
 import * as backend from "../../src/services/permisosUsuario.js";
 import * as frontend from "../../../frontend/src/utils/permisosUsuario.js";
-import {
-  loginRespuestaSchema,
-  sesionRespuestaSchema,
-} from "../../../frontend/src/validations/authValidation.js";
+import {loginRespuestaSchema,sesionRespuestaSchema,} from "../../../frontend/src/validations/authValidation.js";
 import { crearAuthService } from "../../src/services/authService.js";
 import { crearRouter } from "../../src/routes/index.js";
 import { AuthError } from "../../src/entities/authErrors.js";
@@ -18,13 +15,13 @@ import { manejadorErrores } from "../../src/handlers/manejadorErrores.js";
 const ROL = "VOLUNTARIO_CONFIANZA";
 
 const usuario = {
-  id: 2,
-  nombre: "Voluntario de prueba",
-  email: "confianza@example.com",
-  rol: ROL,
-  activo: true,
-  tokenVersion: 0,
-  voluntarioId: 2,
+    id: 2,
+    nombre: "Voluntario de prueba",
+    email: "confianza@example.com",
+    rol: ROL,
+    activo: true,
+    tokenVersion: 0,
+    voluntarioId: 2,
 };
 
 test("el nuevo rol existe en Prisma y en las listas de roles", () => {
