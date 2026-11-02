@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import Campo from "../components/ui/Campo.jsx";
 import { ApiError } from "../services/api.js";
 import { generarReporteDevoluciones, listarReportesDevoluciones } from "../services/reporteDevolucionService.js";
+import { listarPostulacionesEntregadas, registrarDevolucion } from "../services/devolucionService.js";
+import { listarVoluntarios } from "../services/voluntariosService.js";
 import { puedeConsultarReportesDevolucion } from "../utils/permisosUsuario.js";
 import "../styles/reporteDevoluciones.css";
 import mascotas from "../assets/mascotas.svg";
@@ -96,6 +98,82 @@ function ReporteDevolucionesPage({ usuario }) {
   const [ventana, setVentana] = useState(null);
   const puedeVerReportes = puedeConsultarReportesDevolucion(usuario);
 
+  // ----- Registrar devolución -----
+  const REGISTRO_VACIO = { postulacionId: "", receptorId: "", fechaDevolucion: "", motivo: "", detalle: "" };
+  const [registro, setRegistro] = useState(REGISTRO_VACIO);
+  const [erroresRegistro, setErroresRegistro] = useState({});
+  const [mensajeRegistro, setMensajeRegistro] = useState("");
+  const [exitoRegistro, setExitoRegistro] = useState("");
+  const [avisoRegistro, setAvisoRegistro] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [postulaciones, setPostulaciones] = useState([]);
+  const [receptores, setReceptores] = useState([]);
+
+  function cargarPostulaciones() {
+    listarPostulacionesEntregadas()
+      .then((respuesta) => setPostulaciones(respuesta.postulaciones))
+      .catch(() => setMensajeRegistro("No se pudieron cargar las adopciones entregadas"));
+  }
+
+  function abrirRegistrar() {
+    setPantalla("registrar");
+    setExitoRegistro("");
+    setAvisoRegistro("");
+    setMensajeRegistro("");
+    cargarPostulaciones();
+    listarVoluntarios()
+      .then((respuesta) => setReceptores(respuesta.voluntarios))
+      .catch(() => setReceptores([]));
+  }
+
+  function cambiarRegistro(campo, valor) {
+    setRegistro((prev) => ({ ...prev, [campo]: valor }));
+  }
+
+  async function guardarDevolucion(evento) {
+    evento.preventDefault();
+    setErroresRegistro({});
+    setMensajeRegistro("");
+    setExitoRegistro("");
+    setAvisoRegistro("");
+
+    // Revisamos primero las listas, para mostrar un mensaje claro
+    const faltan = {};
+    if (!registro.postulacionId) faltan.postulacionId = "Elige el animal que se devuelve";
+    if (!registro.receptorId) faltan.receptorId = "Elige quién recibe al animal";
+    if (Object.keys(faltan).length > 0) {
+      setErroresRegistro(faltan);
+      return;
+    }
+
+    setGuardando(true);
+    try {
+      const respuesta = await registrarDevolucion({
+        postulacionId: Number(registro.postulacionId),
+        receptorId: Number(registro.receptorId),
+        fechaDevolucion: registro.fechaDevolucion,
+        motivo: registro.motivo,
+        detalle: registro.detalle,
+      });
+      setExitoRegistro("Devolución registrada. El animal volvió a estar en el refugio.");
+      setAvisoRegistro(respuesta.aviso ?? "");
+      setRegistro(REGISTRO_VACIO);
+      cargarPostulaciones();
+    } catch (error) {
+      if (error instanceof ApiError) {
+        const erroresPorCampo = (error.detalles ?? [])
+          .filter((detalle) => detalle.campo)
+          .map((detalle) => [detalle.campo, detalle.mensaje]);
+        setErroresRegistro(Object.fromEntries(erroresPorCampo));
+        setMensajeRegistro(error.message);
+      } else {
+        setMensajeRegistro("No se pudo contactar con el servidor. Intenta nuevamente.");
+      }
+    } finally {
+      setGuardando(false);
+    }
+  }
+
   function cargarReportes() {
     listarReportesDevoluciones()
       .then((respuesta) => setReportesGuardados(respuesta.reportes))
@@ -188,7 +266,7 @@ function ReporteDevolucionesPage({ usuario }) {
           <h2>Devoluciones</h2>
           <p className="bajada">¿Qué quieres hacer hoy?</p>
           <div className="opciones">
-          <button type="button" className="opcion" onClick={() => setPantalla("registrar")}>
+          <button type="button" className="opcion" onClick={abrirRegistrar}>
           <span className="opcion-icono">🐾</span>
           <span className="opcion-titulo">Registrar devolución</span>
           <span className="opcion-texto">Anota cuando un animal vuelve al refugio, con su motivo.</span>
@@ -229,7 +307,82 @@ function ReporteDevolucionesPage({ usuario }) {
   <div className="pantalla">
     <button type="button" className="volver" onClick={() => setPantalla("portada")}>← Volver</button>
     <h2>Registrar devolución</h2>
-    <p className="bajada">Esta parte todavía no está disponible.</p>
+    <p className="bajada">Anota cuando un animal adoptado vuelve al refugio.</p>
+
+    {postulaciones.length === 0 ? (
+      <p className="bajada">No hay animales adoptados y entregados para devolver.</p>
+    ) : (
+      <form className="formulario" onSubmit={guardarDevolucion} noValidate>
+        <div className="formulario-campos">
+          <Campo
+            etiqueta="Animal devuelto"
+            nombre="postulacionId"
+            control="select"
+            valor={registro.postulacionId}
+            error={erroresRegistro.postulacionId}
+            onChange={(e) => cambiarRegistro("postulacionId", e.target.value)}
+            opciones={[
+              { valor: "", texto: "Seleccione..." },
+              ...postulaciones.map((p) => ({
+                valor: String(p.id),
+                texto: `${p.fichaAnimal.nombre} (${p.fichaAnimal.codigoAnimal}) · adoptado por ${p.nombrePostulante} el ${formatearFecha(p.fechaEntrega)}`,
+              })),
+            ]}
+            ancho
+          />
+          <Campo
+            etiqueta="Recibido por"
+            nombre="receptorId"
+            control="select"
+            valor={registro.receptorId}
+            error={erroresRegistro.receptorId}
+            onChange={(e) => cambiarRegistro("receptorId", e.target.value)}
+            opciones={[
+              { valor: "", texto: "Seleccione..." },
+              ...receptores.map((v) => ({ valor: String(v.id), texto: v.nombre })),
+            ]}
+          />
+          <Campo
+            etiqueta="Fecha de devolución"
+            nombre="fechaDevolucion"
+            type="date"
+            valor={registro.fechaDevolucion}
+            error={erroresRegistro.fechaDevolucion}
+            onChange={(e) => cambiarRegistro("fechaDevolucion", e.target.value)}
+          />
+          <Campo
+            etiqueta="Motivo"
+            nombre="motivo"
+            control="select"
+            valor={registro.motivo}
+            error={erroresRegistro.motivo}
+            onChange={(e) => cambiarRegistro("motivo", e.target.value)}
+            opciones={[
+              { valor: "", texto: "Seleccione..." },
+              ...Object.entries(NOMBRES_MOTIVO).map(([valor, texto]) => ({ valor, texto })),
+            ]}
+          />
+          <Campo
+            etiqueta="Detalle"
+            nombre="detalle"
+            control="textarea"
+            valor={registro.detalle}
+            error={erroresRegistro.detalle}
+            onChange={(e) => cambiarRegistro("detalle", e.target.value)}
+            placeholder="Cuenta qué pasó. Si el motivo es Otro, explica cuál."
+            ancho
+          />
+        </div>
+
+        <button type="submit" className="boton" disabled={guardando}>
+          {guardando ? "Guardando..." : "Registrar devolución"}
+        </button>
+      </form>
+    )}
+
+    {exitoRegistro && <p className="mensaje mensaje-exito">{exitoRegistro}</p>}
+    {avisoRegistro && <p className="mensaje mensaje-alerta">⚠️ {avisoRegistro}</p>}
+    {mensajeRegistro && <p className="mensaje mensaje-error">{mensajeRegistro}</p>}
   </div>
 )}
       {pantalla === "reporte" && (
