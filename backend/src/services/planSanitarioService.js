@@ -20,7 +20,7 @@ function serializar(atencion) {
   return {
     ...atencion,
     fechaProgramada: atencion.fechaProgramada
-      .toISOString()
+      .toISOString()    
       .slice(0, 10),
 
     fechaRealizacion:
