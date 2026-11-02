@@ -15,15 +15,17 @@ export function crearRouter({
   registrarIngresoAnimal,
   servicioAuth = authService,
   consultarAlertas,
+  servicioPlan,
 } = {}) {
   const router = Router();
   const autenticar = crearAutenticacion(servicioAuth);
 
   router.use("/auth", crearAuthRouter(servicioAuth));
 
-  // El catalogo y el formulario de postulación son publicos.
-  // La revisión de postulaciones exige sesión (se protege dentro del router).
-  router.use("/adopciones", crearAdopcionRouter({ autenticar }));
+  router.use(
+    "/adopciones",
+    crearAdopcionRouter({ autenticar })
+  );
 
   router.use(
     ["/fichas", "/animales/ingresos"],
@@ -53,6 +55,7 @@ export function crearRouter({
     autorizarAccion(puedeConsultarAlertas),
     crearSaludRouter({
       consultar: consultarAlertas,
+      servicioPlan,
     })
   );
 

@@ -1,8 +1,9 @@
 import { useState } from "react";
+import PlanSanitario from "../components/PlanSanitario.jsx";
 import Campo from "../components/ui/Campo.jsx";
 import { ApiError } from "../services/api.js";
-import {consultarAlertasPlan,} from "../services/saludService.js";
-import {consultaAlertasFormSchema,} from "../validations/alertasPlanValidation.js";
+import { consultarAlertasPlan } from "../services/saludService.js";
+import { consultaAlertasFormSchema } from "../validations/alertasPlanValidation.js";
 import "../styles/alertas.css";
 
 const etiquetas = {
@@ -23,6 +24,7 @@ export default function AlertasSanitariasPage() {
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
   const [resultado, setResultado] = useState(null);
+  const [ocupadoPlan, setOcupadoPlan] = useState(false);
 
   function cambiar(campo, valor) {
     setValores((prev) => ({
@@ -38,7 +40,7 @@ export default function AlertasSanitariasPage() {
   async function generar(evento) {
     evento.preventDefault();
 
-    if (cargando) return;
+    if (cargando || ocupadoPlan) return;
 
     setResultado(null);
     setErrores({});
@@ -106,6 +108,21 @@ export default function AlertasSanitariasPage() {
         de los animales a cargo del refugio.
       </p>
 
+      <details>
+        <summary>
+          Gestionar el plan sanitario de un animal
+        </summary>
+
+        <PlanSanitario
+          bloqueado={cargando}
+          onActividad={setOcupadoPlan}
+          onActualizar={() => {
+            setResultado(null);
+            setMensaje("");
+          }}
+        />
+      </details>
+
       <form
         className="formulario"
         onSubmit={generar}
@@ -113,7 +130,7 @@ export default function AlertasSanitariasPage() {
       >
         <fieldset
           className="alertas-fieldset"
-          disabled={cargando}
+          disabled={cargando || ocupadoPlan}
         >
           <legend>Filtros de consulta</legend>
 
@@ -127,7 +144,10 @@ export default function AlertasSanitariasPage() {
               valor={valores.diasAnticipacion}
               error={errores.diasAnticipacion}
               onChange={(e) =>
-                cambiar("diasAnticipacion", e.target.value)
+                cambiar(
+                  "diasAnticipacion",
+                  e.target.value
+                )
               }
             />
 
@@ -138,7 +158,10 @@ export default function AlertasSanitariasPage() {
               valor={valores.fechaReferencia}
               error={errores.fechaReferencia}
               onChange={(e) =>
-                cambiar("fechaReferencia", e.target.value)
+                cambiar(
+                  "fechaReferencia",
+                  e.target.value
+                )
               }
             />
           </div>
