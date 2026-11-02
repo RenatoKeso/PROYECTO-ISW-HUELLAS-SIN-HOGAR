@@ -32,6 +32,13 @@ async function main() {
   await prisma.visitaAdopcion.deleteMany();
   await prisma.postulacion.deleteMany();
 
+  // Modulo de turnos: el historial cuelga de la inscripcion y del turno, y la
+  // inscripcion cuelga del turno. Todos cuelgan de Usuario o Voluntario, asi que
+  // deben vaciarse antes que ellos.
+  await prisma.historialInscripcion.deleteMany();
+  await prisma.inscripcionTurno.deleteMany();
+  await prisma.turno.deleteMany();
+
   // Y al final los padres.
   await prisma.ingresoAnimal.deleteMany();
   await prisma.fichaAnimal.deleteMany();
@@ -52,6 +59,16 @@ async function main() {
       nombre: "Tomas morales",
       email: "tomas@refugio.cl",
       telefono: "987654321",
+    },
+  });
+
+  // Segundo voluntario con cuenta propia, para probar solapes y cupos del
+  // modulo de turnos sin depender de Martina.
+  const Diego = await prisma.voluntario.create({
+    data: {
+      nombre: "Diego Fuentes",
+      email: "diego@refugio.cl",
+      telefono: "955512345",
     },
   });
 
@@ -85,6 +102,26 @@ async function main() {
       passwordHash: PASSWORD_POR_DEFECTO,
       rol: "VOLUNTARIO",
       voluntarioId: Martina.id,
+    },
+  });
+
+   const cuentaVoluntario = await prisma.usuario.create({
+    data: {
+      nombre: "Diego Fuentes",
+      email: "voluntario@refugio.cl",
+      passwordHash: PASSWORD_POR_DEFECTO,
+      rol: "VOLUNTARIO",
+      voluntarioId: Diego.id,
+    },
+  });
+
+  // Publica y administra los turnos. No necesita ficha de voluntario.
+  const cuentaEncargada = await prisma.usuario.create({
+    data: {
+      nombre: "Paula Reyes",
+      email: "encargada@refugio.cl",
+      passwordHash: PASSWORD_POR_DEFECTO,
+      rol: "ENCARGADA_VOLUNTARIADO",
     },
   });
 
@@ -450,8 +487,174 @@ async function main() {
     },
   });
 
+  // ---------- TURNOS E INSCRIPCIONES ----------
+  // Las fechas son relativas a "hoy" para que el seed siempre deje turnos
+  // futuros. Se calculan en UTC: 12:00 UTC equivale a las 09:00 en Chile
+  // durante el horario de verano (UTC-3), que es cuando se presenta el proyecto.
+  const DIA_MS = 24 * 60 * 60 * 1000;
+  const horaUtc = (diasDesdeHoy, hora) => {
+    const fecha = new Date(Date.now() + diasDesdeHoy * DIA_MS);
+    fecha.setUTCHours(hora, 0, 0, 0);
+    return fecha;
+  };
+  // La fecha limite de inscripcion es el final de ese dia en Chile: 23:59 en
+  // UTC-3 es 02:59 UTC del dia siguiente.
+  const finDelDia = (diasDesdeHoy) => {
+    const fecha = new Date(Date.now() + diasDesdeHoy * DIA_MS);
+    fecha.setUTCHours(26, 59, 0, 0);
+    return fecha;
+  };
+
+  // 1. Turno normal con un cupo ya tomado por Martina.
+  const turnoPaseo = await prisma.turno.create({
+    data: {
+      titulo: "Paseo de perros",
+      descripcion: "Paseo por el cerro con los perros del refugio.",
+      inicio: horaUtc(3, 12),
+      termino: horaUtc(3, 14),
+      fechaLimiteInscripcion: finDelDia(2),
+      cupoMaximo: 5,
+      cuposDisponibles: 4,
+      publicadoPorId: cuentaEncargada.id,
+    },
+  });
+
+  // 2. Se solapa con el turno 1: sirve para probar el rechazo por choque de horario.
+  await prisma.turno.create({
+    data: {
+      titulo: "Limpieza de caniles",
+      descripcion: "Limpieza y desinfeccion de los caniles.",
+      inicio: horaUtc(3, 13),
+      termino: horaUtc(3, 15),
+      fechaLimiteInscripcion: finDelDia(2),
+      cupoMaximo: 4,
+      cuposDisponibles: 4,
+      publicadoPorId: cuentaEncargada.id,
+    },
+  });
+
+  // 3. Martina se inscribio y despues cancelo: sirve para probar que se puede
+  //    volver a inscribir y que el historial conserva ambos movimientos.
+  const turnoGatos = await prisma.turno.create({
+    data: {
+      titulo: "Alimentacion de gatos",
+      descripcion: "Reparto de comida y agua en la gatera.",
+      inicio: horaUtc(5, 19),
+      termino: horaUtc(5, 21),
+      fechaLimiteInscripcion: finDelDia(4),
+      cupoMaximo: 3,
+      cuposDisponibles: 3,
+      publicadoPorId: cuentaEncargada.id,
+    },
+  });
+
+  // 4. Cupo unico y ya tomado por Diego: sirve para probar "turno lleno".
+  const turnoBano = await prisma.turno.create({
+    data: {
+      titulo: "Jornada de bano",
+      descripcion: "Bano de los perros que estan en proceso de adopcion.",
+      inicio: horaUtc(7, 12),
+      termino: horaUtc(7, 16),
+      fechaLimiteInscripcion: finDelDia(6),
+      cupoMaximo: 1,
+      cuposDisponibles: 0,
+      publicadoPorId: cuentaEncargada.id,
+    },
+  });
+
+  // 5. La fecha limite ya paso aunque el turno aun no empieza: sirve para
+  //    probar el rechazo por inscripciones cerradas.
+  await prisma.turno.create({
+    data: {
+      titulo: "Feria de adopcion",
+      descripcion: "Stand del refugio en la plaza.",
+      inicio: horaUtc(2, 14),
+      termino: horaUtc(2, 18),
+      fechaLimiteInscripcion: finDelDia(-1),
+      cupoMaximo: 6,
+      cuposDisponibles: 6,
+      publicadoPorId: cuentaEncargada.id,
+    },
+  });
+
+  // 6. Turno que ya empezo: no se puede modificar ni cancelar la inscripcion.
+  const turnoVacunacion = await prisma.turno.create({
+    data: {
+      titulo: "Jornada de vacunacion",
+      descripcion: "Apoyo a la veterinaria durante la vacunacion.",
+      inicio: horaUtc(-2, 12),
+      termino: horaUtc(-2, 15),
+      fechaLimiteInscripcion: finDelDia(-3),
+      cupoMaximo: 5,
+      cuposDisponibles: 4,
+      publicadoPorId: cuentaEncargada.id,
+    },
+  });
+
+  const inscripcionPaseoMartina = await prisma.inscripcionTurno.create({
+    data: { turnoId: turnoPaseo.id, voluntarioId: Martina.id },
+  });
+  await prisma.historialInscripcion.create({
+    data: {
+      inscripcionId: inscripcionPaseoMartina.id,
+      accion: "INSCRIPCION",
+      turnoId: turnoPaseo.id,
+      realizadoPorId: cuentaVoluntaria.id,
+    },
+  });
+
+  const inscripcionGatosMartina = await prisma.inscripcionTurno.create({
+    data: {
+      turnoId: turnoGatos.id,
+      voluntarioId: Martina.id,
+      estado: "CANCELADA",
+      canceladaEn: new Date(),
+    },
+  });
+  await prisma.historialInscripcion.create({
+    data: {
+      inscripcionId: inscripcionGatosMartina.id,
+      accion: "INSCRIPCION",
+      turnoId: turnoGatos.id,
+      realizadoPorId: cuentaVoluntaria.id,
+    },
+  });
+  await prisma.historialInscripcion.create({
+    data: {
+      inscripcionId: inscripcionGatosMartina.id,
+      accion: "CANCELACION",
+      turnoId: turnoGatos.id,
+      realizadoPorId: cuentaVoluntaria.id,
+    },
+  });
+
+  const inscripcionBanoDiego = await prisma.inscripcionTurno.create({
+    data: { turnoId: turnoBano.id, voluntarioId: Diego.id },
+  });
+  await prisma.historialInscripcion.create({
+    data: {
+      inscripcionId: inscripcionBanoDiego.id,
+      accion: "INSCRIPCION",
+      turnoId: turnoBano.id,
+      realizadoPorId: cuentaVoluntario.id,
+    },
+  });
+
+  const inscripcionVacunacionMartina = await prisma.inscripcionTurno.create({
+    data: { turnoId: turnoVacunacion.id, voluntarioId: Martina.id },
+  });
+  await prisma.historialInscripcion.create({
+    data: {
+      inscripcionId: inscripcionVacunacionMartina.id,
+      accion: "INSCRIPCION",
+      turnoId: turnoVacunacion.id,
+      realizadoPorId: cuentaVoluntaria.id,
+    },
+  });
+
   console.log("Seed completado");
-  console.log(`  Usuarios: ${cuentaDirectora.email}, ${cuentaVeterinaria.email}, ${cuentaVoluntaria.email}`);
+  console.log(`  Usuarios: ${cuentaDirectora.email}, ${cuentaVeterinaria.email}, ${cuentaVoluntaria.email}, ${cuentaVoluntario.email}, ${cuentaEncargada.email}`);
+  console.log("  Turnos: 6 (futuros, solapados, lleno, cerrado a inscripciones y ya iniciado)");
   console.log(`  Registros medicos: ${revisionInicialGretel.id ? 2 : 0} (Gretel ACTUALIZADO, Galileo PROVISIONAL)`);
   console.log(`  Revision completa de Gretel: ${revisionCompletaGretel.id}`);
 }

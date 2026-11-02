@@ -78,6 +78,7 @@ model Voluntario {
   postulacionesRevisadas Postulacion[]
   devolucionesRecibidas  Devolucion[]
   usuario                Usuario?
+  inscripcionesTurno     InscripcionTurno[]
 }
 
 // Módulo de adopción
@@ -261,6 +262,88 @@ model AtencionSanitaria {
   @@index([registroMedicoId])
 }
 
+// Módulo de turnos y voluntariado
+
+enum EstadoTurno {
+  PUBLICADO
+  CANCELADO
+}
+
+enum EstadoInscripcion {
+  ACTIVA
+  CANCELADA
+}
+
+enum AccionInscripcion {
+  INSCRIPCION
+  MODIFICACION
+  CANCELACION
+}
+
+// Turno que publica la encargada de voluntariado. inicio y termino son instantes
+// (se guardan en UTC); la hora de Chile se calcula al mostrarlos. cuposDisponibles
+// baja y sube con las inscripciones y siempre queda entre 0 y cupoMaximo.
+
+model Turno {
+  id                     Int         @id @default(autoincrement())
+  titulo                 String
+  descripcion            String?
+  inicio                 DateTime
+  termino                DateTime
+  fechaLimiteInscripcion DateTime
+  cupoMaximo             Int
+  cuposDisponibles       Int
+  estado                 EstadoTurno @default(PUBLICADO)
+  publicadoPorId         Int
+  publicadoPor           Usuario     @relation("TurnosPublicados", fields: [publicadoPorId], references: [id])
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
+
+  inscripciones          InscripcionTurno[]
+  historialInscripciones HistorialInscripcion[] @relation("TurnoDelHistorial")
+  historialComoAnterior  HistorialInscripcion[] @relation("TurnoAnteriorDelHistorial")
+
+  @@index([estado, inicio])
+}
+
+// Una inscripción nunca se borra: al cancelarla pasa a CANCELADA y se conserva.
+
+model InscripcionTurno {
+  id           Int               @id @default(autoincrement())
+  turnoId      Int
+  turno        Turno             @relation(fields: [turnoId], references: [id])
+  voluntarioId Int
+  voluntario   Voluntario        @relation(fields: [voluntarioId], references: [id])
+  estado       EstadoInscripcion @default(ACTIVA)
+  canceladaEn  DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  historial HistorialInscripcion[]
+
+  @@index([voluntarioId, estado])
+  @@index([turnoId, estado])
+}
+
+// Una fila por operación sobre una inscripción: inscribirse, cambiar de turno o cancelar.
+
+model HistorialInscripcion {
+  id              Int               @id @default(autoincrement())
+  inscripcionId   Int
+  inscripcion     InscripcionTurno  @relation(fields: [inscripcionId], references: [id])
+  accion          AccionInscripcion
+  turnoId         Int
+  turno           Turno             @relation("TurnoDelHistorial", fields: [turnoId], references: [id])
+  turnoAnteriorId Int?
+  turnoAnterior   Turno?            @relation("TurnoAnteriorDelHistorial", fields: [turnoAnteriorId], references: [id])
+  detalle         String?
+  realizadoPorId  Int
+  realizadoPor    Usuario           @relation("HistorialInscripcionesRealizadas", fields: [realizadoPorId], references: [id])
+  fecha           DateTime          @default(now())
+
+  @@index([inscripcionId, fecha])
+}
+
 // Cuentas y roles
 
 enum RolUsuario {
@@ -283,6 +366,9 @@ model Usuario {
 
   voluntarioId Int?        @unique
   voluntario   Voluntario? @relation(fields: [voluntarioId], references: [id], onDelete: Restrict)
+
+  turnosPublicados       Turno[]                @relation("TurnosPublicados")
+  historialInscripciones HistorialInscripcion[] @relation("HistorialInscripcionesRealizadas")
 
   revisionesInicialesCreadas      RevisionInicial[]           @relation("RevisionInicialCreatedBy")
   revisionesInicialesActualizadas RevisionInicial[]           @relation("RevisionInicialUpdatedBy")
