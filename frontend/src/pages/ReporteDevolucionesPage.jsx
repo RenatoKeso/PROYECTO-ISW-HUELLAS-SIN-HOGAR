@@ -43,6 +43,11 @@ function formatearFechaLarga(fecha) {
     timeZone: "UTC",
   });
 }
+function datosFicha(ficha) {
+  const datos = [NOMBRES_ESPECIE[ficha.especie], ficha.raza, NOMBRES_SEXO[ficha.sexoAnimal]];
+  if (ficha.edad != null) datos.push(`${ficha.edad} ${ficha.edad === 1 ? "año" : "años"}`);
+  return datos.filter(Boolean).join(" · ");
+}
 
 function textoDevoluciones(cantidad) {
   return `${cantidad} ${cantidad === 1 ? "devolución" : "devoluciones"}`;
@@ -117,6 +122,7 @@ function ReporteDevolucionesPage({ usuario }) {
   const [guardando, setGuardando] = useState(false);
   const [postulaciones, setPostulaciones] = useState([]);
   const [receptores, setReceptores] = useState([]);
+  const elegida = postulaciones.find((p) => String(p.id) === registro.postulacionId);
 
   function cargarPostulaciones() {
     listarPostulacionesEntregadas()
@@ -346,6 +352,23 @@ function ReporteDevolucionesPage({ usuario }) {
             ]}
             ancho
           />
+          {elegida && (
+            <div className="ficha-elegida campo-ancho">
+              <span className="opcion-icono">{EMOJI_ESPECIE[elegida.fichaAnimal.especie] ?? "🐾"}</span>
+              <div>
+                <h3>
+                  {elegida.fichaAnimal.nombre} <small>{elegida.fichaAnimal.codigoAnimal}</small>
+                </h3>
+                <p>{datosFicha(elegida.fichaAnimal)}</p>
+                <p>
+                  Lo adoptó <strong>{elegida.nombrePostulante}</strong> el {formatearFechaLarga(elegida.fechaEntrega)}
+                </p>
+                {elegida.fichaAnimal.observaciones && (
+                  <p className="ficha-nota">"{elegida.fichaAnimal.observaciones}"</p>
+                )}
+              </div>
+            </div>
+          )}
           <Campo
             etiqueta="Recibido por"
             nombre="receptorId"
