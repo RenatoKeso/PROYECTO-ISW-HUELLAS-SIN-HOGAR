@@ -40,6 +40,14 @@ export function puedeGestionarAdopciones(usuario) {
   ]);
 }
 
+export function puedeRegistrarDevoluciones(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "ENCARGADA_ADOPCIONES",
+    "VOLUNTARIO_CONFIANZA",
+  ]);
+}
+
 export const NOMBRES_ROL = {
   DIRECTORA: "Directora",
   ENCARGADA_VOLUNTARIADO: "Encargada de voluntariado",
