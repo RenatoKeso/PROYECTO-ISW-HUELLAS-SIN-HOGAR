@@ -35,6 +35,15 @@ function formatearFecha(fecha) {
   return new Date(fecha).toLocaleDateString("es-CL", { timeZone: "UTC" });
 }
 
+function formatearFechaLarga(fecha) {
+  return new Date(fecha).toLocaleDateString("es-CL", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 function textoDevoluciones(cantidad) {
   return `${cantidad} ${cantidad === 1 ? "devolución" : "devoluciones"}`;
 }
@@ -310,7 +319,14 @@ function ReporteDevolucionesPage({ usuario }) {
     <p className="bajada">Anota cuando un animal adoptado vuelve al refugio.</p>
 
     {postulaciones.length === 0 ? (
-      <p className="bajada">No hay animales adoptados y entregados para devolver.</p>
+            <div className="sin-animales">
+        <span className="opcion-icono">🏡</span>
+        <h3>¡Todos en casa!</h3>
+        <p>
+          Por ahora no hay animales adoptados que se puedan devolver.
+          Cuando una adopción se entregue, el animal aparecerá aquí.
+        </p>
+      </div>
     ) : (
       <form className="formulario" onSubmit={guardarDevolucion} noValidate>
         <div className="formulario-campos">
@@ -325,7 +341,7 @@ function ReporteDevolucionesPage({ usuario }) {
               { valor: "", texto: "Seleccione..." },
               ...postulaciones.map((p) => ({
                 valor: String(p.id),
-                texto: `${p.fichaAnimal.nombre} (${p.fichaAnimal.codigoAnimal}) · adoptado por ${p.nombrePostulante} el ${formatearFecha(p.fechaEntrega)}`,
+                texto: `${EMOJI_ESPECIE[p.fichaAnimal.especie] ?? "🐾"} ${p.fichaAnimal.nombre} · lo adoptó ${p.nombrePostulante} el ${formatearFechaLarga(p.fechaEntrega)}`,
               })),
             ]}
             ancho

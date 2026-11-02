@@ -166,6 +166,20 @@ async function main() {
     },
   });
 
+  const Triton = await prisma.fichaAnimal.create({
+    data: {
+      codigoAnimal: "anim-004",
+      nombre: "Triton",
+      sexoAnimal: "MACHO",
+      especie: "PERRO",
+      raza: "Poodle mestizo",
+      edad: 4,
+      estadoEstadia: "ADOPTADO",
+      observaciones: "Juguetón, se pone nervioso con ruidos fuertes.",
+    },
+  });
+
+
   // ---------- INGRESOS ----------
   const ingresoGretel = await prisma.ingresoAnimal.create({
     data: {
@@ -451,6 +465,24 @@ async function main() {
       observaciones: "El postulante no tiene experiencia previa con perros y vive en un departamento pequeño.",
     },
   });
+  
+  await prisma.postulacion.create({
+    data: {
+      fichaAnimalId: Triton.id,
+      nombrePostulante: "Valentina Soto",
+      rutPostulante: "15678234-5",
+      telefonoPostulante: "956781234",
+      emailPostulante: "vale.soto@gmail.com",
+      tipoVivienda: "CASA",
+      disponibilidadTiempo: "Trabaja medio tiempo",
+      estado: "ENTREGADA",
+      revisorId: Martina.id,
+      fechaResolucion: new Date("2026-10-10"),
+      fechaEntrega: new Date("2026-10-20"),
+      observaciones: "Casa con patio cerrado y experiencia con perros.",
+    },
+  });
+
 
   // ---------- DEVOLUCIONES ----------
 
