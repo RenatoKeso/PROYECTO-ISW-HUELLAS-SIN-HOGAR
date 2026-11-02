@@ -767,3 +767,27 @@
     animation: none;
   }
 }
+
+/* ---------- Sin animales para devolver ---------- */
+.sin-animales {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1.5rem;
+  border-radius: 22px;
+  background: var(--blanco-dev);
+  box-shadow: 0 10px 30px rgba(85, 56, 32, 0.1);
+  text-align: center;
+  color: var(--cafe-suave);
+}
+
+.sin-animales h3 {
+  margin: 0.5rem 0 0;
+  font-size: 1.4rem;
+}
+
+.sin-animales p {
+  max-width: 380px;
+  margin: 0;
+}

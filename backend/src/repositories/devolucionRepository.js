@@ -57,7 +57,7 @@ export async function listarPostulacionesEntregadas(cliente = prisma) {
       id: true,
       nombrePostulante: true,
       fechaEntrega: true,
-      fichaAnimal: { select: { codigoAnimal: true, nombre: true } },
+      fichaAnimal: { select: { codigoAnimal: true, nombre: true, especie: true } }, 
     },
     orderBy: { fechaEntrega: "desc" },
   });
