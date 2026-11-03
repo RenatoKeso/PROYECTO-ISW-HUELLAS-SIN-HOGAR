@@ -213,7 +213,7 @@ function ReporteDevolucionesPage({ usuario }) {
  
   useEffect(() => {
     if (puedeVerReportes) cargarReportes();
-  }, []);
+  }, [puedeVerReportes]);
 
 
   const animales = agruparPorAnimal(reportesGuardados);

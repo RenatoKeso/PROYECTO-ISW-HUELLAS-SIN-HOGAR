@@ -10,7 +10,7 @@ import PostulacionesPage from "./pages/PostulacionesPage.jsx";
 import PostulacionDetallePage from "./pages/PostulacionDetallePage.jsx";
 import PublicarAnimalesPage from "./pages/PublicarAnimalesPage.jsx";
 import useSesion from "./hooks/useSesion.js";
-import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeGestionarAdopciones,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
+import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeGestionarAdopciones,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
 function App() {
   const {
     usuario,
@@ -161,7 +161,7 @@ function App() {
               puedeGestionarAdopciones
             )}
           />
-                    <Route
+            <Route
             path="/adopciones/publicar"
             element={proteger(
               <PublicarAnimalesPage />,
