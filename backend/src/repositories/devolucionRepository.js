@@ -8,7 +8,7 @@ export async function buscarPostulacionParaDevolucion(id, cliente = prisma) {
       estado: true,
       fechaEntrega: true,
       fichaAnimalId: true,
-      fichaAnimal: {
+     fichaAnimal: {
         select: { nombre: true, codigoAnimal: true, estadoEstadia: true },
       },
     },
@@ -57,7 +57,17 @@ export async function listarPostulacionesEntregadas(cliente = prisma) {
       id: true,
       nombrePostulante: true,
       fechaEntrega: true,
-      fichaAnimal: { select: { codigoAnimal: true, nombre: true, especie: true } }, 
+      fichaAnimal: {
+        select: {
+          codigoAnimal: true,
+          nombre: true,
+          especie: true,
+          raza: true,
+          edad: true,
+          sexoAnimal: true,
+          observaciones: true,
+        },
+      },
     },
     orderBy: { fechaEntrega: "desc" },
   });

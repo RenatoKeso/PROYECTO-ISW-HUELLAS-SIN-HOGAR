@@ -791,3 +791,38 @@
   max-width: 380px;
   margin: 0;
 }
+/* ---------- Ficha del animal elegido ---------- */
+.ficha-elegida {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.2rem 1.4rem;
+  border-radius: 18px;
+  background: var(--crema-dev);
+  border: 1.5px solid var(--rosado);
+  color: var(--cafe-suave);
+}
+
+.ficha-elegida .opcion-icono {
+  flex-shrink: 0;
+  background: var(--blanco-dev);
+}
+
+.ficha-elegida h3 {
+  margin: 0 0 0.3rem;
+  font-size: 1.3rem;
+}
+
+.ficha-elegida h3 small {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--cafe-suave);
+}
+
+.ficha-elegida p {
+  margin: 0.2rem 0;
+}
+
+.ficha-nota {
+  font-style: italic;
+}
