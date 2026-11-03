@@ -49,6 +49,13 @@ function datosFicha(ficha) {
   return datos.filter(Boolean).join(" · ");
 }
 
+function hoyEnTexto() {
+  const hoy = new Date();
+  const mes = String(hoy.getMonth() + 1).padStart(2, "0");
+  const dia = String(hoy.getDate()).padStart(2, "0");
+  return `${hoy.getFullYear()}-${mes}-${dia}`;
+}
+
 function textoDevoluciones(cantidad) {
   return `${cantidad} ${cantidad === 1 ? "devolución" : "devoluciones"}`;
 }
@@ -156,6 +163,15 @@ function ReporteDevolucionesPage({ usuario }) {
     const faltan = {};
     if (!registro.postulacionId) faltan.postulacionId = "Elige el animal que se devuelve";
     if (!registro.receptorId) faltan.receptorId = "Elige quién recibe al animal";
+    if (registro.fechaDevolucion && registro.fechaDevolucion > hoyEnTexto()) {
+      faltan.fechaDevolucion = "La fecha no puede ser futura";
+    } else if (
+      elegida &&
+      registro.fechaDevolucion &&
+      registro.fechaDevolucion < elegida.fechaEntrega.slice(0, 10)
+    ) {
+      faltan.fechaDevolucion = "La fecha no puede ser anterior a la entrega";
+    }
     if (Object.keys(faltan).length > 0) {
       setErroresRegistro(faltan);
       return;
@@ -197,7 +213,7 @@ function ReporteDevolucionesPage({ usuario }) {
  
   useEffect(() => {
     if (puedeVerReportes) cargarReportes();
-  }, []);
+  }, [puedeVerReportes]);
 
 
   const animales = agruparPorAnimal(reportesGuardados);
@@ -388,6 +404,8 @@ function ReporteDevolucionesPage({ usuario }) {
             valor={registro.fechaDevolucion}
             error={erroresRegistro.fechaDevolucion}
             onChange={(e) => cambiarRegistro("fechaDevolucion", e.target.value)}
+            min={elegida ? elegida.fechaEntrega.slice(0, 10) : undefined}
+            max={hoyEnTexto()}
           />
           <Campo
             etiqueta="Motivo"
