@@ -15,6 +15,16 @@ import {
   receptorInvalido,
 } from "../entities/devolucionErrors.js";
 
+const DEPENDENCIAS_POR_DEFECTO = {
+  buscarPostulacionParaDevolucion,
+  buscarVoluntarioActivo,
+  contarDevolucionesPorMotivo,
+  crearDevolucion,
+  marcarAnimalActivo,
+  cerrarPostulacionEntregada,
+  ejecutarEnTransaccion,
+};
+
 function armarAviso(animal, anteriores) {
   if (anteriores === 0) return null;
 
@@ -23,7 +33,20 @@ function armarAviso(animal, anteriores) {
   return `${nombre} ya había sido devuelto ${veces} por este mismo motivo`;
 }
 
-export async function registrarDevolucion({ postulacionId, receptorId, fechaDevolucion, motivo, detalle }) {
+export async function registrarDevolucion(
+  { postulacionId, receptorId, fechaDevolucion, motivo, detalle },
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  const {
+    buscarPostulacionParaDevolucion,
+    buscarVoluntarioActivo,
+    contarDevolucionesPorMotivo,
+    crearDevolucion,
+    marcarAnimalActivo,
+    cerrarPostulacionEntregada,
+    ejecutarEnTransaccion,
+  } = dependencias;
+
   const postulacion = await buscarPostulacionParaDevolucion(postulacionId);
 
   if (!postulacion) throw postulacionNoEncontrada(postulacionId);
