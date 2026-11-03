@@ -123,3 +123,29 @@ export function puedeRegistrarDevoluciones(usuario) {
     "VOLUNTARIO_CONFIANZA",
   ]);
 }
+
+// Modulo de turnos y voluntariado.
+// La directora y la encargada de voluntariado publican y administran los turnos.
+export function puedeGestionarTurnos(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "ENCARGADA_VOLUNTARIADO",
+  ]);
+}
+
+// Los voluntarios se inscriben en turnos y consultan, modifican y cancelan
+// sus propias inscripciones.
+export function puedeGestionarInscripciones(usuario) {
+  return tieneRol(usuario, [
+    "VOLUNTARIO",
+    "VOLUNTARIO_CONFIANZA",
+  ]);
+}
+
+// Ver la lista de turnos publicados: quien los publica y quien se inscribe.
+export function puedeConsultarTurnos(usuario) {
+  return (
+    puedeGestionarTurnos(usuario) ||
+    puedeGestionarInscripciones(usuario)
+  );
+}

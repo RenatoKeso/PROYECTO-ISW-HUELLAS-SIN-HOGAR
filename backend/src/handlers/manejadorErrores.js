@@ -3,6 +3,7 @@ import { esErrorAnimal } from "../entities/animalErrors.js";
 import { AuthError } from "../entities/authErrors.js";
 import { esErrorRegistroMedico } from "../entities/registroMedicoErrors.js";
 import { esErrorAdopcion } from "../entities/adopcionErrors.js";
+import { esErrorTurno } from "../entities/turnoErrors.js";
 import { PlanSanitarioError } from "../entities/planSanitarioErrors.js";
 
 export const CODIGO_DATOS_INVALIDOS = "DATOS_INVALIDOS";
@@ -107,6 +108,14 @@ export function manejadorErrores(
   }
 
   if (error instanceof PlanSanitarioError) {
+    response.status(error.estadoHttp).json({
+      message: error.message,
+      code: error.codigo,
+    });
+    return;
+  }
+
+  if (esErrorTurno(error)) {
     response.status(error.estadoHttp).json({
       message: error.message,
       code: error.codigo,
