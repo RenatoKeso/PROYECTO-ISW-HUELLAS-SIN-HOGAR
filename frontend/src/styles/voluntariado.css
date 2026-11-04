@@ -509,3 +509,6 @@
   color: var(--crema-dev);
 }
 
+.resultado-revision .boton-mini {
+  margin-top: 0.4rem;
+}

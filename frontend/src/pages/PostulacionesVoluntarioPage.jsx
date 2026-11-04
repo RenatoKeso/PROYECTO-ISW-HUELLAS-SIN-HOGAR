@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   listarPostulacionesVoluntario,
   revisarPostulacionVoluntario,
+  deshacerRevisionPostulacionVoluntario,
 } from "../services/postulacionVoluntarioService.js";
 import {
   OPCIONES_DIAS,
@@ -34,11 +35,13 @@ function formatearFecha(fecha) {
   });
 }
 
-function TarjetaPostulacion({ postulacion, alRevisar }) {
+
+function TarjetaPostulacion({ postulacion, alRevisar, alDeshacer }) {
   const [rechazando, setRechazando] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [deshaciendo, setDeshaciendo] = useState(false);
 
   async function revisar(decision) {
     if (decision === "RECHAZADA" && !motivo.trim()) {
@@ -57,6 +60,19 @@ function TarjetaPostulacion({ postulacion, alRevisar }) {
     } catch (errorRevision) {
       setError(errorRevision.message);
       setGuardando(false);
+    }
+  }
+
+  async function deshacer() {
+    setGuardando(true);
+    setError("");
+
+    try {
+      await alDeshacer(postulacion.id);
+    } catch (errorDeshacer) {
+      setError(errorDeshacer.message);
+      setGuardando(false);
+      setDeshaciendo(false);
     }
   }
 
@@ -86,7 +102,7 @@ function TarjetaPostulacion({ postulacion, alRevisar }) {
         {postulacion.habilidades.map((habilidad) => (
           <span key={habilidad} className="chip">
             {habilidad === "OTRA" && postulacion.otraHabilidad
-              ? `${postulacion.otraHabilidad}`
+              ? `✨ ${postulacion.otraHabilidad}`
               : textoDe(OPCIONES_HABILIDADES, habilidad)}
           </span>
         ))}
@@ -136,11 +152,31 @@ function TarjetaPostulacion({ postulacion, alRevisar }) {
           {error && <p className="campo-error">{error}</p>}
         </div>
       ) : (
-        <p className="resultado-revision">
-          Revisada por <strong>{postulacion.revisadaPor?.nombre ?? "—"}</strong> el{" "}
-          {formatearFecha(postulacion.fechaRevision)}
-          {postulacion.motivoRechazo && <> · Motivo: {postulacion.motivoRechazo}</>}
-        </p>
+        <div className="resultado-revision">
+          <p>
+            Revisada por <strong>{postulacion.revisadaPor?.nombre ?? "—"}</strong> el{" "}
+            {formatearFecha(postulacion.fechaRevision)}
+            {postulacion.motivoRechazo && <> · Motivo: {postulacion.motivoRechazo}</>}
+          </p>
+
+          {deshaciendo ? (
+            <div className="botones-revision">
+              <span>¿Seguro? Volverá a "En revisión".</span>
+              <button type="button" className="boton" disabled={guardando} onClick={deshacer}>
+                Sí, deshacer
+              </button>
+              <button type="button" className="boton-mini" onClick={() => setDeshaciendo(false)}>
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <button type="button" className="boton-mini" onClick={() => setDeshaciendo(true)}>
+              ↩ Deshacer
+            </button>
+          )}
+
+          {error && <p className="campo-error">{error}</p>}
+        </div>
       )}
     </article>
   );
@@ -180,6 +216,12 @@ function PostulacionesVoluntarioPage() {
     setRecargar((valor) => valor + 1);
   }
 
+  async function deshacer(id) {
+    const respuesta = await deshacerRevisionPostulacionVoluntario(id);
+    setMensaje(respuesta.message);
+    setRecargar((valor) => valor + 1);
+  }
+
   return (
     <section className="bloque voluntariado">
       <h2>Postulaciones de voluntarios </h2>
@@ -214,7 +256,12 @@ function PostulacionesVoluntarioPage() {
       ) : (
         <div className="lista-postulaciones">
           {postulaciones.map((postulacion) => (
-            <TarjetaPostulacion key={postulacion.id} postulacion={postulacion} alRevisar={revisar} />
+            <TarjetaPostulacion
+              key={postulacion.id}
+              postulacion={postulacion}
+              alRevisar={revisar}
+              alDeshacer={deshacer}
+            />
           ))}
         </div>
       )}

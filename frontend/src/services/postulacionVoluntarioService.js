@@ -12,3 +12,7 @@ export function listarPostulacionesVoluntario(estado) {
 export function revisarPostulacionVoluntario(id, datos) {
   return api.patch(`/postulaciones-voluntario/${id}/revision`, datos);
 }
+
+export function deshacerRevisionPostulacionVoluntario(id) {
+  return api.patch(`/postulaciones-voluntario/${id}/deshacer`, {});
+}
