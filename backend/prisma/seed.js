@@ -38,6 +38,7 @@ async function main() {
   await prisma.historialInscripcion.deleteMany();
   await prisma.inscripcionTurno.deleteMany();
   await prisma.turno.deleteMany();
+  await prisma.postulacionVoluntario.deleteMany();
 
   // Y al final los padres.
   await prisma.ingresoAnimal.deleteMany();
@@ -684,6 +685,64 @@ async function main() {
     },
   });
 
+
+  await prisma.postulacionVoluntario.create({
+    data: {
+      nombre: "Diego Fuentes",
+      rut: "19876543-0",
+      email: "diego@refugio.cl",
+      telefono: "955512345",
+      diasDisponibles: ["SABADO", "DOMINGO"],
+      motivacion: "Quiero ayudar a los perros a encontrar un hogar.",
+      habilidades: ["CUIDADO_ANIMALES", "TRANSPORTE"],
+      estado: "ACEPTADA",
+      fechaRevision: new Date("2026-09-15"),
+      revisadaPorId: cuentaEncargada.id,
+      voluntarioId: Diego.id,
+    },
+  });
+
+  await prisma.postulacionVoluntario.create({
+    data: {
+      nombre: "Ignacio Perez",
+      rut: "20123456-5",
+      email: "ignacio.perez@gmail.com",
+      telefono: "944433322",
+      diasDisponibles: ["MIERCOLES"],
+      motivacion: "Necesito horas de voluntariado para la universidad.",
+      habilidades: ["LIMPIEZA"],
+      estado: "RECHAZADA",
+      motivoRechazo: "Solo puede un dia y el refugio necesita al menos dos dias por semana.",
+      fechaRevision: new Date("2026-10-10"),
+      revisadaPorId: cuentaEncargada.id,
+    },
+  });
+
+  await prisma.postulacionVoluntario.create({
+    data: {
+      nombre: "Camila Soto",
+      rut: "18765432-7",
+      email: "camila.soto@gmail.com",
+      telefono: "933322211",
+      diasDisponibles: ["LUNES", "MIERCOLES", "VIERNES"],
+      motivacion: "Estudio veterinaria y me gustaria aprender ayudando en el refugio.",
+      habilidades: ["APOYO_VETERINARIO", "CUIDADO_ANIMALES"],
+    },
+  });
+
+  await prisma.postulacionVoluntario.create({
+    data: {
+      nombre: "Sofia Muñoz",
+      rut: "21456789-K",
+      email: "sofia.munoz@gmail.com",
+      telefono: "922211100",
+      diasDisponibles: ["SABADO"],
+      motivacion: "Me encantan los gatos y se hacer videos para redes sociales.",
+      habilidades: ["DIFUSION_REDES", "OTRA"],
+      otraHabilidad: "Fotografia",
+    },
+  });
+  
   console.log("Seed completado");
   console.log(`  Usuarios: ${cuentaDirectora.email}, ${cuentaVeterinaria.email}, ${cuentaVoluntaria.email}, ${cuentaVoluntario.email}, ${cuentaEncargada.email}`);
   console.log("  Turnos: 6 (futuros, solapados, lleno, cerrado a inscripciones y ya iniciado)");
