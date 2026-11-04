@@ -146,3 +146,366 @@
 .voluntariado .boton:hover {
   background: var(--rosado-oscuro);
 }
+
+.pestanas-voluntariado {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px;
+  margin: 0.5rem 0 1.5rem;
+  border-radius: 999px;
+  background: var(--blanco-dev);
+  box-shadow: 0 4px 14px rgba(85, 56, 32, 0.08);
+}
+
+.pestana-voluntariado {
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.25rem;
+  background: transparent;
+  color: var(--cafe);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.pestana-voluntariado:hover {
+  background: var(--crema-dev);
+}
+
+.pestana-voluntariado.activa {
+  background: var(--cafe);
+  color: var(--crema-dev);
+}
+
+.lista-postulaciones {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.postulacion-voluntario {
+  padding: 1.4rem 1.6rem;
+  border-radius: 22px;
+  background: var(--blanco-dev);
+  box-shadow: 0 10px 30px rgba(85, 56, 32, 0.1);
+}
+
+.postulacion-voluntario h3 {
+  margin: 0;
+  font-family: var(--serif);
+  color: var(--cafe);
+}
+
+.postulacion-voluntario p {
+  margin: 0.3rem 0;
+}
+
+.postulacion-voluntario-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.estado-postulacion {
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+
+.estado-en_revision {
+  background: var(--rosado);
+  color: var(--cafe);
+}
+
+.estado-aceptada {
+  background: var(--cafe);
+  color: var(--crema-dev);
+}
+
+.estado-rechazada {
+  background: #f1d9d0;
+  color: #8a3b26;
+}
+
+.etiqueta-dato {
+  margin-top: 0.8rem !important;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--cafe-suave);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: var(--crema-dev);
+  border: 1px solid var(--rosado);
+  font-size: 0.9rem;
+}
+
+.motivacion {
+  margin-top: 0.9rem !important;
+  font-style: italic;
+  color: var(--cafe);
+}
+
+.acciones-revision {
+  margin-top: 1rem;
+}
+
+.botones-revision {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.botones-revision .boton {
+  margin-top: 0;
+}
+
+.motivo-rechazo {
+  width: 100%;
+  min-height: 80px;
+  margin-bottom: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid var(--rosado);
+  border-radius: 12px;
+  background: var(--crema-dev);
+  font: inherit;
+}
+
+.boton-mini {
+  border: none;
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  background: var(--rosado);
+  color: var(--cafe);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.resultado-revision {
+  margin-top: 1rem !important;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--rosado);
+  color: var(--cafe-suave);
+  font-size: 0.9rem;
+}
+
+.sin-postulaciones {
+  padding: 2rem;
+  border-radius: 22px;
+  background: var(--blanco-dev);
+  text-align: center;
+  color: var(--cafe);
+}
+
+.sin-postulaciones span {
+  font-size: 2.5rem;
+}
+
+.voluntariado .boton-secundario {
+  background: var(--rosado);
+  color: var(--cafe);
+  border: none;
+}
+
+.voluntariado .boton-secundario:hover {
+  background: var(--rosado-oscuro);
+  color: var(--crema-dev);
+}
+
+.pestanas-voluntariado {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px;
+  margin: 0.5rem 0 1.5rem;
+  border-radius: 999px;
+  background: var(--blanco-dev);
+  box-shadow: 0 4px 14px rgba(85, 56, 32, 0.08);
+}
+
+.pestana-voluntariado {
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.25rem;
+  background: transparent;
+  color: var(--cafe);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.pestana-voluntariado:hover {
+  background: var(--crema-dev);
+}
+
+.pestana-voluntariado.activa {
+  background: var(--cafe);
+  color: var(--crema-dev);
+}
+
+.lista-postulaciones {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.postulacion-voluntario {
+  padding: 1.4rem 1.6rem;
+  border-radius: 22px;
+  background: var(--blanco-dev);
+  box-shadow: 0 10px 30px rgba(85, 56, 32, 0.1);
+}
+
+.postulacion-voluntario h3 {
+  margin: 0;
+  font-family: var(--serif);
+  color: var(--cafe);
+}
+
+.postulacion-voluntario p {
+  margin: 0.3rem 0;
+}
+
+.postulacion-voluntario-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.estado-postulacion {
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+
+.estado-en_revision {
+  background: var(--rosado);
+  color: var(--cafe);
+}
+
+.estado-aceptada {
+  background: var(--cafe);
+  color: var(--crema-dev);
+}
+
+.estado-rechazada {
+  background: #f1d9d0;
+  color: #8a3b26;
+}
+
+.etiqueta-dato {
+  margin-top: 0.8rem !important;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--cafe-suave);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: var(--crema-dev);
+  border: 1px solid var(--rosado);
+  font-size: 0.9rem;
+}
+
+.motivacion {
+  margin-top: 0.9rem !important;
+  font-style: italic;
+  color: var(--cafe);
+}
+
+.acciones-revision {
+  margin-top: 1rem;
+}
+
+.botones-revision {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.botones-revision .boton {
+  margin-top: 0;
+}
+
+.motivo-rechazo {
+  width: 100%;
+  min-height: 80px;
+  margin-bottom: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid var(--rosado);
+  border-radius: 12px;
+  background: var(--crema-dev);
+  font: inherit;
+}
+
+.boton-mini {
+  border: none;
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  background: var(--rosado);
+  color: var(--cafe);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.resultado-revision {
+  margin-top: 1rem !important;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--rosado);
+  color: var(--cafe-suave);
+  font-size: 0.9rem;
+}
+
+.sin-postulaciones {
+  padding: 2rem;
+  border-radius: 22px;
+  background: var(--blanco-dev);
+  text-align: center;
+  color: var(--cafe);
+}
+
+.sin-postulaciones span {
+  font-size: 2.5rem;
+}
+
+.voluntariado .boton-secundario {
+  background: var(--rosado);
+  color: var(--cafe);
+  border: none;
+}
+
+.voluntariado .boton-secundario:hover {
+  background: var(--rosado-oscuro);
+  color: var(--crema-dev);
+}
+

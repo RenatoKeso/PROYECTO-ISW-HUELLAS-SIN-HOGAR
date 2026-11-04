@@ -78,3 +78,10 @@ export const NOMBRES_ROL = {
   VOLUNTARIO: "Voluntario",
   VOLUNTARIO_CONFIANZA: "Voluntario de confianza",
 };
+
+export function puedeRevisarPostulacionesVoluntario(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "ENCARGADA_VOLUNTARIADO",
+  ]);
+}

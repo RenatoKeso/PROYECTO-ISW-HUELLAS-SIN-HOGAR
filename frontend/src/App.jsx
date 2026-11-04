@@ -10,8 +10,9 @@ import PostulacionesPage from "./pages/PostulacionesPage.jsx";
 import PostulacionDetallePage from "./pages/PostulacionDetallePage.jsx";
 import PublicarAnimalesPage from "./pages/PublicarAnimalesPage.jsx";
 import VoluntariadoPage from "./pages/VoluntariadoPage.jsx";
+import PostulacionesVoluntarioPage from "./pages/PostulacionesVoluntarioPage.jsx";
 import useSesion from "./hooks/useSesion.js";
-import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeGestionarAdopciones,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
+import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeGestionarAdopciones,puedeRevisarPostulacionesVoluntario,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
 function App() {
   const {
     usuario,
@@ -83,6 +84,12 @@ function App() {
                   Postulaciones
                 </Link>
               )}
+
+              {puedeRevisarPostulacionesVoluntario(usuario) && (
+                <Link to="/voluntariado/postulaciones">
+                  Postulaciones Voluntario
+                </Link>
+              )}
               <span>
                 {usuario.nombre} · {NOMBRES_ROL[usuario.rol]}
               </span>
@@ -150,6 +157,14 @@ function App() {
           <Route
             path="/voluntariado"
             element={<VoluntariadoPage />}
+          />
+
+          <Route
+            path="/voluntariado/postulaciones"
+            element={proteger(
+              <PostulacionesVoluntarioPage />,
+              puedeRevisarPostulacionesVoluntario
+            )}
           />
 
           <Route
