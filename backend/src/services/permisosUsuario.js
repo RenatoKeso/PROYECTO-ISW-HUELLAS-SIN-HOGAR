@@ -149,3 +149,10 @@ export function puedeConsultarTurnos(usuario) {
     puedeGestionarInscripciones(usuario)
   );
 }
+
+export function puedeRevisarPostulacionesVoluntario(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "ENCARGADA_VOLUNTARIADO",
+  ]);
+}
