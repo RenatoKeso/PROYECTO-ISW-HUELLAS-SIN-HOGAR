@@ -6,6 +6,7 @@ import { crearReporteDevolucionRouter } from "./reporteDevolucionRoutes.js";
 import { crearDevolucionRouter } from "./devolucionRoutes.js";
 import { crearSaludRouter } from "./salud.routes.js";
 import { crearAdopcionRouter } from "./adopcionRoutes.js";
+import { crearPostulacionVoluntarioRouter } from "./postulacionVoluntarioRoutes.js";
 import { crearAuthRouter } from "./authRoutes.js";
 import { crearAutenticacion } from "../middlewares/autenticarUsuario.js";
 import { autorizarAccion } from "../middlewares/autorizarAccion.js";
@@ -26,6 +27,12 @@ export function crearRouter({
   router.use(
     "/adopciones",
     crearAdopcionRouter({ autenticar })
+  );
+
+  
+  router.use(
+    "/postulaciones-voluntario",
+    crearPostulacionVoluntarioRouter({ autenticar })
   );
 
   router.use(
