@@ -1,9 +1,12 @@
 :root {
-  /* Paleta de la propuesta */
   --crema: #ede3cf;
   --crema-claro: #f7f1e3;
-  --verde: #1f3d2b;
+  --verde: #56643f;
   --verde-claro: #2d5440;
+  --salvia: #8f9d6c;
+  --arena: #d6c9ae;
+  --crema-suave: #f4ecdc;
+  --blanco-calido: #fbf7ee;
   --terracota: #c0563a;
   --terracota-oscuro: #a4462e;
   --texto: #2a2520;
@@ -11,6 +14,7 @@
   --borde: #d9cdb4;
 
   --radio: 6px;
+  --sombra: 0 10px 30px rgba(85, 56, 32, 0.1);
   --ancho-maximo: 1080px;
 
   --serif: "Fraunces", Georgia, serif;
@@ -31,7 +35,7 @@ body {
   line-height: 1.6;
 }
 
-/* ---------- ESTRUCTURA ---------- */
+
 
 .app {
   min-height: 100vh;
@@ -47,7 +51,7 @@ body {
   padding: 2rem 1.5rem;
 }
 
-/* ---------- BARRA SUPERIOR ---------- */
+
 
 .barra {
   display: flex;
@@ -67,7 +71,7 @@ body {
   font-family: var(--serif);
   font-size: 1.8rem;
   font-weight: 600;
-  color: #56643f;
+  color: var(--verde);
   text-decoration: none;
 }
 
@@ -78,7 +82,7 @@ body {
   width: 2.8rem;
   height: 2.8rem;
   border-radius: 50%;
-  background: #d6c9ae;
+  background: var(--arena);
   font-size: 1.35rem;
 }
 
@@ -92,7 +96,7 @@ body {
   padding: 0.45rem 1.1rem;
   border-radius: 999px;
   background: #fffdf9;
-  color: #56643f;
+  color: var(--verde);
   font-family: var(--mono);
   font-size: 0.8rem;
   text-decoration: none;
@@ -101,17 +105,17 @@ body {
 }
 
 .barra nav a:hover {
-  background: #d6c9ae;
+  background: var(--arena);
   transform: translateY(-2px);
 }
 
-/* ---------- PORTADA ---------- */
+
 
 .portada {
   padding: 3rem 0 1rem;
 }
 
-/* Etiqueta pequena en mayusculas, como el mockup */
+
 .etiqueta {
   font-family: var(--mono);
   font-size: 0.72rem;
@@ -131,7 +135,7 @@ body {
   max-width: 600px;
 }
 
-/* Para la palabra en cursiva del titulo */
+
 .destacado {
   font-style: italic;
   font-weight: 400;
@@ -144,7 +148,7 @@ body {
   margin: 0 0 1.75rem;
 }
 
-/* ---------- HERO CON FOTO ---------- */
+
 
 .hero {
   display: grid;
@@ -167,7 +171,7 @@ body {
   border: 1px solid var(--borde);
 }
 
-/* ---------- BLOQUES ---------- */
+
 
 .bloque {
   margin-top: 3.5rem;
@@ -181,7 +185,7 @@ body {
   margin: 0 0 0.75rem;
 }
 
-/* ---------- TARJETAS ---------- */
+
 
 .tarjetas {
   display: grid;
@@ -191,9 +195,9 @@ body {
 }
 
 .tarjeta {
-  background: var(--crema-claro);
-  border: 1px solid var(--borde);
-  border-radius: var(--radio);
+  background: var(--blanco-calido);
+  border-radius: 22px;
+  box-shadow: var(--sombra);
   padding: 1.5rem;
 }
 
@@ -211,23 +215,25 @@ body {
   font-size: 0.95rem;
 }
 
-/* ---------- BOTONES ---------- */
+
 
 .boton {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background: var(--terracota);
-  color: var(--crema-claro);
+  background: var(--verde);
+  color: var(--crema-suave);
   border: none;
-  border-radius: var(--radio);
+  border-radius: 999px;
   font-family: var(--mono);
   font-size: 0.85rem;
   text-decoration: none;
   cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .boton:hover {
-  background: var(--terracota-oscuro);
+  background: var(--salvia);
+  transform: translateY(-1px);
 }
 
 .boton:disabled {
@@ -235,24 +241,46 @@ body {
   cursor: not-allowed;
 }
 
-/* Boton secundario, con borde en vez de relleno */
+
 .boton-secundario {
-  background: transparent;
+  background: var(--arena);
   color: var(--verde);
-  border: 1px solid var(--borde);
 }
 
 .boton-secundario:hover {
-  background: var(--crema-claro);
+  background: var(--salvia);
+  color: var(--crema-suave);
 }
 
-/* ---------- FORMULARIOS ---------- */
+
 
 .formulario {
-  border: 1px solid #000;
-  background: var(--crema-claro);
+  position: relative;
+  overflow: hidden;
+  background: var(--blanco-calido);
+  border-radius: 22px;
+  box-shadow: var(--sombra);
   padding: 1.5rem;
   margin-bottom: 2rem;
+}
+
+
+.formulario::after {
+  content: "";
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: var(--arena);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.formulario > * {
+  position: relative;
+  z-index: 1;
 }
 
 .formulario h2 {
@@ -291,9 +319,9 @@ body {
 .campo select,
 .campo textarea {
   padding: 0.55rem 0.7rem;
-  border: 1px solid var(--borde);
-  border-radius: var(--radio);
-  background: #fff;
+  border: 1.5px solid var(--arena);
+  border-radius: 12px;
+  background: var(--crema-suave);
   font-family: var(--sans);
   font-size: 0.95rem;
   color: var(--texto);
@@ -302,7 +330,7 @@ body {
 .campo input:focus,
 .campo select:focus,
 .campo textarea:focus {
-  outline: 2px solid var(--verde);
+  outline: 2px solid var(--salvia);
   outline-offset: 1px;
 }
 
@@ -324,7 +352,8 @@ body {
   margin: 1rem 0 0;
   padding: 0.7rem 1rem;
   border: 1px solid var(--borde);
-  border-radius: var(--radio);
+  border-radius: 14px;
+  background: var(--blanco-calido);
   font-size: 0.9rem;
 }
 
@@ -338,7 +367,7 @@ body {
   color: var(--terracota);
 }
 
-/* ---------- PIE ---------- */
+
 
 .pie {
   padding: 2rem;
@@ -351,4 +380,30 @@ body {
 
 .pie p {
   margin: 0;
+}
+
+
+
+.app h1,
+.app h2,
+.app h3 {
+  color: var(--verde);
+}
+
+.app .tarjeta-animal,
+.app .tabla-contenedor,
+.app .alertas-tabla-contenedor {
+  border: none;
+  border-radius: 22px;
+  background: var(--blanco-calido);
+  box-shadow: var(--sombra);
+}
+
+.app .tarjeta-animal {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.app .tarjeta-animal:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(85, 56, 32, 0.16);
 }
