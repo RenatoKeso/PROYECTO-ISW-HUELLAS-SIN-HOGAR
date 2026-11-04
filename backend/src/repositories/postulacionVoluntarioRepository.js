@@ -1,0 +1,68 @@
+import prisma from "../config/prisma.js";
+
+const CAMPOS_POSTULACION = {
+  id: true,
+  nombre: true,
+  rut: true,
+  email: true,
+  telefono: true,
+  diasDisponibles: true,
+  motivacion: true,
+  habilidades: true,
+  otraHabilidad: true,
+  estado: true,
+  motivoRechazo: true,
+  fechaRevision: true,
+  createdAt: true,
+  revisadaPor: { select: { nombre: true } },
+};
+
+
+export async function buscarVoluntarioPorEmail(email, cliente = prisma) {
+  return cliente.voluntario.findUnique({ where: { email } });
+}
+
+export async function buscarPostulacionVigente(rut, email, cliente = prisma) {
+  return cliente.postulacionVoluntario.findFirst({
+    where: {
+      estado: { in: ["EN_REVISION", "ACEPTADA"] },
+      OR: [{ rut }, { email }],
+    },
+    select: { id: true, estado: true },
+  });
+}
+
+export async function crearPostulacionVoluntario(data, cliente = prisma) {
+  return cliente.postulacionVoluntario.create({ data, select: CAMPOS_POSTULACION });
+}
+
+export async function listarPostulacionesVoluntario(estado, cliente = prisma) {
+  return cliente.postulacionVoluntario.findMany({
+    where: estado ? { estado } : {},
+    select: CAMPOS_POSTULACION,
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function buscarPostulacionVoluntarioPorId(id, cliente = prisma) {
+  return cliente.postulacionVoluntario.findUnique({
+    where: { id },
+    select: CAMPOS_POSTULACION,
+  });
+}
+
+
+
+export async function crearVoluntario(data, cliente = prisma) {
+  return cliente.voluntario.create({ data });
+}
+
+
+export async function marcarPostulacionRevisada(id, data, cliente = prisma) {
+  const { count } = await cliente.postulacionVoluntario.updateMany({
+    where: { id, estado: "EN_REVISION" },
+    data,
+  });
+
+  return count;
+}
