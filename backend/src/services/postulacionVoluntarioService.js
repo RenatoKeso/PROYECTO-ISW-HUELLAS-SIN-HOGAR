@@ -7,12 +7,17 @@ import {
   buscarPostulacionVoluntarioPorId,
   crearVoluntario,
   marcarPostulacionRevisada,
+  buscarActividadVoluntario,
+  volverARevision,
+  eliminarVoluntario,
 } from "../repositories/postulacionVoluntarioRepository.js";
 import {
   yaEsVoluntario,
   postulacionEnRevision,
   postulacionVoluntarioNoEncontrada,
   postulacionYaRevisada,
+  postulacionSinRevisar,
+  voluntarioConActividad,
 } from "../entities/postulacionVoluntarioErrors.js";
 
 const DEPENDENCIAS_POR_DEFECTO = {
@@ -22,6 +27,9 @@ const DEPENDENCIAS_POR_DEFECTO = {
   buscarPostulacionVoluntarioPorId,
   crearVoluntario,
   marcarPostulacionRevisada,
+  buscarActividadVoluntario,
+  volverARevision,
+  eliminarVoluntario,
   ejecutarEnTransaccion,
 };
 
@@ -95,6 +103,45 @@ export async function revisarPostulacionVoluntario(
     );
 
     if (cambiadas === 0) throw postulacionYaRevisada();
+  });
+
+  return buscarPostulacionVoluntarioPorId(postulacionId);
+}
+
+export async function deshacerRevisionPostulacionVoluntario(
+  postulacionId,
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  const {
+    buscarPostulacionVoluntarioPorId,
+    buscarActividadVoluntario,
+    volverARevision,
+    eliminarVoluntario,
+    ejecutarEnTransaccion,
+  } = dependencias;
+
+  const postulacion = await buscarPostulacionVoluntarioPorId(postulacionId);
+
+  if (!postulacion) throw postulacionVoluntarioNoEncontrada(postulacionId);
+  if (postulacion.estado === "EN_REVISION") throw postulacionSinRevisar();
+
+  const voluntario = postulacion.voluntarioId
+    ? await buscarActividadVoluntario(postulacion.voluntarioId)
+    : null;
+
+  if (voluntario) {
+    const actividad = Object.values(voluntario._count).some((cantidad) => cantidad > 0);
+
+    if (voluntario.usuario || actividad) throw voluntarioConActividad();
+  }
+
+
+  await ejecutarEnTransaccion(async (cliente) => {
+    const cambiadas = await volverARevision(postulacionId, postulacion.estado, cliente);
+
+    if (cambiadas === 0) throw postulacionYaRevisada();
+
+    if (voluntario) await eliminarVoluntario(voluntario.id, cliente);
   });
 
   return buscarPostulacionVoluntarioPorId(postulacionId);

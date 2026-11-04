@@ -39,3 +39,18 @@ export function postulacionYaRevisada() {
     409,
   );
 }
+export function postulacionSinRevisar() {
+  return new PostulacionVoluntarioError(
+    "POSTULACION_SIN_REVISAR",
+    "Esta postulación todavía no se revisa, no hay nada que deshacer",
+    409,
+  );
+}
+
+export function voluntarioConActividad() {
+  return new PostulacionVoluntarioError(
+    "VOLUNTARIO_CON_ACTIVIDAD",
+    "No se puede deshacer: el voluntario ya tiene cuenta o actividad en el refugio",
+    409,
+  );
+}

@@ -3,6 +3,7 @@ import {
   postularComoVoluntario,
   obtenerPostulacionesVoluntario,
   revisarPostulacionVoluntario,
+  deshacerRevisionPostulacionVoluntario,
 } from "../services/postulacionVoluntarioService.js";
 
 export async function postular(request, response) {
@@ -38,4 +39,13 @@ export async function revisar(request, response) {
       : "Postulación rechazada";
 
   return enviarRespuestaExitosa(response, { mensaje, datos: { postulacion } });
+}
+
+export async function deshacer(request, response) {
+  const postulacion = await deshacerRevisionPostulacionVoluntario(request.params.id);
+
+  return enviarRespuestaExitosa(response, {
+    mensaje: "Listo, la postulación volvió a En revisión",
+    datos: { postulacion },
+  });
 }

@@ -13,6 +13,7 @@ const CAMPOS_POSTULACION = {
   estado: true,
   motivoRechazo: true,
   fechaRevision: true,
+  voluntarioId: true,
   createdAt: true,
   revisadaPor: { select: { nombre: true } },
 };
@@ -65,4 +66,40 @@ export async function marcarPostulacionRevisada(id, data, cliente = prisma) {
   });
 
   return count;
+}
+
+export async function buscarActividadVoluntario(id, cliente = prisma) {
+  return cliente.voluntario.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      usuario: { select: { id: true } },
+      _count: {
+        select: {
+          inscripcionesTurno: true,
+          ingresosRecibidos: true,
+          devolucionesRecibidas: true,
+          postulacionesRevisadas: true,
+        },
+      },
+    },
+  });
+}
+export async function volverARevision(id, estadoActual, cliente = prisma) {
+  const { count } = await cliente.postulacionVoluntario.updateMany({
+    where: { id, estado: estadoActual },
+    data: {
+      estado: "EN_REVISION",
+      motivoRechazo: null,
+      fechaRevision: null,
+      revisadaPorId: null,
+      voluntarioId: null,
+    },
+  });
+
+  return count;
+}
+
+export async function eliminarVoluntario(id, cliente = prisma) {
+  return cliente.voluntario.delete({ where: { id } });
 }

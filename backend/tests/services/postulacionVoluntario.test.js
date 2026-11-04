@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   postularComoVoluntario,
   revisarPostulacionVoluntario,
+  deshacerRevisionPostulacionVoluntario,
 } from "../../src/services/postulacionVoluntarioService.js";
 
 
@@ -23,7 +24,7 @@ function postulacionEnRevision(cambios = {}) {
 }
 
 function falsas(cambios = {}) {
-  const guardado = { postulaciones: [], voluntarios: [], revisiones: [] };
+  const guardado = { postulaciones: [], voluntarios: [], revisiones: [], deshechas: [], borrados: [] };
 
   const dependencias = {
     buscarVoluntarioPorEmail: async () => null,
@@ -40,6 +41,19 @@ function falsas(cambios = {}) {
     marcarPostulacionRevisada: async (id, data) => {
       guardado.revisiones.push({ id, ...data });
       return 1;
+    },
+    buscarActividadVoluntario: async (id) => ({
+      id,
+      usuario: null,
+      _count: { inscripcionesTurno: 0, ingresosRecibidos: 0, devolucionesRecibidas: 0, postulacionesRevisadas: 0 },
+    }),
+    volverARevision: async (id, estado) => {
+      guardado.deshechas.push({ id, estado });
+      return 1;
+    },
+    eliminarVoluntario: async (id) => {
+      guardado.borrados.push(id);
+      return { id };
     },
     ejecutarEnTransaccion: async (callback) => callback("cliente-falso"),
     ...cambios,
@@ -163,4 +177,57 @@ test("no deja revisar dos veces la misma postulación", async () => {
     conCodigo("POSTULACION_YA_REVISADA"),
   );
   assert.equal(guardado.voluntarios.length, 0);
+});
+
+
+test("deshacer una aceptada la vuelve a revisión y borra el voluntario creado", async () => {
+  const { dependencias, guardado } = falsas({
+    buscarPostulacionVoluntarioPorId: async () =>
+      postulacionEnRevision({ estado: "ACEPTADA", voluntarioId: 7 }),
+  });
+
+  await deshacerRevisionPostulacionVoluntario(3, dependencias);
+
+  assert.deepEqual(guardado.deshechas, [{ id: 3, estado: "ACEPTADA" }]);
+  assert.deepEqual(guardado.borrados, [7]);
+});
+
+test("deshacer una rechazada la vuelve a revisión sin borrar a nadie", async () => {
+  const { dependencias, guardado } = falsas({
+    buscarPostulacionVoluntarioPorId: async () =>
+      postulacionEnRevision({ estado: "RECHAZADA", voluntarioId: null }),
+  });
+
+  await deshacerRevisionPostulacionVoluntario(3, dependencias);
+
+  assert.deepEqual(guardado.deshechas, [{ id: 3, estado: "RECHAZADA" }]);
+  assert.equal(guardado.borrados.length, 0);
+});
+
+test("no deja deshacer si el voluntario ya tiene cuenta o turnos", async () => {
+  const { dependencias, guardado } = falsas({
+    buscarPostulacionVoluntarioPorId: async () =>
+      postulacionEnRevision({ estado: "ACEPTADA", voluntarioId: 7 }),
+    buscarActividadVoluntario: async () => ({
+      id: 7,
+      usuario: { id: 4 },
+      _count: { inscripcionesTurno: 2, ingresosRecibidos: 0, devolucionesRecibidas: 0, postulacionesRevisadas: 0 },
+    }),
+  });
+
+  await assert.rejects(
+    deshacerRevisionPostulacionVoluntario(3, dependencias),
+    conCodigo("VOLUNTARIO_CON_ACTIVIDAD"),
+  );
+  assert.equal(guardado.deshechas.length, 0);
+  assert.equal(guardado.borrados.length, 0);
+});
+
+test("no deja deshacer una postulación que sigue en revisión", async () => {
+  const { dependencias } = falsas();
+
+  await assert.rejects(
+    deshacerRevisionPostulacionVoluntario(3, dependencias),
+    conCodigo("POSTULACION_SIN_REVISAR"),
+  );
 });
