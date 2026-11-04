@@ -9,6 +9,7 @@ import PostulacionPage from "./pages/PostulacionPage.jsx";
 import PostulacionesPage from "./pages/PostulacionesPage.jsx";
 import PostulacionDetallePage from "./pages/PostulacionDetallePage.jsx";
 import PublicarAnimalesPage from "./pages/PublicarAnimalesPage.jsx";
+import VoluntariadoPage from "./pages/VoluntariadoPage.jsx";
 import useSesion from "./hooks/useSesion.js";
 import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeGestionarAdopciones,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
 function App() {
@@ -144,6 +145,11 @@ function App() {
           <Route
             path="/adopcion/:animalId/postular"
             element={<PostulacionPage />}
+          />
+
+          <Route
+            path="/voluntariado"
+            element={<VoluntariadoPage />}
           />
 
           <Route
