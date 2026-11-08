@@ -1,6 +1,8 @@
 # API de fichas e ingresos de animales
 
-Endpoints del modulo de animales. La base es `/api` y la respuesta siempre tiene la
+Endpoints del modulo de animales. Estos endpoints cubren el `r1` del modulo consolidado (`requisitos.md`), que corresponde al antiguo `requisito1.md`.
+
+ La base es `/api` y la respuesta siempre tiene la
 forma `{ "message": ... }` mas los datos del caso.
 
 | Metodo | Ruta | Que hace |
@@ -8,6 +10,7 @@ forma `{ "message": ... }` mas los datos del caso.
 | `POST` | `/api/fichas` | Crea una ficha suelta, sin evento de ingreso. |
 | `PATCH` | `/api/fichas/:id` | Actualiza datos de una ficha existente. |
 | `POST` | `/api/animales/ingresos` | Crea una ficha con su primer ingreso, o registra un reingreso. |
+| `GET` | `/api/animales/:id/ingresos` | Consulta el historial de ingresos de una ficha. |
 
 ## Crear una ficha
 
@@ -123,9 +126,17 @@ Respuesta `201`:
 {
   "message": "Ingreso registrado correctamente",
   "codigoAnimal": "anim-005",
-  "reingreso": false
+  "reingreso": false,
+  "registroMedico": {
+    "id": 500,
+    "estadoValidacion": "PROVISIONAL",
+    "createdAt": "2026-09-29T13:00:00.000Z"
+  }
 }
 ```
+
+El `registroMedico` es el registro provisional unico del animal creado por `r2`. En un
+reingreso no se crea un registro nuevo y el campo no se devuelve.
 
 ### Cuando es un reingreso por devolucion
 
@@ -153,6 +164,45 @@ Respuesta `200`:
 ```
 
 El reingreso no crea una ficha nueva: agrega un evento al historial de la ficha existente.
+
+## Consultar el historial de ingresos
+
+`GET /api/animales/:id/ingresos` devuelve la ficha indicada y todos sus ingresos,
+ordenados del mas reciente al mas antiguo.
+
+```http
+GET /api/animales/10/ingresos
+```
+
+Respuesta `200`:
+
+```json
+{
+  "message": "Historial de ingresos obtenido correctamente",
+  "ficha": {
+    "id": 10,
+    "codigoAnimal": "anim-010",
+    "nombre": "Firulais"
+  },
+  "ingresos": [
+    {
+      "id": 3,
+      "fechaIngreso": "2026-11-03T10:00:00.000Z",
+      "procedencia": "Hallazgo en via publica",
+      "ubicacionEncontrado": "Av. Central",
+      "estadoSalud": "En observacion",
+      "receptor": {
+        "id": 2,
+        "nombre": "Ana"
+      }
+    }
+  ]
+}
+```
+
+- El `id` de la ruta debe ser un numero positivo: `GET /api/animales/abc/ingresos`
+  responde `400`.
+- Si la ficha no existe, responde `404 FICHA_INEXISTENTE`.
 
 ## Campos del ingreso
 

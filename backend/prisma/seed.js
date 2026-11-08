@@ -225,19 +225,30 @@ async function main() {
 
   // r2: revision inicial hecha por la voluntaria, con la ficha ya bloqueada
   // porque r4 permite actualizarla una sola vez y ya se uso. fechaActualizacion
-  // con valor es la marca que bloquea el segundo intento.
+  // con valor es la marca que bloquea el segundo intento. Los datos clinicos
+  // viven en RegistroMedicoAnimal: esta fila solo lleva el ciclo de vida.
   const revisionInicialGretel = await prisma.revisionInicial.create({
     data: {
       registroMedicoId: registroGretel.id,
-      clasificacionSalud: "ENFERMO",
-      prioridadAtencion: 2,
-      cuarentena: true,
-      observacionEstadoSalud: "Tos persistente y baja de apetito. Se observa delgada.",
       estadoRevisionInicial: "BLOQUEADA",
       fechaActualizacion: new Date("2026-08-15T19:30:00.000Z"),
       createdAt: new Date("2026-08-15T09:20:00.000Z"),
       createdById: cuentaVoluntaria.id,
       updatedById: cuentaVoluntaria.id,
+    },
+  });
+
+  // r2: los datos de la revision inicial viven en RegistroMedicoAnimal. El
+  // registro queda con la firma del revisor y la fecha de la revision.
+  await prisma.registroMedicoAnimal.update({
+    where: { id: registroGretel.id },
+    data: {
+      pesoKg: 12.4,
+      clasificacionSalud: "ENFERMO",
+      observacionInicial: "Tos persistente y baja de apetito. Se observa delgada.",
+      requiereCuarentena: true,
+      fechaRevisionInicial: new Date("2026-08-15T09:20:00.000Z"),
+      revisionInicialPorId: cuentaVoluntaria.id,
     },
   });
 
@@ -688,7 +699,7 @@ async function main() {
   console.log(`  Usuarios: ${cuentaDirectora.email}, ${cuentaVeterinaria.email}, ${cuentaVoluntaria.email}, ${cuentaVoluntario.email}, ${cuentaEncargada.email}`);
   console.log("  Turnos: 6 (futuros, solapados, lleno, cerrado a inscripciones y ya iniciado)");
   console.log(`  Registros medicos: ${revisionInicialGretel.id ? 2 : 0} (Gretel ACTUALIZADO, Galileo PROVISIONAL)`);
-  console.log(`  Revision completa de Gretel: ${revisionCompletaGretel.id}`);
+  console.log(`  Revision completa de Gretel (id): ${revisionCompletaGretel.id}`);
 }
 
 main()

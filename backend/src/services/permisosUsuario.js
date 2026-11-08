@@ -123,3 +123,34 @@ export function puedeRegistrarDevoluciones(usuario) {
     "VOLUNTARIO_CONFIANZA",
   ]);
 }
+
+// r3: la revision inicial la registra el voluntario autorizado o la veterinaria.
+export function puedeRegistrarRevisionInicial(usuario) {
+  return tieneRol(usuario, [
+    "VOLUNTARIO",
+    "VOLUNTARIO_CONFIANZA",
+    "VETERINARIA",
+  ]);
+}
+
+// r4: la revision final la realiza la veterinaria.
+export function puedeRealizarRevisionFinal(usuario) {
+  return tieneRol(usuario, ["VETERINARIA"]);
+}
+
+// r5: el voluntario autorizado corrige una sola vez la revision inicial.
+export function puedeActualizarRevisionInicial(usuario) {
+  return tieneRol(usuario, [
+    "VOLUNTARIO",
+    "VOLUNTARIO_CONFIANZA",
+  ]);
+}
+
+// r6: la veterinaria actualiza el registro y registra seguimientos.
+export function puedeActualizarRegistroMedico(usuario) {
+  return tieneRol(usuario, ["VETERINARIA"]);
+}
+
+export function puedeRegistrarSeguimiento(usuario) {
+  return tieneRol(usuario, ["VETERINARIA"]);
+}

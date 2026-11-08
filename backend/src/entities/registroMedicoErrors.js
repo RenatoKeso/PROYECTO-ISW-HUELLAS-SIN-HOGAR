@@ -3,6 +3,10 @@ export const CODIGO_ERROR_REGISTRO_MEDICO = {
   REGISTRO_MEDICO_DUPLICADO: "REGISTRO_MEDICO_DUPLICADO",
   ESTADO_INVALIDO: "ESTADO_INVALIDO",
   ROL_INSUFICIENTE: "ROL_INSUFICIENTE",
+  ANIMAL_NO_ESTA_EN_REFUGIO: "ANIMAL_NO_ESTA_EN_REFUGIO",
+  REVISION_INICIAL_REQUERIDA: "REVISION_INICIAL_REQUERIDA",
+  ACTUALIZACION_YA_REALIZADA: "ACTUALIZACION_YA_REALIZADA",
+  SEGUIMIENTO_INVALIDO: "SEGUIMIENTO_INVALIDO",
 };
 
 const ESTADO_HTTP_POR_CODIGO = {
@@ -10,6 +14,10 @@ const ESTADO_HTTP_POR_CODIGO = {
   [CODIGO_ERROR_REGISTRO_MEDICO.REGISTRO_MEDICO_DUPLICADO]: 409,
   [CODIGO_ERROR_REGISTRO_MEDICO.ESTADO_INVALIDO]: 409,
   [CODIGO_ERROR_REGISTRO_MEDICO.ROL_INSUFICIENTE]: 403,
+  [CODIGO_ERROR_REGISTRO_MEDICO.ANIMAL_NO_ESTA_EN_REFUGIO]: 409,
+  [CODIGO_ERROR_REGISTRO_MEDICO.REVISION_INICIAL_REQUERIDA]: 409,
+  [CODIGO_ERROR_REGISTRO_MEDICO.ACTUALIZACION_YA_REALIZADA]: 409,
+  [CODIGO_ERROR_REGISTRO_MEDICO.SEGUIMIENTO_INVALIDO]: 400,
 };
 
 export class RegistroMedicoError extends Error {
@@ -63,5 +71,37 @@ export function rolInsuficiente(mensaje = "Tu rol no permite realizar esta acci�
   return new RegistroMedicoError(
     CODIGO_ERROR_REGISTRO_MEDICO.ROL_INSUFICIENTE,
     mensaje,
+  );
+}
+
+export function animalNoEstaEnRefugio(animalId) {
+  return new RegistroMedicoError(
+    CODIGO_ERROR_REGISTRO_MEDICO.ANIMAL_NO_ESTA_EN_REFUGIO,
+    `El animal con id ${animalId} no está en el refugio, no admite revisiones médicas`,
+    { animalId },
+  );
+}
+export function revisionInicialRequerida() {
+  return new RegistroMedicoError(
+    CODIGO_ERROR_REGISTRO_MEDICO.REVISION_INICIAL_REQUERIDA,
+    "Debe registrar una revisión inicial antes de continuar con esta operación",
+  );
+}
+
+export function actualizacionYaRealizada() {
+  return new RegistroMedicoError(
+    CODIGO_ERROR_REGISTRO_MEDICO.ACTUALIZACION_YA_REALIZADA,
+    "La revisión inicial ya fue actualizada y no puede modificarse nuevamente",
+  );
+}
+
+export function seguimientoInvalido(
+  mensaje = "El seguimiento indicado no pertenece al registro médico",
+  opcion = {},
+) {
+  return new RegistroMedicoError(
+    CODIGO_ERROR_REGISTRO_MEDICO.SEGUIMIENTO_INVALIDO,
+    mensaje,
+    opcion,
   );
 }

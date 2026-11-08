@@ -5,6 +5,7 @@ import { CODIGO_ERROR_ANIMAL } from "../../src/entities/animalErrors.js";
 import {
   actualizarFicha,
   crearFicha,
+  listarIngresosDeFicha,
   registrarIngreso,
 } from "../../src/services/animalService.js";
 
@@ -30,6 +31,8 @@ function crearDependencias(sobrescrituras = {}) {
     ingresoAnimal: [],
     registroMedico: [],
     consultas: [],
+    fichasPorId: [],
+    historiales: [],
     actualizaciones: [],
     transacciones: 0,
   };
@@ -47,6 +50,31 @@ function crearDependencias(sobrescrituras = {}) {
     obtenerFichaAnimalPorCodigo: async (codigoAnimal) => {
       llamadas.consultas.push(codigoAnimal);
       return codigoAnimal === "anim-001" ? { id: 1, codigoAnimal } : null;
+    },
+    obtenerFichaAnimalPorId: async (id) => {
+      llamadas.fichasPorId.push(id);
+      return id === 1
+        ? { id: 1, codigoAnimal: "anim-001", nombre: "Roco" }
+        : null;
+    },
+    listarIngresosPorFicha: async (fichaAnimalId) => {
+      llamadas.historiales.push(fichaAnimalId);
+      return [
+        {
+          id: 8,
+          fichaAnimalId,
+          fechaIngreso: new Date("2026-09-28T10:00:00-03:00"),
+          procedencia: "Devolucion",
+          receptor: { id: 2, nombre: "Ana" },
+        },
+        {
+          id: 3,
+          fichaAnimalId,
+          fechaIngreso: new Date("2026-09-27T10:00:00-03:00"),
+          procedencia: "Hallazgo",
+          receptor: { id: 3, nombre: "Luis" },
+        },
+      ];
     },
     actualizarFichaAnimal: async (id, data) => {
       llamadas.actualizaciones.push({ id, data });
@@ -277,6 +305,36 @@ test("actualizarFicha responde 404 si la ficha no existe", async () => {
   assert.equal(error.codigo, CODIGO_ERROR_ANIMAL.FICHA_INEXISTENTE);
   assert.equal(error.estadoHttp, 404);
   assert.equal(error.message.includes("999"), true);
+});
+
+test("listarIngresosDeFicha devuelve la ficha y su historial completo", async () => {
+  const dependencias = crearDependencias();
+
+  const resultado = await listarIngresosDeFicha(1, dependencias);
+
+  assert.equal(resultado.ficha.codigoAnimal, "anim-001");
+  assert.deepEqual(dependencias.llamadas.fichasPorId, [1]);
+  assert.deepEqual(dependencias.llamadas.historiales, [1]);
+  assert.deepEqual(
+    resultado.ingresos.map((ingreso) => ingreso.id),
+    [8, 3],
+  );
+  assert.deepEqual(resultado.ingresos[0].receptor, {
+    id: 2,
+    nombre: "Ana",
+  });
+});
+
+test("listarIngresosDeFicha responde 404 si la ficha no existe", async () => {
+  const dependencias = crearDependencias();
+
+  const error = await capturarError(listarIngresosDeFicha(999, dependencias));
+
+  assert.equal(error.codigo, CODIGO_ERROR_ANIMAL.FICHA_INEXISTENTE);
+  assert.equal(error.estadoHttp, 404);
+  assert.equal(error.message.includes("999"), true);
+  assert.deepEqual(dependencias.llamadas.fichasPorId, [999]);
+  assert.deepEqual(dependencias.llamadas.historiales, []);
 });
 
 test("actualizarFicha no expone errores internos", async () => {

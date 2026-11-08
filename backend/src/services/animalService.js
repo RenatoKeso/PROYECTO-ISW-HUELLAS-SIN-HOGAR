@@ -14,15 +14,21 @@ import {
   actualizarFichaAnimal,
   crearFichaAnimal,
   obtenerFichaAnimalPorCodigo,
+  obtenerFichaAnimalPorId,
 } from "../repositories/fichaAnimalRepository.js";
-import { crearIngresoAnimal } from "../repositories/ingresoAnimalRepository.js";
+import {
+  crearIngresoAnimal,
+  listarIngresosPorFicha,
+} from "../repositories/ingresoAnimalRepository.js";
 import { crearRegistroMedicoParaIngreso } from "./registroMedicoService.js";
 
 const DEPENDENCIAS_POR_DEFECTO = {
   crearFichaAnimal,
   obtenerFichaAnimalPorCodigo,
+  obtenerFichaAnimalPorId,
   actualizarFichaAnimal,
   crearIngresoAnimal,
+  listarIngresosPorFicha,
   crearRegistroMedicoParaIngreso,
   ejecutarEnTransaccion,
 };
@@ -121,10 +127,10 @@ async function registrarReingresoPorDevolucion({ ingreso }, dependencias) {
 
     // El reingreso vuelve a poner al animal a cargo del refugio.
     return dependencias.actualizarFichaAnimal(
-    fichaEncontrada.id,
-    { estadoEstadia: "ACTIVO" },
-    cliente
-);
+      fichaEncontrada.id,
+      { estadoEstadia: ESTADO_ESTADIA_NUEVA_FICHA },
+      cliente,
+    );
   }, dependencias);
 
   return { ficha: fichaExistente, reingreso: true };
@@ -140,6 +146,19 @@ export async function registrarIngreso(datos, dependencias = DEPENDENCIAS_POR_DE
   }
 
   return registrarIngresoInicial(datos, dependencias);
+}
+
+export async function listarIngresosDeFicha(
+  fichaId,
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  const ficha = await dependencias.obtenerFichaAnimalPorId(fichaId);
+
+  if (!ficha) throw fichaInexistentePorId(fichaId);
+
+  const ingresos = await dependencias.listarIngresosPorFicha(fichaId);
+
+  return { ficha, ingresos };
 }
 
 export async function crearFicha(datos, dependencias = DEPENDENCIAS_POR_DEFECTO) {

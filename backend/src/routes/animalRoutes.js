@@ -31,6 +31,12 @@ export function crearAnimalRouter({ controlador = crearAnimalController() } = {}
     capturarErrores(controlador.registrarIngreso),
   );
 
+  router.get(
+    "/animales/:id/ingresos",
+    validarEsquema(fichaIdParamSchema, "params"),
+    capturarErrores(controlador.listarIngresos),
+  );
+
   return router;
 }
 

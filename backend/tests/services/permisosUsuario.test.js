@@ -6,7 +6,12 @@ import {
     puedeCrearUsuario,
     puedeCambiarRol,
     puedeDesactivarUsuario,
+    puedeActualizarRegistroMedico,
+    puedeActualizarRevisionInicial,
     puedeConsultarAlertas,
+    puedeRealizarRevisionFinal,
+    puedeRegistrarRevisionInicial,
+    puedeRegistrarSeguimiento,
 } from "../../src/services/permisosUsuario.js";
 
 const directora = {
@@ -30,6 +35,12 @@ const voluntario = {
 const veterinaria = {
     id: 4,
     rol: "VETERINARIA",
+    activo: true,
+};
+
+const voluntarioConfianza = {
+    id: 5,
+    rol: "VOLUNTARIO_CONFIANZA",
     activo: true,
 };
 
@@ -181,4 +192,100 @@ test("directora y veterinaria activas pueden consultar alertas", () => {
         false
     );
 }
+});
+
+test("voluntarios autorizados y veterinarias activas registran la revision inicial", () => {
+  assert.equal(puedeRegistrarRevisionInicial(voluntario), true);
+  assert.equal(puedeRegistrarRevisionInicial(voluntarioConfianza), true);
+  assert.equal(puedeRegistrarRevisionInicial(veterinaria), true);
+
+  const actores = [
+    directora,
+    encargada,
+    undefined,
+    null,
+    {},
+    { ...voluntario, activo: false },
+    { ...voluntarioConfianza, activo: false },
+    { ...veterinaria, activo: false },
+    { ...voluntario, rol: "ROL_INEXISTENTE" },
+  ];
+
+  for (const actor of actores) {
+    assert.equal(puedeRegistrarRevisionInicial(actor), false);
+  }
+});
+
+test("la encargada de adopciones no registra la revision inicial", () => {
+  assert.equal(
+    puedeRegistrarRevisionInicial({
+      id: 9,
+      rol: "ENCARGADA_ADOPCIONES",
+      activo: true,
+    }),
+    false
+  );
+});
+
+test("solo la veterinaria activa realiza la revision final", () => {
+  assert.equal(puedeRealizarRevisionFinal(veterinaria), true);
+
+  const actores = [
+    directora,
+    encargada,
+    voluntario,
+    voluntarioConfianza,
+    undefined,
+    null,
+    {},
+    { ...veterinaria, activo: false },
+    { ...veterinaria, rol: "VOLUNTARIO" },
+  ];
+
+  for (const actor of actores) {
+    assert.equal(puedeRealizarRevisionFinal(actor), false);
+  }
+});
+
+test("voluntarios autorizados actualizan la revision inicial", () => {
+  assert.equal(puedeActualizarRevisionInicial(voluntario), true);
+  assert.equal(puedeActualizarRevisionInicial(voluntarioConfianza), true);
+
+  const actores = [
+    directora,
+    encargada,
+    veterinaria,
+    undefined,
+    null,
+    {},
+    { ...voluntario, activo: false },
+    { ...voluntarioConfianza, activo: false },
+    { ...voluntario, rol: "ROL_INEXISTENTE" },
+  ];
+
+  for (const actor of actores) {
+    assert.equal(puedeActualizarRevisionInicial(actor), false);
+  }
+});
+
+test("solo la veterinaria activa actualiza registros y registra seguimientos", () => {
+  assert.equal(puedeActualizarRegistroMedico(veterinaria), true);
+  assert.equal(puedeRegistrarSeguimiento(veterinaria), true);
+
+  const actores = [
+    directora,
+    encargada,
+    voluntario,
+    voluntarioConfianza,
+    undefined,
+    null,
+    {},
+    { ...veterinaria, activo: false },
+    { ...veterinaria, rol: "VOLUNTARIO" },
+  ];
+
+  for (const actor of actores) {
+    assert.equal(puedeActualizarRegistroMedico(actor), false);
+    assert.equal(puedeRegistrarSeguimiento(actor), false);
+  }
 });

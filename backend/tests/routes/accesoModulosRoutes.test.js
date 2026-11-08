@@ -24,6 +24,7 @@ const rutas = [
     ["GET", "/salud/tipos", "alertas", 200],
     ["GET", "/salud/alertas?diasAnticipacion=7", "alertas", 200],
     ["POST", "/salud/alertas/preview", "alertas", 400],
+    ["GET", "/animales/1/ingresos", "fichas", null],
 ];
 
 async function conServidor(comprobar) {

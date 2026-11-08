@@ -9,8 +9,16 @@ import { crearAdopcionRouter } from "./adopcionRoutes.js";
 import { crearAuthRouter } from "./authRoutes.js";
 import { crearAutenticacion } from "../middlewares/autenticarUsuario.js";
 import { autorizarAccion } from "../middlewares/autorizarAccion.js";
-import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeConsultarVoluntarios,} from "../services/permisosUsuario.js";
+import {
+  puedeConsultarAlertas,
+  puedeConsultarReportesDevolucion,
+  puedeConsultarVoluntarios,
+  puedeGestionarFichas,
+  puedeRegistrarDevoluciones,
+} from "../services/permisosUsuario.js";
 import authService from "../services/authService.js";
+import { crearRegistroMedicoRouter } from "./registroMedicoRoutes.js";
+import { crearNotificacionRouter } from "./notificacionRoutes.js";
 
 export function crearRouter({
   registrarIngresoAnimal,
@@ -29,7 +37,7 @@ export function crearRouter({
   );
 
   router.use(
-    ["/fichas", "/animales/ingresos"],
+    ["/fichas", "/animales/ingresos", "/animales/:id/ingresos"],
     autenticar,
     autorizarAccion(puedeGestionarFichas)
   );
@@ -67,7 +75,17 @@ export function crearRouter({
   );
 
   router.use(crearReporteDevolucionRouter());
-  
+
+  router.use(
+    "/registros-medicos",
+    crearRegistroMedicoRouter({ autenticar })
+  );
+
+  router.use(
+    "/notificaciones",
+    crearNotificacionRouter({ autenticar })
+  );
+
   router.use(
     "/devoluciones",
     autenticar,

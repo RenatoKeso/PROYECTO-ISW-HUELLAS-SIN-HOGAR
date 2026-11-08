@@ -1,6 +1,7 @@
 import {
   actualizarFicha,
   crearFicha,
+  listarIngresosDeFicha,
   registrarIngreso,
 } from "../services/animalService.js";
 import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
@@ -10,15 +11,43 @@ const MENSAJE_INGRESO = "Ingreso registrado correctamente";
 const MENSAJE_REINGRESO = "Reingreso registrado correctamente";
 const MENSAJE_FICHA = "Ficha creada correctamente";
 const MENSAJE_FICHA_ACTUALIZADA = "Ficha actualizada correctamente";
+const MENSAJE_HISTORIAL = "Historial de ingresos obtenido correctamente";
 const ESTADO_INGRESO = 201;
 const ESTADO_REINGRESO = 200;
 const ESTADO_FICHA = 201;
 const ESTADO_FICHA_ACTUALIZADA = 200;
 
+function construirRegistroMedico(registroMedico) {
+  if (!registroMedico) return undefined;
+
+  return {
+    id: registroMedico.id,
+    estadoValidacion: registroMedico.estadoValidacion,
+    createdAt: registroMedico.createdAt,
+  };
+}
+
+function construirIngresoPublico(ingreso) {
+  return {
+    id: ingreso.id,
+    fechaIngreso: ingreso.fechaIngreso,
+    procedencia: ingreso.procedencia,
+    ubicacionEncontrado: ingreso.ubicacionEncontrado,
+    estadoSalud: ingreso.estadoSalud,
+    receptor: ingreso.receptor
+      ? {
+          id: ingreso.receptor.id,
+          nombre: ingreso.receptor.nombre,
+        }
+      : undefined,
+  };
+}
+
 export function crearAnimalController({
   registrarIngresoAnimal = registrarIngreso,
   crearFichaAnimal = crearFicha,
   actualizarFichaAnimal = actualizarFicha,
+  listarIngresosAnimal = listarIngresosDeFicha,
 } = {}) {
   return {
     async registrarIngreso(request, response) {
@@ -31,6 +60,25 @@ export function crearAnimalController({
         datos: {
           codigoAnimal: resultado.ficha.codigoAnimal,
           reingreso: resultado.reingreso,
+          ...(resultado.registroMedico
+            ? { registroMedico: construirRegistroMedico(resultado.registroMedico) }
+            : {}),
+        },
+      });
+    },
+
+    async listarIngresos(request, response) {
+      const { ficha, ingresos } = await listarIngresosAnimal(request.params.id);
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: MENSAJE_HISTORIAL,
+        datos: {
+          ficha: {
+            id: ficha.id,
+            codigoAnimal: ficha.codigoAnimal,
+            nombre: ficha.nombre,
+          },
+          ingresos: ingresos.map(construirIngresoPublico),
         },
       });
     },

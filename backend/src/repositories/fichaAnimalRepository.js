@@ -1,6 +1,8 @@
-import {Prisma} from "@prisma/client";
-import  prisma from "../config/prisma.js";
+import { Prisma } from "@prisma/client";
+import prisma from "../config/prisma.js";
 
+
+const CODIGO_CONFLICTO_UNICO = "P2002";
 
 const PREFIJO_CODIGO_ANIMAL = "anim-";
 const LARGO_SECUENCIAL = 3;
@@ -13,7 +15,7 @@ function formatearCodigoAnimal(secuencial) {
 
 function esCodigoDuplicado(error) {
   return (
-    error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002"
+    error instanceof Prisma.PrismaClientKnownRequestError && error.code === CODIGO_CONFLICTO_UNICO
   );
 }
 
@@ -32,6 +34,10 @@ async function obtenerUltimoSecuencial(cliente) {
 
 export async function obtenerFichaAnimalPorCodigo(codigoAnimal, cliente = prisma) {
   return cliente.fichaAnimal.findUnique({ where: { codigoAnimal } });
+}
+
+export async function obtenerFichaAnimalPorId(id, cliente = prisma) {
+  return cliente.fichaAnimal.findUnique({ where: { id } });
 }
 
 
