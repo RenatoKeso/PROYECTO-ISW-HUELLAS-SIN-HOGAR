@@ -54,6 +54,10 @@ function HomePage() {
             </p>
           </article>
         </div>
+        
+         <Link to="/Voluntariado" className="boton boton-voluntariado">
+          Quiero ser voluntario.
+         </Link>
       </section>
 
       <section className="bloque">

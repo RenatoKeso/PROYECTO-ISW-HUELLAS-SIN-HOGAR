@@ -48,6 +48,28 @@ export function puedeRegistrarDevoluciones(usuario) {
   ]);
 }
 
+// Modulo de turnos y voluntariado. Espeja los permisos del backend.
+export function puedeGestionarTurnos(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "ENCARGADA_VOLUNTARIADO",
+  ]);
+}
+
+export function puedeGestionarInscripciones(usuario) {
+  return tieneRol(usuario, [
+    "VOLUNTARIO",
+    "VOLUNTARIO_CONFIANZA",
+  ]);
+}
+
+export function puedeConsultarTurnos(usuario) {
+  return (
+    puedeGestionarTurnos(usuario) ||
+    puedeGestionarInscripciones(usuario)
+  );
+}
+
 export const NOMBRES_ROL = {
   DIRECTORA: "Directora",
   ENCARGADA_VOLUNTARIADO: "Encargada de voluntariado",
@@ -56,3 +78,10 @@ export const NOMBRES_ROL = {
   VOLUNTARIO: "Voluntario",
   VOLUNTARIO_CONFIANZA: "Voluntario de confianza",
 };
+
+export function puedeRevisarPostulacionesVoluntario(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "ENCARGADA_VOLUNTARIADO",
+  ]);
+}

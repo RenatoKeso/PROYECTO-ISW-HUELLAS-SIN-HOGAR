@@ -79,6 +79,7 @@ model Voluntario {
   devolucionesRecibidas  Devolucion[]
   usuario                Usuario?
   inscripcionesTurno     InscripcionTurno[]
+  postulacionVoluntario  PostulacionVoluntario?
 }
 
 // Módulo de adopción
@@ -385,6 +386,7 @@ model Usuario {
   reportesDevolucionGenerados     ReporteDevolucion[]
   visitasAdopcionRegistradas      VisitaAdopcion[]            @relation("VisitasAdopcionRegistradas")
   omisionesVisitaAutorizadas      Postulacion[]               @relation("OmisionesVisitaAutorizadas")
+  postulacionesVoluntarioRevisadas PostulacionVoluntario[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -689,4 +691,62 @@ model Notificacion {
   createdAt        DateTime              @default(now())
 
   @@index([destinatarioId, leida])
+}
+
+
+// ---------- Postulacion de voluntarios ----------
+
+enum EstadoPostulacionVoluntario {
+  EN_REVISION
+  ACEPTADA
+  RECHAZADA
+}
+
+enum DiaSemana {
+  LUNES
+  MARTES
+  MIERCOLES
+  JUEVES
+  VIERNES
+  SABADO
+  DOMINGO
+}
+
+enum HabilidadVoluntario {
+  CUIDADO_ANIMALES
+  LIMPIEZA
+  TRANSPORTE
+  APOYO_VETERINARIO
+  DIFUSION_REDES
+  EVENTOS
+  OTRA
+}
+
+model PostulacionVoluntario {
+  id              Int                         @id @default(autoincrement())
+  nombre          String
+  rut             String
+  email           String
+  telefono        String
+  diasDisponibles DiaSemana[]
+  motivacion      String
+  habilidades     HabilidadVoluntario[]
+  otraHabilidad   String?
+  estado          EstadoPostulacionVoluntario @default(EN_REVISION)
+
+  // Se llenan cuando la encargada revisa la postulacion.
+  motivoRechazo String?
+  fechaRevision DateTime?
+  revisadaPorId Int?
+  revisadaPor   Usuario?  @relation(fields: [revisadaPorId], references: [id])
+
+  // El voluntario que se crea al aceptar.
+  voluntarioId Int?        @unique
+  voluntario   Voluntario? @relation(fields: [voluntarioId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([estado])
+  @@index([rut])
+  @@index([email])
 }
