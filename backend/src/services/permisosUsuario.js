@@ -187,3 +187,14 @@ export function puedeActualizarRegistroMedico(usuario) {
 export function puedeRegistrarSeguimiento(usuario) {
   return tieneRol(usuario, ["VETERINARIA"]);
 }
+
+
+// r7: consulta de registros medicos.
+export function puedeConsultarRegistroMedico(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "VETERINARIA",
+    "VOLUNTARIO",
+    "VOLUNTARIO_CONFIANZA",
+  ]);
+}

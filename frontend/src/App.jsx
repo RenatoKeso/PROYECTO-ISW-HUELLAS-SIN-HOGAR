@@ -12,14 +12,16 @@ import PostulacionDetallePage from "./pages/PostulacionDetallePage.jsx";
 import PublicarAnimalesPage from "./pages/PublicarAnimalesPage.jsx";
 import VoluntariadoPage from "./pages/VoluntariadoPage.jsx";
 import PostulacionesVoluntarioPage from "./pages/PostulacionesVoluntarioPage.jsx";
+import RegistroMedicoPage from "./pages/RegistroMedicoPage.jsx";
 import useSesion from "./hooks/useSesion.js";
-import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeGestionarAdopciones,puedeRevisarPostulacionesVoluntario,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
+import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeGestionarAdopciones,puedeRevisarPostulacionesVoluntario,puedeConsultarRegistroMedico,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
 
 const TITULOS_POR_RUTA = {
   "/": "Inicio",
   "/login": "Iniciar sesión",
   "/registro": "Registro de animales",
   "/salud/alertas": "Alertas sanitarias",
+  "/salud/registros-medicos": "Registro médico",
   "/adopcion": "Adopción",
   "/adopcion/:animalId/postular": "Postular a adopción",
   "/voluntariado": "Voluntariado",
@@ -29,7 +31,6 @@ const TITULOS_POR_RUTA = {
   "/adopciones/publicar": "Publicar animales en adopción",
   "/reportes/devoluciones": "Devoluciones",
 };
-
 function App() {
   const { pathname } = useLocation();
   const esLogin = Boolean(matchPath("/login", pathname));
@@ -99,6 +100,12 @@ function App() {
                   <Link to="/salud/alertas">Alertas sanitarias</Link>
                 )}
 
+                {puedeConsultarRegistroMedico(usuario) && (
+                  <Link to="/salud/registros-medicos">
+                    Registro médico
+                  </Link>
+                )}
+
                 {(puedeConsultarReportesDevolucion(usuario) ||
                   puedeRegistrarDevoluciones(usuario)) && (
                   <Link to="/reportes/devoluciones">Devoluciones</Link>
@@ -165,8 +172,15 @@ function App() {
             )}
           />
 
-          <Route path="/adopcion" element={<AdopcionPage />} />
+          <Route
+            path="/salud/registros-medicos"
+            element={proteger(
+              <RegistroMedicoPage usuario={usuario} />,
+              puedeConsultarRegistroMedico
+            )}
+          />
 
+          <Route path="/adopcion" element={<AdopcionPage />} />
           <Route
             path="/adopcion/:animalId/postular"
             element={<PostulacionPage />}

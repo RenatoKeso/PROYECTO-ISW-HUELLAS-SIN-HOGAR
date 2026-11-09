@@ -85,3 +85,35 @@ export function puedeRevisarPostulacionesVoluntario(usuario) {
     "ENCARGADA_VOLUNTARIADO",
   ]);
 }
+
+export function puedeConsultarRegistroMedico(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "VETERINARIA",
+    "VOLUNTARIO",
+    "VOLUNTARIO_CONFIANZA",
+  ]);
+}
+
+export function puedeRegistrarRevisionInicial(usuario) {
+  return tieneRol(usuario, [
+    "VOLUNTARIO",
+    "VOLUNTARIO_CONFIANZA",
+    "VETERINARIA",
+  ]);
+}
+
+export function puedeActualizarRevisionInicial(usuario) {
+  return tieneRol(usuario, [
+    "VOLUNTARIO",
+    "VOLUNTARIO_CONFIANZA",
+  ]);
+}
+
+export function puedeRealizarRevisionFinal(usuario) {
+  return tieneRol(usuario, ["VETERINARIA"]);
+}
+
+export function puedeActualizarRegistroMedico(usuario) {
+  return tieneRol(usuario, ["VETERINARIA"]);
+}
