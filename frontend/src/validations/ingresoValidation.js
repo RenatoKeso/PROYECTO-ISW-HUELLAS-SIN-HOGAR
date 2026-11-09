@@ -1,6 +1,70 @@
 import { z } from "zod";
 import { textoOpcionalSchema } from "./fichaValidation.js";
 
+const receptorHistorialSchema = z
+  .object({
+    id: z.number().int().positive(),
+    nombre: z.string(),
+  })
+  .nullable()
+  .optional();
+
+export const ingresoHistorialItemSchema = z.object({
+  id: z.number().int().positive(),
+  tipo: z.enum(["INGRESO", "REINGRESO"]),
+  fechaIngreso: z.string(),
+  procedencia: z.string(),
+  ubicacionEncontrado: z.string().nullable().optional(),
+  estadoSalud: z.string().nullable().optional(),
+  receptor: receptorHistorialSchema,
+});
+
+const fichaHistorialSchema = z.object({
+  id: z.number().int().positive(),
+  codigoAnimal: z.string(),
+  nombre: z.string().nullable().optional(),
+});
+
+export const historialIngresosGlobalResponseSchema = z.object({
+  message: z.string(),
+  ingresos: z.array(
+    ingresoHistorialItemSchema.extend({
+      fichaAnimal: fichaHistorialSchema,
+    }),
+  ),
+});
+
+export const historialIngresosResponseSchema = z.object({
+  message: z.string(),
+  ficha: z.object({
+    id: z.number().int().positive(),
+    codigoAnimal: z.string(),
+    nombre: z.string().nullable().optional(),
+    imagenUrl: z.string().nullable().optional(),
+  }),
+  ingresos: z.array(ingresoHistorialItemSchema),
+});
+
+export function validarRespuestaHistorialIngresos(respuesta) {
+  const resultado = historialIngresosResponseSchema.safeParse(respuesta);
+
+  if (!resultado.success) {
+    throw new Error("El servidor devolvio un historial de ingresos invalido");
+  }
+
+  return resultado.data;
+}
+
+export function validarRespuestaHistorialIngresosGlobal(respuesta) {
+  const resultado = historialIngresosGlobalResponseSchema.safeParse(respuesta);
+
+  if (!resultado.success) {
+    throw new Error("El servidor devolvio un historial de ingresos invalido");
+  }
+
+  return resultado.data;
+}
+
 export const RECEPTORES = [
   { valor: "6", texto: "Martina Concha" },
   { valor: "7", texto: "Tomas morales" },

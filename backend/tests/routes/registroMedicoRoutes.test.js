@@ -720,3 +720,173 @@ test("un rol sin permiso en actualizaciones responde 403", async () => {
     await cerrar();
   }
 });
+
+// ---------------------------------------------------------------------------
+// r7: lectura de registros medicos
+// ---------------------------------------------------------------------------
+
+test("GET /registros-medicos exige un token valido", async () => {
+  const { url, cerrar } = await levantarApp(async () => {
+    throw new Error("no deberia llamarse");
+  });
+
+  try {
+    const respuesta = await fetch(`${url}`);
+    assert.equal(respuesta.status, 401);
+  } finally {
+    await cerrar();
+  }
+});
+
+test("GET /registros-medicos valida el filtro de estado", async () => {
+  const { url, cerrar } = await levantarApp(async () => {
+    throw new Error("no deberia llamarse");
+  }, async () => {
+    throw new Error("no deberia llamarse");
+  }, async () => {
+    throw new Error("no deberia llamarse");
+  }, {
+    listarRegistrosMedicos: async () => [],
+  });
+
+  try {
+    const respuesta = await fetch(`${url}?estado=INVALIDO`, {
+      headers: { Authorization: "Bearer valido" },
+    });
+    assert.equal(respuesta.status, 400);
+  } finally {
+    await cerrar();
+  }
+});
+
+test("GET /registros-medicos reenvia el filtro validado y el actor", async () => {
+  let recibido = null;
+
+  const { url, cerrar } = await levantarApp(async () => {
+    throw new Error("no deberia llamarse");
+  }, async () => {
+    throw new Error("no deberia llamarse");
+  }, async () => {
+    throw new Error("no deberia llamarse");
+  }, {
+    listarRegistrosMedicos: async (datos) => {
+      recibido = datos;
+      return [{ id: 1, estadoValidacion: "PROVISIONAL" }];
+    },
+  });
+
+  try {
+    const respuesta = await fetch(`${url}?estado=PROVISIONAL`, {
+      headers: { Authorization: "Bearer valido" },
+    });
+    const cuerpo = await respuesta.json();
+
+    assert.equal(respuesta.status, 200);
+    assert.equal(cuerpo.message, "Registros médicos obtenidos correctamente");
+    assert.equal(cuerpo.registros.length, 1);
+    assert.deepEqual(recibido, {
+      estado: "PROVISIONAL",
+      actor: voluntaria,
+    });
+  } finally {
+    await cerrar();
+  }
+});
+
+test("GET /registros-medicos/:id exige un token valido", async () => {
+  const { url, cerrar } = await levantarApp(async () => {
+    throw new Error("no deberia llamarse");
+  });
+
+  try {
+    const respuesta = await fetch(`${url}/14`);
+    assert.equal(respuesta.status, 401);
+  } finally {
+    await cerrar();
+  }
+});
+
+test("GET /registros-medicos/:id valida el identificador", async () => {
+  const { url, cerrar } = await levantarApp(async () => {
+    throw new Error("no deberia llamarse");
+  }, async () => {
+    throw new Error("no deberia llamarse");
+  }, async () => {
+    throw new Error("no deberia llamarse");
+  }, {
+    obtenerRegistroMedico: async () => {
+      throw new Error("no deberia llamarse");
+    },
+  });
+
+  try {
+    const respuesta = await fetch(`${url}/abc`, {
+      headers: { Authorization: "Bearer valido" },
+    });
+    assert.equal(respuesta.status, 400);
+  } finally {
+    await cerrar();
+  }
+});
+
+test("GET /registros-medicos/:id reenvia el id y el actor", async () => {
+  let recibido = null;
+
+  const { url, cerrar } = await levantarApp(async () => {
+    throw new Error("no deberia llamarse");
+  }, async () => {
+    throw new Error("no deberia llamarse");
+  }, async () => {
+    throw new Error("no deberia llamarse");
+  }, {
+    obtenerRegistroMedico: async (datos) => {
+      recibido = datos;
+      return { id: 14, estadoValidacion: "PROVISIONAL" };
+    },
+  });
+
+  try {
+    const respuesta = await fetch(`${url}/14`, {
+      headers: { Authorization: "Bearer valido" },
+    });
+    const cuerpo = await respuesta.json();
+
+    assert.equal(respuesta.status, 200);
+    assert.equal(cuerpo.message, "Registro médico obtenido correctamente");
+    assert.equal(cuerpo.registro.id, 14);
+    assert.deepEqual(recibido, {
+      registroMedicoId: 14,
+      actor: voluntaria,
+    });
+  } finally {
+    await cerrar();
+  }
+});
+
+test("GET /registros-medicos/:id traduce registro inexistente a 404", async () => {
+  const { registroMedicoInexistente } = await import("../../src/entities/registroMedicoErrors.js");
+
+  const { url, cerrar } = await levantarApp(async () => {
+    throw new Error("no deberia llamarse");
+  }, async () => {
+    throw new Error("no deberia llamarse");
+  }, async () => {
+    throw new Error("no deberia llamarse");
+  }, {
+    obtenerRegistroMedico: async () => {
+      throw registroMedicoInexistente(999);
+    },
+  });
+
+  try {
+    const respuesta = await fetch(`${url}/999`, {
+      headers: { Authorization: "Bearer valido" },
+    });
+    const cuerpo = await respuesta.json();
+
+    assert.equal(respuesta.status, 404);
+    assert.equal(cuerpo.code, "REGISTRO_MEDICO_INEXISTENTE");
+  } finally {
+    await cerrar();
+  }
+});

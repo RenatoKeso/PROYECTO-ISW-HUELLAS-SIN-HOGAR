@@ -7,14 +7,9 @@ import {
   filtrarAnimales,
   textoEtapa,
 } from "../utils/filtrosAdopcion.js";
+import { ESPECIES, formatearEdad } from "../utils/formatoAdopcion.js";
 import { urlImagen } from "../utils/urlImagen.js";
 import "../styles/adopcion.css";
-
-const ESPECIES = {
-  PERRO: "Perro",
-  GATO: "Gato",
-  OTRO: "Otra especie",
-};
 
 // Mientras no haya fotos en la base de datos, se muestra un dibujo segun la especie.
 const DIBUJOS = {
@@ -22,12 +17,6 @@ const DIBUJOS = {
   GATO: "🐱",
   OTRO: "🐾",
 };
-
-function describirEdad(edad) {
-  if (edad === null || edad === undefined) return null;
-  if (edad === 0) return "menos de 1 año";
-  return edad === 1 ? "1 año" : `${edad} años`;
-}
 
 function SimboloSexo({ sexo }) {
   if (sexo === "HEMBRA") {
@@ -50,7 +39,7 @@ function SimboloSexo({ sexo }) {
 }
 
 function TarjetaAnimal({ animal }) {
-  const primeraLinea = [textoEtapa(animal.edad), describirEdad(animal.edad)];
+  const primeraLinea = [textoEtapa(animal.edad), formatearEdad(animal.edad)];
   const segundaLinea = [ESPECIES[animal.especie], animal.raza];
   const imagen = urlImagen(animal.imagenUrl);
 

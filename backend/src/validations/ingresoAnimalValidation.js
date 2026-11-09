@@ -34,3 +34,9 @@ export const ingresoAnimalCreateSchema = z
       path: ["codigoAnimal"],
     },
   );
+
+
+export const listarIngresosQuerySchema = z.strictObject({
+  codigo: z.string().trim().max(32).optional(),
+  nombre: z.string().trim().max(255).optional(),
+});

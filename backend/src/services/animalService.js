@@ -33,6 +33,7 @@ import {
 } from "../repositories/fichaAnimalRepository.js";
 import {
   crearIngresoAnimal,
+  listarIngresosAnimales,
   listarIngresosPorFicha,
 } from "../repositories/ingresoAnimalRepository.js";
 import { crearRegistroMedicoParaIngreso } from "./registroMedicoService.js";
@@ -40,11 +41,11 @@ import { puedeGestionarFichas } from "./permisosUsuario.js";
 import { validarImagenParaSubir } from "../validations/imagenAnimalValidation.js";
 
 const DEPENDENCIAS_POR_DEFECTO = {
-  crearFichaAnimal,
-  obtenerFichaAnimalPorCodigo,
+
   obtenerFichaAnimalPorId,
   actualizarFichaAnimal,
   listarFichasAnimales,
+  listarIngresosAnimales,
   crearIngresoAnimal,
   listarIngresosPorFicha,
   crearRegistroMedicoParaIngreso,
@@ -138,7 +139,7 @@ async function registrarReingresoPorDevolucion({ ingreso }, dependencias) {
     throw referenciaFichaAusente();
   }
 
-  const fichaExistente = await guardarEnTransaccion(async (cliente) => {
+  const resultado = await guardarEnTransaccion(async (cliente) => {
     const fichaEncontrada = await dependencias.obtenerFichaAnimalPorCodigo(
       codigoAnimal.trim(),
       cliente,
@@ -146,20 +147,42 @@ async function registrarReingresoPorDevolucion({ ingreso }, dependencias) {
 
     if (!fichaEncontrada) throw fichaInexistente(codigoAnimal.trim());
 
-    await dependencias.crearIngresoAnimal(
+    const ingresoCreado = await dependencias.crearIngresoAnimal(
       construirDatosIngreso(ingreso, fichaEncontrada.id),
       cliente,
     );
 
+    let registroMedico = null;
+
+    // Si el animal no tenia registro medico provisional, se crea uno vinculado
+    // al reingreso actual. No se duplica si ya existe.
+    if (!fichaEncontrada.registroMedicoAnimal) {
+      registroMedico = await dependencias.crearRegistroMedicoParaIngreso(
+        {
+          animalId: fichaEncontrada.id,
+          ingresoAnimalId: ingresoCreado.id,
+        },
+        cliente,
+      );
+    }
+
     // El reingreso vuelve a poner al animal a cargo del refugio.
-    return dependencias.actualizarFichaAnimal(
+    const fichaActualizada = await dependencias.actualizarFichaAnimal(
       fichaEncontrada.id,
       { estadoEstadia: ESTADO_ESTADIA_NUEVA_FICHA },
       cliente,
     );
+
+    return { ficha: fichaActualizada, registroMedico };
   }, dependencias);
 
-  return { ficha: fichaExistente, reingreso: true };
+  return {
+    ficha: resultado.ficha,
+    reingreso: true,
+    ...(resultado.registroMedico
+      ? { registroMedico: resultado.registroMedico }
+      : {}),
+  };
 }
 
 export async function registrarIngreso(datos, dependencias = DEPENDENCIAS_POR_DEFECTO) {
@@ -183,8 +206,9 @@ export async function listarIngresosDeFicha(
   if (!ficha) throw fichaInexistentePorId(fichaId);
 
   const ingresos = await dependencias.listarIngresosPorFicha(fichaId);
+  const ingresosConTipo = marcarTipoIngresos(ingresos);
 
-  return { ficha, ingresos };
+  return { ficha, ingresos: ingresosConTipo };
 }
 
 function esRegistroInexistente(error) {
@@ -346,6 +370,57 @@ export async function listarFichas(
   const deps = { ...DEPENDENCIAS_POR_DEFECTO, ...dependencias };
 
   return deps.listarFichasAnimales();
+}
+
+
+function marcarTipoIngresos(ingresos) {
+  const ingresoInicialPorFicha = new Map();
+
+  for (const ingreso of ingresos) {
+    const actual = ingresoInicialPorFicha.get(ingreso.fichaAnimalId);
+
+    if (actual === undefined || ingreso.id < actual) {
+      ingresoInicialPorFicha.set(ingreso.fichaAnimalId, ingreso.id);
+    }
+  }
+
+  return ingresos.map((ingreso) => ({
+    ...ingreso,
+    tipo:
+      ingreso.id === ingresoInicialPorFicha.get(ingreso.fichaAnimalId)
+        ? "INGRESO"
+        : "REINGRESO",
+  }));
+}
+
+export async function listarIngresosGlobales(
+  { codigo, nombre } = {},
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  const deps = { ...DEPENDENCIAS_POR_DEFECTO, ...dependencias };
+  const ingresos = await deps.listarIngresosAnimales();
+  const ingresosConTipo = marcarTipoIngresos(ingresos);
+
+  const codigoBuscado = codigo?.trim().toLowerCase();
+  const nombreBuscado = nombre?.trim().toLowerCase();
+
+  return ingresosConTipo.filter((ingreso) => {
+    const ficha = ingreso.fichaAnimal;
+
+    const coincideCodigo =
+      !codigoBuscado ||
+      String(ficha?.codigoAnimal ?? "")
+        .toLowerCase()
+        .includes(codigoBuscado);
+
+    const coincideNombre =
+      !nombreBuscado ||
+      String(ficha?.nombre ?? "")
+        .toLowerCase()
+        .includes(nombreBuscado);
+
+    return coincideCodigo && coincideNombre;
+  });
 }
 
 export async function actualizarFicha(id, datos, dependencias = DEPENDENCIAS_POR_DEFECTO) {

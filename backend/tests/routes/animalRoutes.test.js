@@ -58,6 +58,7 @@ test("GET /animales/:id/ingresos devuelve la ficha y el historial publico", asyn
         ingresos: [
           {
             id: 3,
+            tipo: "INGRESO",
             fichaAnimalId: 10,
             fechaIngreso: new Date("2026-11-03T10:00:00.000Z"),
             procedencia: "Hallazgo en via publica",
@@ -86,6 +87,7 @@ test("GET /animales/:id/ingresos devuelve la ficha y el historial publico", asyn
     assert.deepEqual(cuerpo.ingresos, [
       {
         id: 3,
+        tipo: "INGRESO",
         fechaIngreso: "2026-11-03T10:00:00.000Z",
         procedencia: "Hallazgo en via publica",
         ubicacionEncontrado: "Av. Central",
@@ -194,6 +196,48 @@ test("el reingreso no devuelve registro medico", async () => {
     assert.equal(respuesta.status, 200);
     assert.equal(cuerpo.reingreso, true);
     assert.equal(Object.hasOwn(cuerpo, "registroMedico"), false);
+  } finally {
+    await cerrar();
+  }
+});
+
+
+test("GET /animales/ingresos devuelve el historial global filtrado", async () => {
+  let recibido = null;
+
+  const { url, cerrar } = await levantarApp({
+    listarIngresosGlobalesAnimal: async (filtros) => {
+      recibido = filtros;
+      return [
+        {
+          id: 38,
+          tipo: "INGRESO",
+          fechaIngreso: new Date("2026-11-09T22:26:00.000Z"),
+          procedencia: "via publica",
+          ubicacionEncontrado: "Av. Central",
+          estadoSalud: "Sano",
+          receptor: { id: 6, nombre: "Martina Concha" },
+          fichaAnimal: {
+            id: 52,
+            codigoAnimal: "anim-005",
+            nombre: "adolfo",
+          },
+        },
+      ];
+    },
+  });
+
+  try {
+    const respuesta = await fetch(
+      `${url}/animales/ingresos?codigo=anim-005&nombre=adolfo`,
+    );
+    const cuerpo = await respuesta.json();
+
+    assert.equal(respuesta.status, 200);
+    assert.deepEqual(recibido, { codigo: "anim-005", nombre: "adolfo" });
+    assert.equal(cuerpo.ingresos.length, 1);
+    assert.equal(cuerpo.ingresos[0].tipo, "INGRESO");
+    assert.equal(cuerpo.ingresos[0].fichaAnimal.codigoAnimal, "anim-005");
   } finally {
     await cerrar();
   }

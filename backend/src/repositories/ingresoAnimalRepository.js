@@ -18,3 +18,24 @@ export async function listarIngresosPorFicha(fichaAnimalId, cliente = prisma) {
     },
   });
 }
+
+export async function listarIngresosAnimales(cliente = prisma) {
+  return cliente.ingresoAnimal.findMany({
+    orderBy: [{ fechaIngreso: "desc" }, { id: "desc" }],
+    include: {
+      fichaAnimal: {
+        select: {
+          id: true,
+          codigoAnimal: true,
+          nombre: true,
+        },
+      },
+      receptor: {
+        select: {
+          id: true,
+          nombre: true,
+        },
+      },
+    },
+  });
+}

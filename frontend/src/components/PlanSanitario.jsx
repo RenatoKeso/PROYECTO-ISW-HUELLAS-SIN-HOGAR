@@ -1,14 +1,7 @@
 import { useState } from "react";
 import {consultarPlan,programarAtencion,modificarAtencion,} from "../services/planSanitarioService.js";
 import { TIPOS_PLAN } from "../validations/alertasPlanValidation.js";
-
-const etiquetas = {
-  vacuna: "Vacuna",
-  tratamiento: "Tratamiento",
-  control: "Control",
-  desparasitacion: "Desparasitación",
-  esterilizacion: "Esterilización",
-};
+import { ETIQUETAS_TIPO_ATENCION } from "../utils/planSanitario.js";
 
 const nuevoFormulario = () => ({
   tipo: "vacuna",
@@ -237,7 +230,7 @@ export default function PlanSanitario({
                           key={tipo}
                           value={tipo}
                         >
-                          {etiquetas[tipo]}
+                          {ETIQUETAS_TIPO_ATENCION[tipo]}
                         </option>
                       ))}
                     </select>
@@ -315,7 +308,7 @@ export default function PlanSanitario({
                       <td>
                         #{atencion.id}
                         {" · "}
-                        {etiquetas[atencion.tipo]}
+                        {ETIQUETAS_TIPO_ATENCION[atencion.tipo]}
                         <br />
                         {atencion.observaciones}
                       </td>

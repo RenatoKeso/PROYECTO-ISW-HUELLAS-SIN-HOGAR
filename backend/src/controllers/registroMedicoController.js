@@ -5,7 +5,9 @@ import {
   completarRevisionInicial,
   iniciarActualizacionRegistro,
   listarHistorialRegistroMedico as listarHistorialRegistroMedicoService,
+  listarRegistrosMedicos as listarRegistrosMedicosService,
   listarSeguimientosRegistroMedico as listarSeguimientosRegistroMedicoService,
+  obtenerRegistroMedico as obtenerRegistroMedicoService,
   realizarRevisionFinal,
 } from "../services/registroMedicoService.js";
 import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
@@ -31,7 +33,9 @@ export function crearRegistroMedicoController({
   actualizarRegistroMedico = actualizarRegistro,
   cancelarActualizacionRegistroMedico = cancelarActualizacionRegistro,
   listarHistorialRegistroMedico = listarHistorialRegistroMedicoService,
+  listarRegistrosMedicos = listarRegistrosMedicosService,
   listarSeguimientosRegistroMedico = listarSeguimientosRegistroMedicoService,
+  obtenerRegistroMedico = obtenerRegistroMedicoService,
 } = {}) {
   return {
     async completarRevisionInicial(request, response) {
@@ -131,6 +135,30 @@ export function crearRegistroMedicoController({
       return enviarRespuestaExitosa(response, {
         mensaje: MENSAJE_SEGUIMIENTOS,
         datos: { seguimientos },
+      });
+    },
+
+    async listarRegistros(request, response) {
+      const registros = await listarRegistrosMedicos({
+        estado: request.query.estado,
+        actor: request.usuario,
+      });
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: "Registros médicos obtenidos correctamente",
+        datos: { registros },
+      });
+    },
+
+    async obtenerRegistro(request, response) {
+      const registro = await obtenerRegistroMedico({
+        registroMedicoId: request.params.id,
+        actor: request.usuario,
+      });
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: "Registro médico obtenido correctamente",
+        datos: { registro },
       });
     },
   };

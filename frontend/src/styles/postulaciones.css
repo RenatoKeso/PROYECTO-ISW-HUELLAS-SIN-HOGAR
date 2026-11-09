@@ -56,76 +56,7 @@
 
 /* ---------- BANDEJA ---------- */
 
-.pestanas-estado {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    margin: 1.25rem 0;
-}
-
-.pestana-estado {
-    padding: 0.45rem 0.9rem;
-    border: 1px solid var(--borde);
-    border-radius: 999px;
-    background: transparent;
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    color: var(--verde);
-    cursor: pointer;
-}
-
-.pestana-estado:hover {
-    background: var(--crema-claro);
-}
-
-.pestana-estado.activa {
-    background: var(--verde);
-    border-color: var(--verde);
-    color: var(--crema-claro);
-}
-
-.tabla-contenedor {
-    overflow-x: auto;
-}
-
-.tabla-postulaciones {
-    width: 100%;
-    border-collapse: collapse;
-    background: var(--crema-claro);
-    font-size: 0.92rem;
-}
-
-.tabla-postulaciones th,
-.tabla-postulaciones td {
-    padding: 0.65rem 0.75rem;
-    border-bottom: 1px solid var(--borde);
-    text-align: left;
-}
-
-.tabla-postulaciones th {
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--texto-suave);
-}
-
-.enlace-accion {
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    color: var(--terracota);
-}
-
 /* ---------- ESTADOS ---------- */
-
-.estado-chip {
-    display: inline-block;
-    padding: 0.2rem 0.6rem;
-    border-radius: 999px;
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    white-space: nowrap;
-}
 
 .estado-EN_REVISION {
     background: #f3e2b8;
@@ -246,18 +177,6 @@
 }
 
 /* ---------- PARTE 2: PUBLICAR, VISITAS Y ENTREGA ---------- */
-
-.encabezado-acciones {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-}
-
-.encabezado-acciones p {
-    margin-top: 0;
-}
 
 .boton-chico {
     padding: 0.45rem 1rem;

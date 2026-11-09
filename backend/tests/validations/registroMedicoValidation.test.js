@@ -71,8 +71,18 @@ test("rechaza un peso que no sea mayor a cero", () => {
   }
 });
 
+test("acepta un peso inicial de hasta 100 kg", () => {
+  const resultado = revisionInicialSchema.safeParse({
+    ...revisionValida,
+    pesoKg: 100,
+  });
+
+  assert.equal(resultado.success, true);
+  assert.equal(resultado.data.pesoKg, 100);
+});
+
 test("rechaza un peso fuera de rango o enviado como texto", () => {
-  for (const pesoKg of ["10", 1000]) {
+  for (const pesoKg of ["10", 100.01, 1000]) {
     const resultado = revisionInicialSchema.safeParse({
       ...revisionValida,
       pesoKg,

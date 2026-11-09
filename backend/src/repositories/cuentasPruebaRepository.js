@@ -7,8 +7,11 @@ const ROLES_VOLUNTARIOS = [
 
 export function crearCuentasPrueba(
   cuentas,
-  cliente = prisma
+  cliente = prisma,
+  opciones = {}
 ) {
+  const { actualizarPassword = false } = opciones;
+
   return cliente.$transaction(
     async (tx) => {
       const resultados = [];
@@ -28,10 +31,22 @@ export function crearCuentasPrueba(
             );
           }
 
+          if (actualizarPassword) {
+            await tx.usuario.update({
+              where: {
+                id: existente.id,
+              },
+              data: {
+                passwordHash: cuenta.passwordHash,
+              },
+            });
+          }
+
           resultados.push({
             email: cuenta.email,
             rol: cuenta.rol,
             creada: false,
+            actualizada: actualizarPassword,
             activo: existente.activo,
           });
 
@@ -92,6 +107,7 @@ export function crearCuentasPrueba(
           email: cuenta.email,
           rol: cuenta.rol,
           creada: true,
+          actualizada: false,
           activo: true,
         });
       }
