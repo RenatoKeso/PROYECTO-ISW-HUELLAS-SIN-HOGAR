@@ -24,6 +24,7 @@
     "express": "^4.22.2",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.12.1",
+    "multer": "^2.5.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {

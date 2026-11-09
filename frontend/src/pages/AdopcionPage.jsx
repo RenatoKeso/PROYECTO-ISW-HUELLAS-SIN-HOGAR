@@ -7,6 +7,7 @@ import {
   filtrarAnimales,
   textoEtapa,
 } from "../utils/filtrosAdopcion.js";
+import { urlImagen } from "../utils/urlImagen.js";
 import "../styles/adopcion.css";
 
 const ESPECIES = {
@@ -51,11 +52,20 @@ function SimboloSexo({ sexo }) {
 function TarjetaAnimal({ animal }) {
   const primeraLinea = [textoEtapa(animal.edad), describirEdad(animal.edad)];
   const segundaLinea = [ESPECIES[animal.especie], animal.raza];
+  const imagen = urlImagen(animal.imagenUrl);
 
   return (
     <article className="tarjeta tarjeta-animal">
       <div className={`foto-animal foto-${animal.especie.toLowerCase()}`}>
-        <span aria-hidden="true">{DIBUJOS[animal.especie]}</span>
+        {imagen ? (
+          <img
+            src={imagen}
+            alt={`Foto de ${animal.nombre || animal.codigoAnimal}`}
+            loading="lazy"
+          />
+        ) : (
+          <span aria-hidden="true">{DIBUJOS[animal.especie]}</span>
+        )}
       </div>
 
       <h3>

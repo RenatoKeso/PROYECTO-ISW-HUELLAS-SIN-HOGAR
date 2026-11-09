@@ -16,6 +16,7 @@ const matriz = {
 
 const rutas = [
     ["POST", "/fichas", "fichas", 400],
+    ["POST", "/fichas/1/imagen", "fichas", 400],
     ["PATCH", "/fichas/1", "fichas", 400],
     ["POST", "/animales/ingresos", "fichas", 400],
     ["GET", "/voluntarios", "voluntarios", null],

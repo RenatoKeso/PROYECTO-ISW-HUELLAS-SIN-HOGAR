@@ -1,5 +1,6 @@
 import { ZodError } from "zod";
 import { esErrorAnimal } from "../entities/animalErrors.js";
+import { esErrorImagenAnimal } from "../entities/imagenAnimalErrors.js";
 import { AuthError } from "../entities/authErrors.js";
 import { esErrorRegistroMedico } from "../entities/registroMedicoErrors.js";
 import { esErrorNotificacion } from "../entities/notificacionErrors.js";
@@ -83,6 +84,14 @@ export function manejadorErrores(
             codigoAnimal: error.opcion.codigoAnimal,
           }
         : {}),
+    });
+    return;
+  }
+
+  if (esErrorImagenAnimal(error)) {
+    response.status(error.estadoHttp).json({
+      message: error.message,
+      code: error.codigo,
     });
     return;
   }

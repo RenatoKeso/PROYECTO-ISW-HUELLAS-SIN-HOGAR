@@ -41,6 +41,8 @@ model FichaAnimal {
   estadoEstadia  EstadoEstadiaAnimal @default(ACTIVO)
   estadoAdopcion EstadoAdopcion?
   observaciones  String?
+  imagenUrl      String?
+  imagenSubidaEn DateTime?
   createdAt      DateTime            @default(now())
 
   ingresoAnimal         IngresoAnimal[]

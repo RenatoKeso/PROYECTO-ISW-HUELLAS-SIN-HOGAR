@@ -1,7 +1,10 @@
 import {
   actualizarFicha,
   crearFicha,
+  guardarImagenDeFicha,
+  listarFichas,
   listarIngresosDeFicha,
+  quitarImagenDeFicha,
   registrarIngreso,
 } from "../services/animalService.js";
 import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
@@ -12,6 +15,9 @@ const MENSAJE_REINGRESO = "Reingreso registrado correctamente";
 const MENSAJE_FICHA = "Ficha creada correctamente";
 const MENSAJE_FICHA_ACTUALIZADA = "Ficha actualizada correctamente";
 const MENSAJE_HISTORIAL = "Historial de ingresos obtenido correctamente";
+const MENSAJE_FICHAS = "Fichas registradas obtenidas correctamente";
+const MENSAJE_IMAGEN = "Imagen del animal actualizada correctamente";
+const MENSAJE_IMAGEN_QUITADA = "Imagen del animal eliminada correctamente";
 const ESTADO_INGRESO = 201;
 const ESTADO_REINGRESO = 200;
 const ESTADO_FICHA = 201;
@@ -24,6 +30,22 @@ function construirRegistroMedico(registroMedico) {
     id: registroMedico.id,
     estadoValidacion: registroMedico.estadoValidacion,
     createdAt: registroMedico.createdAt,
+  };
+}
+
+function construirResumenFicha(ficha) {
+  return {
+    id: ficha.id,
+    codigoAnimal: ficha.codigoAnimal,
+    imagenUrl: ficha.imagenUrl ?? null,
+    imagenSubidaEn: ficha.imagenSubidaEn ?? null,
+  };
+}
+
+function construirFichaConEstado(ficha) {
+  return {
+    ...construirResumenFicha(ficha),
+    estadoEstadia: ficha.estadoEstadia,
   };
 }
 
@@ -45,9 +67,12 @@ function construirIngresoPublico(ingreso) {
 
 export function crearAnimalController({
   registrarIngresoAnimal = registrarIngreso,
-  crearFichaAnimal = crearFicha,
+  crearFichaAnimal = (datos, archivo) => crearFicha(datos, undefined, archivo),
   actualizarFichaAnimal = actualizarFicha,
   listarIngresosAnimal = listarIngresosDeFicha,
+  listarFichasAnimal = listarFichas,
+  guardarImagenAnimal = guardarImagenDeFicha,
+  quitarImagenAnimal = quitarImagenDeFicha,
 } = {}) {
   return {
     async registrarIngreso(request, response) {
@@ -77,6 +102,7 @@ export function crearAnimalController({
             id: ficha.id,
             codigoAnimal: ficha.codigoAnimal,
             nombre: ficha.nombre,
+            imagenUrl: ficha.imagenUrl ?? null,
           },
           ingresos: ingresos.map(construirIngresoPublico),
         },
@@ -84,16 +110,12 @@ export function crearAnimalController({
     },
 
     async crearFicha(request, response) {
-      const ficha = await crearFichaAnimal(request.body);
+      const ficha = await crearFichaAnimal(request.body, request.file);
 
       return enviarRespuestaExitosa(response, {
         mensaje: MENSAJE_FICHA,
         estado: ESTADO_FICHA,
-        datos: {
-          id: ficha.id,
-          codigoAnimal: ficha.codigoAnimal,
-          estadoEstadia: ficha.estadoEstadia,
-        },
+        datos: construirFichaConEstado(ficha),
       });
     },
 
@@ -103,11 +125,41 @@ export function crearAnimalController({
       return enviarRespuestaExitosa(response, {
         mensaje: MENSAJE_FICHA_ACTUALIZADA,
         estado: ESTADO_FICHA_ACTUALIZADA,
-        datos: {
-          id: ficha.id,
-          codigoAnimal: ficha.codigoAnimal,
-          estadoEstadia: ficha.estadoEstadia,
-        },
+        datos: construirFichaConEstado(ficha),
+      });
+    },
+
+    async listarFichas(request, response) {
+      const fichas = await listarFichasAnimal();
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: MENSAJE_FICHAS,
+        datos: { fichas },
+      });
+    },
+
+    async subirImagen(request, response) {
+      const ficha = await guardarImagenAnimal(
+        request.params.id,
+        request.file,
+        request.usuario,
+      );
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: MENSAJE_IMAGEN,
+        datos: { ficha: construirResumenFicha(ficha) },
+      });
+    },
+
+    async quitarImagen(request, response) {
+      const ficha = await quitarImagenAnimal(
+        request.params.id,
+        request.usuario,
+      );
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: MENSAJE_IMAGEN_QUITADA,
+        datos: { ficha: construirResumenFicha(ficha) },
       });
     },
   };

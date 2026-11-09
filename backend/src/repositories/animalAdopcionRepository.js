@@ -15,6 +15,7 @@ export async function listarAnimalesDisponibles(cliente = prisma){
       raza: true,
       edad: true,
       observaciones: true,
+      imagenUrl: true,
     },
     orderBy:{createdAt: "asc"},
   });
@@ -35,6 +36,7 @@ export async function listarAnimalesPublicables(cliente = prisma) {
       sexoAnimal: true,
       raza: true,
       edad: true,
+      imagenUrl: true,
     },
     orderBy: { createdAt: "asc" },
   });

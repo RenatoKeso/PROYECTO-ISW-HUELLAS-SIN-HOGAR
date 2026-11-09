@@ -29,8 +29,12 @@ async function request(path, options = {}) {
 
   const token = sinSesion ? null : obtenerToken();
   const headers = new Headers(opcionesFetch.headers);
+  const esFormData =
+    typeof FormData !== "undefined" && opcionesFetch.body instanceof FormData;
 
-  headers.set("Content-Type", "application/json");
+  if (!esFormData) {
+    headers.set("Content-Type", "application/json");
+  }
 
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
@@ -74,6 +78,13 @@ export const api = {
       ...options,
       method: "POST",
       body: JSON.stringify(body),
+    }),
+
+  postForm: (path, formData, options = {}) =>
+    request(path, {
+      ...options,
+      method: "POST",
+      body: formData,
     }),
 
   put: (path, body, options = {}) =>

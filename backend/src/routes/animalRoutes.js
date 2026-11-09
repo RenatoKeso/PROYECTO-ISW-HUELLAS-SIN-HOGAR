@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { crearAnimalController } from "../controllers/animalController.js";
 import { capturarErrores } from "../middlewares/capturarErrores.js";
+import { recibirImagen } from "../middlewares/subirImagenAnimal.js";
+import { validarCreacionFicha } from "../middlewares/validarCreacionFicha.js";
 import { validarEsquema } from "../middlewares/validarEsquema.js";
 import {
   fichaAnimalUpdateSchema,
-  fichaCreateSchema,
   fichaIdParamSchema,
 } from "../validations/fichaAnimalValidation.js";
 import { registroIngresoSchema } from "../validations/registroIngresoValidation.js";
@@ -14,8 +15,24 @@ export function crearAnimalRouter({ controlador = crearAnimalController() } = {}
 
   router.post(
     "/fichas",
-    validarEsquema(fichaCreateSchema),
+    recibirImagen("imagen"),
+    validarCreacionFicha,
     capturarErrores(controlador.crearFicha),
+  );
+
+  router.get("/fichas", capturarErrores(controlador.listarFichas));
+
+  router.post(
+    "/fichas/:id/imagen",
+    validarEsquema(fichaIdParamSchema, "params"),
+    recibirImagen("imagen"),
+    capturarErrores(controlador.subirImagen),
+  );
+
+  router.delete(
+    "/fichas/:id/imagen",
+    validarEsquema(fichaIdParamSchema, "params"),
+    capturarErrores(controlador.quitarImagen),
   );
 
   router.patch(

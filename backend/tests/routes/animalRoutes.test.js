@@ -81,6 +81,7 @@ test("GET /animales/:id/ingresos devuelve la ficha y el historial publico", asyn
       id: 10,
       codigoAnimal: "anim-010",
       nombre: "Firulais",
+      imagenUrl: null,
     });
     assert.deepEqual(cuerpo.ingresos, [
       {
