@@ -33,7 +33,16 @@ async function obtenerUltimoSecuencial(cliente) {
 }
 
 export async function obtenerFichaAnimalPorCodigo(codigoAnimal, cliente = prisma) {
-  return cliente.fichaAnimal.findUnique({ where: { codigoAnimal } });
+  return cliente.fichaAnimal.findUnique({
+    where: { codigoAnimal },
+    include: {
+      registroMedicoAnimal: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
 }
 
 export async function obtenerFichaAnimalPorId(id, cliente = prisma) {

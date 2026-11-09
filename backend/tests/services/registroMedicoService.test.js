@@ -9,7 +9,9 @@ import {
   crearRegistroMedicoParaIngreso,
   iniciarActualizacionRegistro,
   listarHistorialRegistroMedico,
+  listarRegistrosMedicos,
   listarSeguimientosRegistroMedico,
+  obtenerRegistroMedico,
   prioridadDe,
   realizarRevisionFinal,
 } from "../../src/services/registroMedicoService.js";
@@ -178,7 +180,7 @@ test("una voluntaria completa la revision inicial y el registro pasa a VALIDACIO
   const { dependencias, llamadas } = crearDependenciasRevision();
 
   const resultado = await completarRevisionInicial(
-    { registroMedicoId: 14, datos: datosRevision, actor: actoraVoluntaria },
+    { registroMedicoId: 14, datos: datosRevision, actor: actoraVoluntariaConfianza },
     dependencias,
   );
 
@@ -188,7 +190,7 @@ test("una voluntaria completa la revision inicial y el registro pasa a VALIDACIO
 
   const { data } = llamadas.actualizaciones[0];
   assert.equal(data.estadoValidacion, "VALIDACION_PENDIENTE");
-  assert.equal(data.revisionInicialPorId, actoraVoluntaria.id);
+  assert.equal(data.revisionInicialPorId, actoraVoluntariaConfianza.id);
   assert.equal(data.pesoKg, 12.4);
   assert.equal(data.clasificacionSalud, "ENFERMO");
   assert.equal(data.requiereCuarentena, true);
@@ -215,7 +217,7 @@ test("la revision inicial crea la fila de ciclo de vida de RevisionInicial", asy
   const { dependencias, llamadas } = crearDependenciasRevision();
 
   await completarRevisionInicial(
-    { registroMedicoId: 14, datos: datosRevision, actor: actoraVoluntaria },
+    { registroMedicoId: 14, datos: datosRevision, actor: actoraVoluntariaConfianza },
     dependencias,
   );
 
@@ -224,7 +226,7 @@ test("la revision inicial crea la fila de ciclo de vida de RevisionInicial", asy
       data: {
         registroMedicoId: 14,
         estadoRevisionInicial: "COMPLETADA",
-        createdById: 3,
+        createdById: 6,
       },
       cliente: "tx",
     },
@@ -240,7 +242,7 @@ test("convierte el peso Decimal de Prisma a numero en la respuesta", async () =>
   });
 
   const resultado = await completarRevisionInicial(
-    { registroMedicoId: 14, datos: datosRevision, actor: actoraVoluntaria },
+    { registroMedicoId: 14, datos: datosRevision, actor: actoraVoluntariaConfianza },
     dependencias,
   );
 
@@ -287,7 +289,7 @@ test("un registro inexistente responde 404", async () => {
 
   const error = await capturarError(
     completarRevisionInicial(
-      { registroMedicoId: 999, datos: datosRevision, actor: actoraVoluntaria },
+      { registroMedicoId: 999, datos: datosRevision, actor: actoraVoluntariaConfianza },
       dependencias,
     ),
   );
@@ -303,7 +305,7 @@ test("un registro que ya no esta PROVISIONAL responde 409 y no escribe", async (
 
   const error = await capturarError(
     completarRevisionInicial(
-      { registroMedicoId: 14, datos: datosRevision, actor: actoraVoluntaria },
+      { registroMedicoId: 14, datos: datosRevision, actor: actoraVoluntariaConfianza },
       dependencias,
     ),
   );
@@ -327,7 +329,7 @@ test("un animal que ya salio del refugio responde 409 y no escribe", async () =>
 
     const error = await capturarError(
       completarRevisionInicial(
-        { registroMedicoId: 14, datos: datosRevision, actor: actoraVoluntaria },
+        { registroMedicoId: 14, datos: datosRevision, actor: actoraVoluntariaConfianza },
         dependencias,
       ),
     );
@@ -345,7 +347,7 @@ test("un animal ACTIVO o en ESPERA_ADOPCION si admite revision inicial", async (
     });
 
     const resultado = await completarRevisionInicial(
-      { registroMedicoId: 14, datos: datosRevision, actor: actoraVoluntaria },
+      { registroMedicoId: 14, datos: datosRevision, actor: actoraVoluntariaConfianza },
       dependencias,
     );
 
@@ -365,7 +367,7 @@ test("un conflicto al crear RevisionInicial se traduce a 409", async () => {
 
   const error = await capturarError(
     completarRevisionInicial(
-      { registroMedicoId: 14, datos: datosRevision, actor: actoraVoluntaria },
+      { registroMedicoId: 14, datos: datosRevision, actor: actoraVoluntariaConfianza },
       dependencias,
     ),
   );
@@ -811,7 +813,7 @@ test("una voluntaria actualiza una vez la revision inicial y audita cada campo",
     {
       registroMedicoId: 14,
       datos: datosActualizacionRevision,
-      actor: actoraVoluntaria,
+      actor: actoraVoluntariaConfianza,
     },
     dependencias,
   );
@@ -826,7 +828,7 @@ test("una voluntaria actualiza una vez la revision inicial y audita cada campo",
   assert.equal(bloqueo.id, 7);
   assert.equal(bloqueo.cliente, "tx");
   assert.equal(bloqueo.data.estadoRevisionInicial, "BLOQUEADA");
-  assert.equal(bloqueo.data.updatedById, actoraVoluntaria.id);
+  assert.equal(bloqueo.data.updatedById, actoraVoluntariaConfianza.id);
   assert.ok(bloqueo.data.fechaActualizacion instanceof Date);
 
   assert.deepEqual(Object.keys(llamadas.actualizacionesRegistro[0].data).sort(), [
@@ -869,7 +871,7 @@ test("una voluntaria actualiza una vez la revision inicial y audita cada campo",
       campo: "pesoKg",
       valorAnterior: "12.40",
       valorNuevo: "11.80",
-      autorId: actoraVoluntaria.id,
+      autorId: actoraVoluntariaConfianza.id,
     },
   );
   assert.match(auditoriaPeso.hora, /^\d{2}:\d{2}:\d{2}$/);
@@ -899,7 +901,7 @@ test("un voluntario de confianza tambien puede actualizar la revision inicial", 
   assert.equal(resultado.revisadoNuevamente, false);
 });
 
-test("una veterinaria no puede actualizar la revision inicial", async () => {
+test("un voluntario no puede actualizar la revision inicial", async () => {
   const { dependencias, llamadas } = crearDependenciasActualizacionRevision();
 
   const error = await capturarError(
@@ -907,7 +909,7 @@ test("una veterinaria no puede actualizar la revision inicial", async () => {
       {
         registroMedicoId: 14,
         datos: datosActualizacionRevision,
-        actor: actoraVeterinaria,
+        actor: actoraVoluntaria,
       },
       dependencias,
     ),
@@ -948,7 +950,7 @@ test("una segunda actualizacion responde 409 sin abrir transaccion", async () =>
       {
         registroMedicoId: 14,
         datos: datosActualizacionRevision,
-        actor: actoraVoluntaria,
+        actor: actoraVoluntariaConfianza,
       },
       dependencias,
     ),
@@ -971,7 +973,7 @@ test("un registro PROVISIONAL no admite actualizacion de revision inicial", asyn
       {
         registroMedicoId: 14,
         datos: datosActualizacionRevision,
-        actor: actoraVoluntaria,
+        actor: actoraVoluntariaConfianza,
       },
       dependencias,
     ),
@@ -992,7 +994,7 @@ test("un registro sin fila RevisionInicial no admite actualizacion", async () =>
       {
         registroMedicoId: 14,
         datos: datosActualizacionRevision,
-        actor: actoraVoluntaria,
+        actor: actoraVoluntariaConfianza,
       },
       dependencias,
     ),
@@ -1014,7 +1016,7 @@ test("reenviar los mismos valores consume el bloqueo sin crear auditoria", async
         observacionInicial: "Tos persistente",
         requiereCuarentena: true,
       },
-      actor: actoraVoluntaria,
+      actor: actoraVoluntariaConfianza,
     },
     dependencias,
   );
@@ -1047,7 +1049,7 @@ test("actualizar un registro REALIZADO lo devuelve a VALIDACION_PENDIENTE y noti
     {
       registroMedicoId: 14,
       datos: datosActualizacionRevision,
-      actor: actoraVoluntaria,
+      actor: actoraVoluntariaConfianza,
     },
     dependencias,
   );
@@ -1087,7 +1089,7 @@ test("actualizar un registro VALIDACION_PENDIENTE no notifica ni limpia adopcion
     {
       registroMedicoId: 14,
       datos: datosActualizacionRevision,
-      actor: actoraVoluntaria,
+      actor: actoraVoluntariaConfianza,
     },
     dependencias,
   );
@@ -1107,7 +1109,7 @@ test("si otra transaccion gano la carrera responde 409 y no actualiza el registr
       {
         registroMedicoId: 14,
         datos: datosActualizacionRevision,
-        actor: actoraVoluntaria,
+        actor: actoraVoluntariaConfianza,
       },
       dependencias,
     ),
@@ -1132,7 +1134,7 @@ test("un fallo al notificar se propaga para revertir la transaccion", async () =
       {
         registroMedicoId: 14,
         datos: datosActualizacionRevision,
-        actor: actoraVoluntaria,
+        actor: actoraVoluntariaConfianza,
       },
       dependencias,
     ),
@@ -1547,7 +1549,7 @@ test("un rol sin permiso no inicia actualizaciones veterinarias", async () => {
 
   const error = await capturarError(
     iniciarActualizacionRegistro(
-      { registroMedicoId: 14, actor: actoraVoluntaria },
+      { registroMedicoId: 14, actor: actoraVoluntariaConfianza },
       dependencias,
     ),
   );
@@ -1555,4 +1557,80 @@ test("un rol sin permiso no inicia actualizaciones veterinarias", async () => {
   assert.equal(error.codigo, "ROL_INSUFICIENTE");
   assert.equal(error.estadoHttp, 403);
   assert.equal(llamadas.transacciones, 0);
+});
+
+// ---------------------------------------------------------------------------
+// r7: lectura de registros medicos
+// ---------------------------------------------------------------------------
+
+test("listarRegistrosMedicos rechaza roles sin permiso y no consulta", async () => {
+  let consultas = 0;
+  const error = await capturarError(
+    listarRegistrosMedicos(
+      { estado: undefined, actor: { id: 9, rol: "VOLUNTARIO", activo: false } },
+      { listarRegistrosMedicos: async () => { consultas += 1; return []; } },
+    ),
+  );
+
+  assert.ok(error);
+  assert.equal(error.codigo, "ROL_INSUFICIENTE");
+  assert.equal(consultas, 0);
+});
+
+test("listarRegistrosMedicos convierte Decimal a numero", async () => {
+  const dependencias = {
+    async listarRegistrosMedicos() {
+      return [
+        {
+          id: 1,
+          pesoKg: new Prisma.Decimal("12.40"),
+          revisionCompleta: { peso: new Prisma.Decimal("13.10") },
+          estadoValidacion: "PROVISIONAL",
+        },
+      ];
+    },
+  };
+
+  const resultado = await listarRegistrosMedicos(
+    { estado: "PROVISIONAL", actor: { id: 1, rol: "DIRECTORA", activo: true } },
+    dependencias,
+  );
+
+  assert.equal(resultado.length, 1);
+  assert.equal(resultado[0].pesoKg, 12.4);
+  assert.equal(resultado[0].revisionCompleta.peso, 13.1);
+});
+
+test("obtenerRegistroMedico lanza 404 si no existe", async () => {
+  const error = await capturarError(
+    obtenerRegistroMedico(
+      { registroMedicoId: 999, actor: { id: 1, rol: "DIRECTORA", activo: true } },
+      { obtenerDetalleRegistroMedico: async () => null },
+    ),
+  );
+
+  assert.ok(error);
+  assert.equal(error.codigo, "REGISTRO_MEDICO_INEXISTENTE");
+});
+
+test("obtenerRegistroMedico convierte Decimal a numero", async () => {
+  const dependencias = {
+    async obtenerDetalleRegistroMedico() {
+      return {
+        id: 14,
+        pesoKg: new Prisma.Decimal("12.40"),
+        revisionCompleta: { peso: new Prisma.Decimal("13.10") },
+        estadoValidacion: "PROVISIONAL",
+      };
+    },
+  };
+
+  const resultado = await obtenerRegistroMedico(
+    { registroMedicoId: 14, actor: { id: 1, rol: "VETERINARIA", activo: true } },
+    dependencias,
+  );
+
+  assert.equal(resultado.id, 14);
+  assert.equal(resultado.pesoKg, 12.4);
+  assert.equal(resultado.revisionCompleta.peso, 13.1);
 });

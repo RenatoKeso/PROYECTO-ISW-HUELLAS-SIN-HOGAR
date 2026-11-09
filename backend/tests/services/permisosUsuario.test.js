@@ -194,21 +194,21 @@ test("directora y veterinaria activas pueden consultar alertas", () => {
 }
 });
 
-test("voluntarios autorizados y veterinarias activas registran la revision inicial", () => {
-  assert.equal(puedeRegistrarRevisionInicial(voluntario), true);
+test("voluntarios de confianza y veterinarias activas registran la revision inicial", () => {
+  assert.equal(puedeRegistrarRevisionInicial(voluntario), false);
   assert.equal(puedeRegistrarRevisionInicial(voluntarioConfianza), true);
   assert.equal(puedeRegistrarRevisionInicial(veterinaria), true);
 
   const actores = [
     directora,
     encargada,
+    voluntario,
     undefined,
     null,
     {},
-    { ...voluntario, activo: false },
     { ...voluntarioConfianza, activo: false },
     { ...veterinaria, activo: false },
-    { ...voluntario, rol: "ROL_INEXISTENTE" },
+    { ...voluntarioConfianza, rol: "ROL_INEXISTENTE" },
   ];
 
   for (const actor of actores) {
@@ -247,20 +247,20 @@ test("solo la veterinaria activa realiza la revision final", () => {
   }
 });
 
-test("voluntarios autorizados actualizan la revision inicial", () => {
-  assert.equal(puedeActualizarRevisionInicial(voluntario), true);
+test("voluntarios de confianza y veterinarias actualizan la revision inicial", () => {
+  assert.equal(puedeActualizarRevisionInicial(voluntario), false);
   assert.equal(puedeActualizarRevisionInicial(voluntarioConfianza), true);
+  assert.equal(puedeActualizarRevisionInicial(veterinaria), true);
 
   const actores = [
     directora,
     encargada,
-    veterinaria,
     undefined,
     null,
     {},
-    { ...voluntario, activo: false },
     { ...voluntarioConfianza, activo: false },
-    { ...voluntario, rol: "ROL_INEXISTENTE" },
+    { ...veterinaria, activo: false },
+    { ...voluntarioConfianza, rol: "ROL_INEXISTENTE" },
   ];
 
   for (const actor of actores) {

@@ -1,4 +1,8 @@
 import { api } from "./api.js";
+import {
+  validarRespuestaHistorialIngresos,
+  validarRespuestaHistorialIngresosGlobal,
+} from "../validations/ingresoValidation.js";
 
 function crearFormData(datos) {
   const formData = new FormData();
@@ -30,6 +34,22 @@ export function registrarIngreso(datos) {
 
 export function listarFichas() {
   return api.get("/fichas");
+}
+
+export async function listarIngresosFicha(id) {
+  const respuesta = await api.get(`/animales/${id}/ingresos`);
+  return validarRespuestaHistorialIngresos(respuesta);
+}
+
+export async function listarIngresosGlobales({ codigo, nombre } = {}) {
+  const params = new URLSearchParams();
+  if (codigo?.trim()) params.set("codigo", codigo.trim());
+  if (nombre?.trim()) params.set("nombre", nombre.trim());
+  const consulta = params.toString();
+  const respuesta = await api.get(
+    `/animales/ingresos${consulta ? `?${consulta}` : ""}`,
+  );
+  return validarRespuestaHistorialIngresosGlobal(respuesta);
 }
 
 export function subirImagenFicha(id, archivo) {

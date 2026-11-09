@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Campo from "../ui/Campo.jsx";
+import Mensaje from "../ui/Mensaje.jsx";
 import { useFormulario } from "../../hooks/useFormulario.js";
 import {
   formalizarEntrega,
@@ -18,12 +19,6 @@ import {
   hoyLocal,
   opcionesDe,
 } from "../../utils/formatoAdopcion.js";
-
-function Mensaje({ mensaje }) {
-  if (!mensaje) return null;
-
-  return <p className={`mensaje mensaje-${mensaje.tipo}`}>{mensaje.texto}</p>;
-}
 
 function Dato({ etiqueta, children }) {
   return (

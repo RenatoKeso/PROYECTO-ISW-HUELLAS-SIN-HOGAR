@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Campo from "../components/ui/Campo.jsx";
+import Mensaje from "../components/ui/Mensaje.jsx";
 import { useFormulario } from "../hooks/useFormulario.js";
 import {
   enviarPostulacion,
@@ -24,12 +25,6 @@ const POSTULACION_INICIAL = {
   otrasMascotas: "",
   disponibilidadTiempo: "",
 };
-
-function Mensaje({ mensaje }) {
-  if (!mensaje) return null;
-
-  return <p className={`mensaje mensaje-${mensaje.tipo}`}>{mensaje.texto}</p>;
-}
 
 // Formulario publico: la persona interesada postula a un animal del catalogo.
 function PostulacionPage() {

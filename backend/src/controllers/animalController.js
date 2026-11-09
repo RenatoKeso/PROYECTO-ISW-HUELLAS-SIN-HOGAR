@@ -4,6 +4,7 @@ import {
   guardarImagenDeFicha,
   listarFichas,
   listarIngresosDeFicha,
+  listarIngresosGlobales,
   quitarImagenDeFicha,
   registrarIngreso,
 } from "../services/animalService.js";
@@ -49,9 +50,34 @@ function construirFichaConEstado(ficha) {
   };
 }
 
+function construirIngresoGlobal(ingreso) {
+  return {
+    id: ingreso.id,
+    tipo: ingreso.tipo,
+    fechaIngreso: ingreso.fechaIngreso,
+    procedencia: ingreso.procedencia,
+    ubicacionEncontrado: ingreso.ubicacionEncontrado,
+    estadoSalud: ingreso.estadoSalud,
+    receptor: ingreso.receptor
+      ? {
+          id: ingreso.receptor.id,
+          nombre: ingreso.receptor.nombre,
+        }
+      : undefined,
+    fichaAnimal: ingreso.fichaAnimal
+      ? {
+          id: ingreso.fichaAnimal.id,
+          codigoAnimal: ingreso.fichaAnimal.codigoAnimal,
+          nombre: ingreso.fichaAnimal.nombre,
+        }
+      : undefined,
+  };
+}
+
 function construirIngresoPublico(ingreso) {
   return {
     id: ingreso.id,
+    tipo: ingreso.tipo,
     fechaIngreso: ingreso.fechaIngreso,
     procedencia: ingreso.procedencia,
     ubicacionEncontrado: ingreso.ubicacionEncontrado,
@@ -70,6 +96,7 @@ export function crearAnimalController({
   crearFichaAnimal = (datos, archivo) => crearFicha(datos, undefined, archivo),
   actualizarFichaAnimal = actualizarFicha,
   listarIngresosAnimal = listarIngresosDeFicha,
+  listarIngresosGlobalesAnimal = listarIngresosGlobales,
   listarFichasAnimal = listarFichas,
   guardarImagenAnimal = guardarImagenDeFicha,
   quitarImagenAnimal = quitarImagenDeFicha,
@@ -106,6 +133,18 @@ export function crearAnimalController({
           },
           ingresos: ingresos.map(construirIngresoPublico),
         },
+      });
+    },
+
+    async listarTodosLosIngresos(request, response) {
+      const ingresos = await listarIngresosGlobalesAnimal({
+        codigo: request.query.codigo,
+        nombre: request.query.nombre,
+      });
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: MENSAJE_HISTORIAL,
+        datos: { ingresos: ingresos.map(construirIngresoGlobal) },
       });
     },
 

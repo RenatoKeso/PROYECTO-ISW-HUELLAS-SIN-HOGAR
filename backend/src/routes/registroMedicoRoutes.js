@@ -5,6 +5,7 @@ import { capturarErrores } from "../middlewares/capturarErrores.js";
 import { validarEsquema } from "../middlewares/validarEsquema.js";
 import {
   actualizacionVeterinariaSchema,
+  listarRegistrosMedicosQuerySchema,
   registroMedicoIdParamSchema,
   revisionFinalSchema,
   revisionInicialSchema,
@@ -15,6 +16,20 @@ export function crearRegistroMedicoRouter({
   autenticar = crearAutenticacion(),
 } = {}) {
   const router = Router();
+
+  router.get(
+    "/",
+    autenticar,
+    validarEsquema(listarRegistrosMedicosQuerySchema, "query"),
+    capturarErrores(controlador.listarRegistros),
+  );
+
+  router.get(
+    "/:id",
+    autenticar,
+    validarEsquema(registroMedicoIdParamSchema, "params"),
+    capturarErrores(controlador.obtenerRegistro),
+  );
 
   router.post(
     "/:id/revision-inicial",

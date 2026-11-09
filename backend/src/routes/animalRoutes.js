@@ -9,6 +9,7 @@ import {
   fichaIdParamSchema,
 } from "../validations/fichaAnimalValidation.js";
 import { registroIngresoSchema } from "../validations/registroIngresoValidation.js";
+import { listarIngresosQuerySchema } from "../validations/ingresoAnimalValidation.js";
 
 export function crearAnimalRouter({ controlador = crearAnimalController() } = {}) {
   const router = Router();
@@ -21,6 +22,12 @@ export function crearAnimalRouter({ controlador = crearAnimalController() } = {}
   );
 
   router.get("/fichas", capturarErrores(controlador.listarFichas));
+
+  router.get(
+    "/animales/ingresos",
+    validarEsquema(listarIngresosQuerySchema, "query"),
+    capturarErrores(controlador.listarTodosLosIngresos),
+  );
 
   router.post(
     "/fichas/:id/imagen",
