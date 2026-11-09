@@ -1,6 +1,8 @@
-import {Prisma} from "@prisma/client";
-import  prisma from "../config/prisma.js";
+import { Prisma } from "@prisma/client";
+import prisma from "../config/prisma.js";
 
+
+const CODIGO_CONFLICTO_UNICO = "P2002";
 
 const PREFIJO_CODIGO_ANIMAL = "anim-";
 const LARGO_SECUENCIAL = 3;
@@ -13,7 +15,7 @@ function formatearCodigoAnimal(secuencial) {
 
 function esCodigoDuplicado(error) {
   return (
-    error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002"
+    error instanceof Prisma.PrismaClientKnownRequestError && error.code === CODIGO_CONFLICTO_UNICO
   );
 }
 
@@ -34,6 +36,10 @@ export async function obtenerFichaAnimalPorCodigo(codigoAnimal, cliente = prisma
   return cliente.fichaAnimal.findUnique({ where: { codigoAnimal } });
 }
 
+export async function obtenerFichaAnimalPorId(id, cliente = prisma) {
+  return cliente.fichaAnimal.findUnique({ where: { id } });
+}
+
 
 export async function crearFichaAnimal(data, cliente = prisma) {
   for (let intento = 1; intento <= MAX_INTENTOS; intento += 1) {
@@ -51,4 +57,25 @@ export async function crearFichaAnimal(data, cliente = prisma) {
 
 export async function actualizarFichaAnimal(id, data, cliente = prisma) {
   return cliente.fichaAnimal.update({ where: { id }, data });
+}
+
+export async function listarFichasAnimales(cliente = prisma) {
+  return cliente.fichaAnimal.findMany({
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    select: {
+      id: true,
+      codigoAnimal: true,
+      nombre: true,
+      especie: true,
+      sexoAnimal: true,
+      raza: true,
+      edad: true,
+      estadoEstadia: true,
+      estadoAdopcion: true,
+      observaciones: true,
+      imagenUrl: true,
+      imagenSubidaEn: true,
+      createdAt: true,
+    },
+  });
 }

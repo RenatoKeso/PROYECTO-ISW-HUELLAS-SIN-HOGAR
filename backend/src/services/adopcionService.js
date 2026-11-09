@@ -86,7 +86,7 @@ function visitaHogarResuelta(postulacion) {
 // ---------- Catalogo y publicacion ----------
 
 // Catalogo de adopcion: los animales que hoy pueden recibir postulaciones.
-export async function obtenerCatalogo(dependencias = DEPENDENCIAS_POR_DEFECTO){
+export async function obtenerCatalogo(dependencias = DEPENDENCIAS_POR_DEFECTO) {
   return dependencias.listarAnimalesDisponibles();
 }
 
@@ -102,7 +102,9 @@ export async function publicarAnimal(id, dependencias = DEPENDENCIAS_POR_DEFECTO
   if (!animal) throw animalInexistente(id);
 
   if (animal.estadoEstadia === ESTADO_DISPONIBLE) {
-    throw animalNoPublicable("El animal ya esta publicado en el catalogo");
+    throw animalNoPublicable(
+      "El animal ya esta publicado en el catalogo",
+    );
   }
 
   if (animal.estadoAdopcion !== "ADOPTABLE") {
@@ -112,13 +114,17 @@ export async function publicarAnimal(id, dependencias = DEPENDENCIAS_POR_DEFECTO
   }
 
   if (animal.estadoEstadia !== "ACTIVO") {
-    throw animalNoPublicable("Solo se pueden publicar animales que estan en el refugio");
+    throw animalNoPublicable(
+      "Solo se pueden publicar animales que estan en el refugio",
+    );
   }
 
   const cambios = await dependencias.publicarAnimalAdoptable(id);
 
   if (cambios === 0) {
-    throw animalNoPublicable("El animal cambio de estado mientras se publicaba");
+    throw animalNoPublicable(
+      "El animal cambio de estado mientras se publicaba",
+    );
   }
 
   return { ...animal, estadoEstadia: ESTADO_DISPONIBLE };

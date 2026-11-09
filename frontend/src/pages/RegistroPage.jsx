@@ -1,10 +1,26 @@
+import { useCallback, useEffect, useState } from "react";
 import Campo from "../components/ui/Campo.jsx";
+import CampoArchivo from "../components/ui/CampoArchivo.jsx";
+import Mensaje from "../components/ui/Mensaje.jsx";
+import VentanaModal from "../components/ui/VentanaModal.jsx";
 import { useFormulario } from "../hooks/useFormulario.js";
-import { crearFicha, registrarIngreso } from "../services/animalesService.js";
+import {
+  crearFicha,
+  crearFichaConImagen,
+  listarFichas,
+  quitarImagenFicha,
+  registrarIngreso,
+  subirImagenFicha,
+} from "../services/animalesService.js";
+import { listarVoluntarios } from "../services/voluntariosService.js";
+import {
+  imagenOpcionalSchema,
+  validarArchivoImagen,
+} from "../validations/imagenAnimalValidation.js";
 import { fichaFormSchema } from "../validations/fichaValidation.js";
 import { ingresoFormSchema } from "../validations/ingresoValidation.js";
-import { useState, useEffect } from "react";
-import { listarVoluntarios } from "../services/voluntariosService.js";
+import { urlImagen } from "../utils/urlImagen.js";
+import "../styles/registroFichas.css";
 
 const OPCIONES_SEXO = [
   { valor: "", texto: "Seleccione..." },
@@ -20,7 +36,15 @@ const OPCIONES_ESPECIE = [
   { valor: "OTRO", texto: "Otro" },
 ];
 
+const NOMBRES_ESPECIE = {
+  PERRO: "Perro",
+  GATO: "Gato",
+  OTRO: "Otra especie",
+};
 
+function nombreVisible(fichaAnimal) {
+  return fichaAnimal.nombre || fichaAnimal.codigoAnimal;
+}
 
 const FICHA_INICIAL = {
   nombre: "",
@@ -29,7 +53,12 @@ const FICHA_INICIAL = {
   raza: "",
   edad: "",
   observaciones: "",
+  imagen: null,
 };
+
+const fichaFormConImagenSchema = fichaFormSchema.extend({
+  imagen: imagenOpcionalSchema,
+});
 
 const INGRESO_INICIAL = {
   codigoAnimal: "",
@@ -39,12 +68,6 @@ const INGRESO_INICIAL = {
   ubicacionEncontrado: "",
   estadoSalud: "",
 };
-
-function Mensaje({ mensaje }) {
-  if (!mensaje) return null;
-
-  return <p className={`mensaje mensaje-${mensaje.tipo}`}>{mensaje.texto}</p>;
-}
 
 async function enviarIngreso(valores) {
   const { fechaIngreso, ...resto } = valores;
@@ -56,10 +79,40 @@ async function enviarIngreso(valores) {
 }
 
 function RegistroPage() {
+  const [receptores, setReceptores] = useState([]);
+  const [fichas, setFichas] = useState([]);
+  const [cargandoFichas, setCargandoFichas] = useState(true);
+  const [errorFichas, setErrorFichas] = useState("");
+  const [errorArchivo, setErrorArchivo] = useState(null);
+  const [mensajeImagen, setMensajeImagen] = useState(null);
+  const [procesandoImagenId, setProcesandoImagenId] = useState(null);
+  const [ventana, setVentana] = useState(null);
+
+  const cargarFichas = useCallback(async () => {
+    try {
+      const respuesta = await listarFichas();
+      setFichas(respuesta.fichas);
+      setErrorFichas("");
+    } catch (error) {
+      setErrorFichas(error.message);
+    } finally {
+      setCargandoFichas(false);
+    }
+  }, []);
+
   const ficha = useFormulario({
     iniciales: FICHA_INICIAL,
-    esquema: fichaFormSchema,
-    enviar: crearFicha,
+    esquema: fichaFormConImagenSchema,
+    enviar: async ({ imagen, ...datos }) => {
+      setErrorArchivo(null);
+
+      const respuesta = imagen
+        ? await crearFichaConImagen(datos, imagen)
+        : await crearFicha(datos);
+
+      await cargarFichas();
+      return respuesta;
+    },
     mensajeExito: (respuesta) => `Ficha creada: ${respuesta.codigoAnimal}`,
   });
 
@@ -69,19 +122,129 @@ function RegistroPage() {
     enviar: enviarIngreso,
     mensajeExito: (respuesta) => `Ingreso registrado: ${respuesta.codigoAnimal}`,
   });
-const [receptores, setReceptores] = useState([]);
 
-useEffect(() => {
-  listarVoluntarios()
-    .then((respuesta) => setReceptores(respuesta.voluntarios))
-    .catch(() => setReceptores([]));
-}, []);
+  useEffect(() => {
+    listarVoluntarios()
+      .then((respuesta) => setReceptores(respuesta.voluntarios))
+      .catch(() => setReceptores([]));
+  }, []);
 
-const opcionesReceptor = [
-  { valor: "", texto: "Seleccione..." },
-  ...receptores.map((v) => ({ valor: String(v.id), texto: v.nombre })),
-];
+  useEffect(() => {
+    let vigente = true;
 
+    listarFichas()
+      .then((respuesta) => {
+        if (!vigente) return;
+        setFichas(respuesta.fichas);
+        setErrorFichas("");
+      })
+      .catch((error) => {
+        if (vigente) setErrorFichas(error.message);
+      })
+      .finally(() => {
+        if (vigente) setCargandoFichas(false);
+      });
+
+    return () => {
+      vigente = false;
+    };
+  }, []);
+
+  const opcionesReceptor = [
+    { valor: "", texto: "Seleccione..." },
+    ...receptores.map((voluntario) => ({
+      valor: String(voluntario.id),
+      texto: voluntario.nombre,
+    })),
+  ];
+
+  function cambiarImagen(archivo) {
+    if (!archivo) {
+      setErrorArchivo(null);
+      ficha.cambiar("imagen", null);
+      return;
+    }
+
+    const error = validarArchivoImagen(archivo);
+    setErrorArchivo(error);
+    ficha.cambiar("imagen", error ? null : archivo);
+  }
+
+  const cerrarVentana = useCallback(() => setVentana(null), []);
+
+  function abrirImagen(fichaAnimal) {
+    const nombre = nombreVisible(fichaAnimal);
+
+    setVentana({
+      tipo: "imagen",
+      src: urlImagen(fichaAnimal.imagenUrl),
+      alt: `Imagen de ${nombre}`,
+      ariaLabel: `Imagen ampliada de ${nombre}`,
+    });
+  }
+
+  function abrirObservaciones(fichaAnimal) {
+    setVentana({
+      tipo: "observaciones",
+      titulo: `Observaciones de ${nombreVisible(fichaAnimal)}`,
+      texto: fichaAnimal.observaciones.trim(),
+    });
+  }
+
+  function actualizarFichaEnLista(fichaActualizada) {
+    setFichas((actuales) =>
+      actuales.map((otra) =>
+        otra.id === fichaActualizada.id
+          ? { ...otra, ...fichaActualizada }
+          : otra,
+      ),
+    );
+  }
+
+  async function subirImagen(fichaAnimal, archivo) {
+    if (!archivo) return;
+
+    const error = validarArchivoImagen(archivo);
+
+    if (error) {
+      setMensajeImagen({ tipo: "error", texto: error });
+      return;
+    }
+
+    setMensajeImagen(null);
+    setProcesandoImagenId(fichaAnimal.id);
+
+    try {
+      const respuesta = await subirImagenFicha(fichaAnimal.id, archivo);
+      actualizarFichaEnLista(respuesta.ficha);
+      setMensajeImagen({
+        tipo: "exito",
+        texto: `Imagen de ${fichaAnimal.codigoAnimal} actualizada correctamente.`,
+      });
+    } catch (errorSubida) {
+      setMensajeImagen({ tipo: "error", texto: errorSubida.message });
+    } finally {
+      setProcesandoImagenId(null);
+    }
+  }
+
+  async function quitarImagen(fichaAnimal) {
+    setMensajeImagen(null);
+    setProcesandoImagenId(fichaAnimal.id);
+
+    try {
+      const respuesta = await quitarImagenFicha(fichaAnimal.id);
+      actualizarFichaEnLista(respuesta.ficha);
+      setMensajeImagen({
+        tipo: "exito",
+        texto: `Imagen de ${fichaAnimal.codigoAnimal} eliminada correctamente.`,
+      });
+    } catch (errorQuitar) {
+      setMensajeImagen({ tipo: "error", texto: errorQuitar.message });
+    } finally {
+      setProcesandoImagenId(null);
+    }
+  }
 
   return (
     <section className="bloque">
@@ -156,6 +319,14 @@ const opcionesReceptor = [
             onChange={(evento) =>
               ficha.cambiar("observaciones", evento.target.value)
             }
+          />
+
+          <CampoArchivo
+            etiqueta="Imagen del animal"
+            nombre="imagen"
+            archivo={ficha.valores.imagen}
+            error={errorArchivo ?? ficha.errores.imagen}
+            onChange={cambiarImagen}
           />
         </div>
 
@@ -248,6 +419,142 @@ const opcionesReceptor = [
 
         <Mensaje mensaje={ingreso.mensaje} />
       </form>
+
+      <section className="bloque fichas-registradas">
+        <h2>Fichas registradas</h2>
+
+        <Mensaje mensaje={mensajeImagen} />
+
+        {cargandoFichas && <p>Cargando fichas...</p>}
+
+        {!cargandoFichas && errorFichas && (
+          <p className="mensaje mensaje-error">
+            No se pudieron cargar las fichas: {errorFichas}
+          </p>
+        )}
+
+        {!cargandoFichas && !errorFichas && fichas.length === 0 && (
+          <p>Todavía no hay fichas registradas.</p>
+        )}
+
+        {!cargandoFichas && !errorFichas && fichas.length > 0 && (
+          <div className="tabla-contenedor">
+            <table className="tabla-postulaciones tabla-fichas">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Nombre</th>
+                  <th>Especie</th>
+                  <th>Observaciones</th>
+                  <th>Imagen</th>
+                  <th aria-label="Acciones" />
+                </tr>
+              </thead>
+              <tbody>
+                {fichas.map((fichaAnimal) => (
+                  <tr key={fichaAnimal.id}>
+                    <td>{fichaAnimal.codigoAnimal}</td>
+                    <td>{fichaAnimal.nombre || "Sin nombre"}</td>
+                    <td>{NOMBRES_ESPECIE[fichaAnimal.especie]}</td>
+                    <td>
+                      {fichaAnimal.observaciones?.trim() ? (
+                        <button
+                          type="button"
+                          className="boton boton-secundario boton-chico"
+                          onClick={() => abrirObservaciones(fichaAnimal)}
+                        >
+                          Observaciones
+                        </button>
+                      ) : (
+                        <span className="sin-observaciones">—</span>
+                      )}
+                    </td>
+                    <td>
+                      {fichaAnimal.imagenUrl ? (
+                        <button
+                          type="button"
+                          className="miniatura-boton"
+                          onClick={() => abrirImagen(fichaAnimal)}
+                          aria-label={`Ampliar imagen de ${nombreVisible(
+                            fichaAnimal,
+                          )}`}
+                        >
+                          <img
+                            className="miniatura-animal"
+                            src={urlImagen(fichaAnimal.imagenUrl)}
+                            alt={`Imagen de ${nombreVisible(fichaAnimal)}`}
+                          />
+                        </button>
+                      ) : (
+                        <span className="sin-imagen">Sin imagen</span>
+                      )}
+                    </td>
+                    <td>
+                      <div className="acciones-imagen">
+                        <label className="boton boton-chico">
+                          {procesandoImagenId === fichaAnimal.id
+                            ? "Guardando..."
+                            : fichaAnimal.imagenUrl
+                              ? "Cambiar imagen"
+                              : "Subir imagen"}
+
+                          <input
+                            type="file"
+                            className="entrada-archivo-oculta"
+                            accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                            disabled={procesandoImagenId !== null}
+                            onChange={(evento) => {
+                              const archivo =
+                                evento.target.files?.[0] ?? null;
+                              evento.target.value = "";
+                              subirImagen(fichaAnimal, archivo);
+                            }}
+                          />
+                        </label>
+
+                        {fichaAnimal.imagenUrl && (
+                          <button
+                            type="button"
+                            className="boton boton-secundario boton-chico"
+                            disabled={procesandoImagenId !== null}
+                            onClick={() => quitarImagen(fichaAnimal)}
+                          >
+                            Quitar
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {ventana?.tipo === "imagen" && (
+        <VentanaModal
+          ariaLabel={ventana.ariaLabel}
+          alCerrar={cerrarVentana}
+          className="ventana-imagen"
+        >
+          <img
+            className="imagen-ampliada"
+            src={ventana.src}
+            alt={ventana.alt}
+          />
+        </VentanaModal>
+      )}
+
+      {ventana?.tipo === "observaciones" && (
+        <VentanaModal
+          titulo={ventana.titulo}
+          alCerrar={cerrarVentana}
+          className="ventana-observaciones"
+        >
+          <p className="texto-observaciones">{ventana.texto}</p>
+        </VentanaModal>
+      )}
     </section>
   );
 }

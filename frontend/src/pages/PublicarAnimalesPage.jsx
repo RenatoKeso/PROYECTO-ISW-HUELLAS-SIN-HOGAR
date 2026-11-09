@@ -5,7 +5,9 @@ import {
   publicarAnimal,
 } from "../services/adopcionesService.js";
 import { ESPECIES, formatearEdad } from "../utils/formatoAdopcion.js";
+import { urlImagen } from "../utils/urlImagen.js";
 import "../styles/postulaciones.css";
+import "../styles/registroFichas.css";
 
 // Animales que la veterinaria marco como adoptables y que todavia no estan
 // en el catalogo. Publicar uno lo deja visible para recibir postulaciones.
@@ -80,6 +82,7 @@ function PublicarAnimalesPage() {
             <thead>
               <tr>
                 <th>Código</th>
+                <th>Imagen</th>
                 <th>Nombre</th>
                 <th>Especie</th>
                 <th>Raza</th>
@@ -91,6 +94,19 @@ function PublicarAnimalesPage() {
               {animales.map((animal) => (
                 <tr key={animal.id}>
                   <td>{animal.codigoAnimal}</td>
+                  <td>
+                    {animal.imagenUrl ? (
+                      <img
+                        className="miniatura-animal"
+                        src={urlImagen(animal.imagenUrl)}
+                        alt={`Imagen de ${
+                          animal.nombre || animal.codigoAnimal
+                        }`}
+                      />
+                    ) : (
+                      <span className="sin-imagen">Sin imagen</span>
+                    )}
+                  </td>
                   <td>{animal.nombre || "Sin nombre"}</td>
                   <td>{ESPECIES[animal.especie]}</td>
                   <td>{animal.raza || "—"}</td>

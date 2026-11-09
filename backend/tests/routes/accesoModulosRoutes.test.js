@@ -16,6 +16,7 @@ const matriz = {
 
 const rutas = [
     ["POST", "/fichas", "fichas", 400],
+    ["POST", "/fichas/1/imagen", "fichas", 400],
     ["PATCH", "/fichas/1", "fichas", 400],
     ["POST", "/animales/ingresos", "fichas", 400],
     ["GET", "/voluntarios", "voluntarios", null],
@@ -24,6 +25,7 @@ const rutas = [
     ["GET", "/salud/tipos", "alertas", 200],
     ["GET", "/salud/alertas?diasAnticipacion=7", "alertas", 200],
     ["POST", "/salud/alertas/preview", "alertas", 400],
+    ["GET", "/animales/1/ingresos", "fichas", null],
 ];
 
 async function conServidor(comprobar) {

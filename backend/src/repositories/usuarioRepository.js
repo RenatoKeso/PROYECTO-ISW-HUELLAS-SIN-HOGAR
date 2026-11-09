@@ -18,6 +18,15 @@ return prisma.usuario.findUnique({
     });
 }
 
+export async function listarUsuariosActivosPorRol(rol, cliente) {
+    const prisma = cliente ?? await obtenerCliente();
+
+    return prisma.usuario.findMany({
+        where: { rol, activo: true },
+        select: { id: true, nombre: true, rol: true },
+    });
+}
+
 export async function invalidarSesiones(id) {
 const prisma = await obtenerCliente();
 

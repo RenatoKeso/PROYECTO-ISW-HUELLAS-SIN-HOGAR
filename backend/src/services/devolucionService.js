@@ -52,15 +52,21 @@ export async function registrarDevolucion(
   if (!postulacion) throw postulacionNoEncontrada(postulacionId);
 
   if (postulacion.estado !== "ENTREGADA") {
-    throw devolucionNoPermitida("Solo se puede registrar la devolución de una postulación entregada");
+    throw devolucionNoPermitida(
+      "Solo se puede registrar la devolución de una postulación entregada",
+    );
   }
 
   if (postulacion.fichaAnimal.estadoEstadia !== "ADOPTADO") {
-    throw devolucionNoPermitida("El animal de esta postulación no está adoptado");
+    throw devolucionNoPermitida(
+      "El animal de esta postulación no está adoptado",
+    );
   }
 
   if (postulacion.fechaEntrega && fechaDevolucion < postulacion.fechaEntrega) {
-    throw fechaDevolucionInvalida("La fecha de devolución no puede ser anterior a la entrega");
+    throw fechaDevolucionInvalida(
+      "La fecha de devolución no puede ser anterior a la entrega",
+    );
   }
 
   const receptor = await buscarVoluntarioActivo(receptorId);

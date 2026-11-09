@@ -1,7 +1,9 @@
 import { ZodError } from "zod";
 import { esErrorAnimal } from "../entities/animalErrors.js";
+import { esErrorImagenAnimal } from "../entities/imagenAnimalErrors.js";
 import { AuthError } from "../entities/authErrors.js";
 import { esErrorRegistroMedico } from "../entities/registroMedicoErrors.js";
+import { esErrorNotificacion } from "../entities/notificacionErrors.js";
 import { esErrorAdopcion } from "../entities/adopcionErrors.js";
 import { esErrorTurno } from "../entities/turnoErrors.js";
 import { PlanSanitarioError } from "../entities/planSanitarioErrors.js";
@@ -86,6 +88,14 @@ export function manejadorErrores(
     return;
   }
 
+  if (esErrorImagenAnimal(error)) {
+    response.status(error.estadoHttp).json({
+      message: error.message,
+      code: error.codigo,
+    });
+    return;
+  }
+
   if (esErrorRegistroMedico(error)) {
     response.status(error.estadoHttp).json({
       message: error.message,
@@ -95,6 +105,14 @@ export function manejadorErrores(
             codigoAnimal: error.opcion.codigoAnimal,
           }
         : {}),
+    });
+    return;
+  }
+
+  if (esErrorNotificacion(error)) {
+    response.status(error.estadoHttp).json({
+      message: error.message,
+      code: error.codigo,
     });
     return;
   }

@@ -8,10 +8,10 @@ export async function buscarPostulacionParaDevolucion(id, cliente = prisma) {
       estado: true,
       fechaEntrega: true,
       fichaAnimalId: true,
-     fichaAnimal: {
-        select: { nombre: true, codigoAnimal: true, estadoEstadia: true },
-      },
+    fichaAnimal: {
+      select: { nombre: true, codigoAnimal: true, estadoEstadia: true },
     },
+  },
   });
 }
 
