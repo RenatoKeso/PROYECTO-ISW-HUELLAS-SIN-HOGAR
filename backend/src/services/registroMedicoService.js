@@ -26,7 +26,9 @@ import {
   crearTratamiento,
   guardarRevisionCompletaActual,
   listarHistorialRegistroMedico as listarHistorialRegistroMedicoRepositorio,
+  listarRegistrosMedicos as listarRegistrosMedicosRepositorio,
   listarSeguimientosMedicos,
+  obtenerDetalleRegistroMedico as obtenerDetalleRegistroMedicoRepositorio,
   obtenerEnfermedadesPorRegistroMedico,
   obtenerRegistroMedicoPorId,
   obtenerTratamientosPorRegistroMedico,
@@ -40,6 +42,7 @@ import {
   puedeActualizarRegistroMedico,
   puedeActualizarRevisionInicial,
   puedeRealizarRevisionFinal,
+  puedeConsultarRegistroMedico,
   puedeRegistrarRevisionInicial,
   puedeRegistrarSeguimiento,
 } from "./permisosUsuario.js";
@@ -61,7 +64,9 @@ const DEPENDENCIAS_POR_DEFECTO = {
   crearSeguimientoMedico,
   guardarRevisionCompletaActual,
   listarHistorialRegistroMedico: listarHistorialRegistroMedicoRepositorio,
+  listarRegistrosMedicos: listarRegistrosMedicosRepositorio,
   listarSeguimientosMedicos,
+  obtenerDetalleRegistroMedico: obtenerDetalleRegistroMedicoRepositorio,
   obtenerEnfermedadesPorRegistroMedico,
   obtenerTratamientosPorRegistroMedico,
   obtenerUltimaVersionHistorial,
@@ -1007,4 +1012,51 @@ export async function listarSeguimientosRegistroMedico(
   );
 
   return seguimientos.map(serializarSeguimiento);
+}
+
+function serializarRegistroMedico(registro) {
+  if (!registro) return registro;
+
+  return {
+    ...registro,
+    pesoKg: numeroONull(registro.pesoKg),
+    revisionCompleta: registro.revisionCompleta
+      ? {
+          ...registro.revisionCompleta,
+          peso: numeroONull(registro.revisionCompleta.peso),
+        }
+      : null,
+  };
+}
+
+export async function listarRegistrosMedicos(
+  { estado, actor },
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  if (!puedeConsultarRegistroMedico(actor)) {
+    throw rolInsuficiente();
+  }
+
+  const registros = await dependencias.listarRegistrosMedicos(estado);
+
+  return registros.map(serializarRegistroMedico);
+}
+
+export async function obtenerRegistroMedico(
+  { registroMedicoId, actor },
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  if (!puedeConsultarRegistroMedico(actor)) {
+    throw rolInsuficiente();
+  }
+
+  const registro = await dependencias.obtenerDetalleRegistroMedico(
+    Number(registroMedicoId),
+  );
+
+  if (!registro) {
+    throw registroMedicoInexistente(registroMedicoId);
+  }
+
+  return serializarRegistroMedico(registro);
 }

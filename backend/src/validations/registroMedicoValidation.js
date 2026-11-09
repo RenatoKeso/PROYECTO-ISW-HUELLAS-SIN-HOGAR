@@ -4,6 +4,7 @@ export const CLASIFICACION_SALUD_VALUES = ["NORMAL", "ENFERMO", "CRITICO"];
 
 // El peso se guarda en Decimal(5,2): 999.99 es el mayor valor representable.
 export const PESO_KG_MAXIMO = 999.99;
+export const PESO_INICIAL_KG_MAXIMO = 100;
 export const PESO_REVALIDADO_KG_MAXIMO = 100;
 
 export const clasificacionSaludSchema = z.enum(CLASIFICACION_SALUD_VALUES, {
@@ -15,6 +16,14 @@ export const pesoKgSchema = z
   .positive("El peso debe ser mayor a 0")
   .max(PESO_KG_MAXIMO, `El peso no puede superar ${PESO_KG_MAXIMO} kg`);
 
+export const pesoInicialKgSchema = z
+  .number({ message: "El peso debe ser un número" })
+  .positive("El peso debe ser mayor a 0")
+  .max(
+    PESO_INICIAL_KG_MAXIMO,
+    `El peso no puede superar ${PESO_INICIAL_KG_MAXIMO} kg`,
+  );
+
 export const observacionInicialSchema = z
   .string({ message: "La observación del estado de salud es obligatoria" })
   .trim()
@@ -25,6 +34,23 @@ export const pesoRevalidadoKgSchema = z
   .number({ message: "El peso revalidado debe ser un número" })
   .positive("El peso revalidado debe ser mayor a 0")
   .max(PESO_REVALIDADO_KG_MAXIMO, `El peso revalidado no puede superar ${PESO_REVALIDADO_KG_MAXIMO} kg`);
+
+export const ESTADO_VALIDACION_MEDICA_VALUES = [
+  "PROVISIONAL",
+  "VALIDACION_PENDIENTE",
+  "REVISANDO",
+  "REALIZADO",
+  "ACTUALIZADO",
+];
+
+export const estadoValidacionMedicaSchema = z.enum(
+  ESTADO_VALIDACION_MEDICA_VALUES,
+  { message: "El estado de validación no es válido" },
+);
+
+export const listarRegistrosMedicosQuerySchema = z.object({
+  estado: estadoValidacionMedicaSchema.optional(),
+});
 
 export const registroMedicoIdParamSchema = z.object({
   id: z.coerce
@@ -41,7 +67,7 @@ export const notificacionIdParamSchema = z.object({
 });
 
 export const revisionInicialSchema = z.strictObject({
-  pesoKg: pesoKgSchema,
+  pesoKg: pesoInicialKgSchema,
   clasificacionSalud: clasificacionSaludSchema,
   observacionInicial: observacionInicialSchema,
   requiereCuarentena: z.boolean({

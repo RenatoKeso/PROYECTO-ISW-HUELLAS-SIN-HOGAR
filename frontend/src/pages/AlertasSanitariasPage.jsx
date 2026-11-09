@@ -4,15 +4,9 @@ import Campo from "../components/ui/Campo.jsx";
 import { ApiError } from "../services/api.js";
 import { consultarAlertasPlan } from "../services/saludService.js";
 import { consultaAlertasFormSchema } from "../validations/alertasPlanValidation.js";
+import { erroresDeApi, erroresDeZod } from "../utils/erroresFormulario.js";
+import { ETIQUETAS_TIPO_ATENCION } from "../utils/planSanitario.js";
 import "../styles/alertas.css";
-
-const etiquetas = {
-  vacuna: "Vacuna",
-  tratamiento: "Tratamiento",
-  control: "Control",
-  desparasitacion: "Desparasitación",
-  esterilizacion: "Esterilización",
-};
 
 export default function AlertasSanitariasPage() {
   const [valores, setValores] = useState({
@@ -50,14 +44,7 @@ export default function AlertasSanitariasPage() {
       consultaAlertasFormSchema.safeParse(valores);
 
     if (!validacion.success) {
-      setErrores(
-        Object.fromEntries(
-          validacion.error.issues.map((issue) => [
-            issue.path.join("."),
-            issue.message,
-          ])
-        )
-      );
+      setErrores(erroresDeZod(validacion.error));
 
       setMensaje(
         "Revisa los filtros antes de consultar las alertas."
@@ -76,16 +63,7 @@ export default function AlertasSanitariasPage() {
       setResultado(respuesta);
     } catch (error) {
       if (error instanceof ApiError) {
-        setErrores(
-          Object.fromEntries(
-            (error.detalles ?? [])
-              .filter((detalle) => detalle.campo)
-              .map((detalle) => [
-                detalle.campo,
-                detalle.mensaje,
-              ])
-          )
-        );
+        setErrores(erroresDeApi(error));
       }
 
       setMensaje(
@@ -241,7 +219,7 @@ export default function AlertasSanitariasPage() {
                         {alerta.nombreAnimal || "Sin nombre"}
                       </td>
 
-                      <td>{etiquetas[alerta.tipo]}</td>
+                      <td>{ETIQUETAS_TIPO_ATENCION[alerta.tipo]}</td>
                       <td>{alerta.fechaProgramada}</td>
 
                       <td>

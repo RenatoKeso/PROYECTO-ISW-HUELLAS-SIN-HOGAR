@@ -48,11 +48,19 @@ const cuentaSchema = z.strictObject({
 });
 
 try {
-  if (process.argv.length > 2) {
+  const argumentos = process.argv.slice(2);
+  const opcionesValidas = new Set(["--reset"]);
+  const desconocidas = argumentos.filter(
+    (argumento) => !opcionesValidas.has(argumento)
+  );
+
+  if (desconocidas.length > 0) {
     throw new Error(
-      "Uso: node scripts/crearCuentasPrueba.js"
+      "Uso: node scripts/crearCuentasPrueba.js [--reset]"
     );
   }
+
+  const reset = argumentos.includes("--reset");
 
   const cuentas = definiciones.map(
     ([rol, nombre, email]) =>
@@ -71,7 +79,9 @@ try {
     }))
   );
 
-  const resultados = await crearCuentasPrueba(datos);
+  const resultados = await crearCuentasPrueba(datos, prisma, {
+    actualizarPassword: reset,
+  });
 
   const claves = new Map(
     cuentas.map((cuenta) => [
@@ -84,9 +94,10 @@ try {
     resultados.map((cuenta) => ({
       rol: cuenta.rol,
       correo: cuenta.email,
-      contrasena: cuenta.creada
-        ? claves.get(cuenta.email)
-        : "Ya existia: clave sin cambios",
+      contrasena:
+        cuenta.creada || cuenta.actualizada
+          ? claves.get(cuenta.email)
+          : "Ya existia: clave sin cambios",
       estado: cuenta.activo
         ? "Activa"
         : "Inactiva",
@@ -94,12 +105,20 @@ try {
   );
 
   console.log(
-    "Guarda las contrasenas de las cuentas nuevas antes de cerrar esta terminal."
+    reset
+      ? "Guarda las contrasenas de las cuentas antes de cerrar esta terminal."
+      : "Guarda las contrasenas de las cuentas nuevas antes de cerrar esta terminal."
   );
 
-  console.log(
-    "Las cuentas que ya existian conservaron su contrasena y estado."
-  );
+  if (reset) {
+    console.log(
+      "Las cuentas que ya existian conservaron su estado, pero su contrasena fue regenerada."
+    );
+  } else {
+    console.log(
+      "Las cuentas que ya existian conservaron su contrasena y estado. Usa --reset para regenerarlas."
+    );
+  }
 } catch (error) {
   console.error(
     "No se pudieron crear las cuentas de prueba."

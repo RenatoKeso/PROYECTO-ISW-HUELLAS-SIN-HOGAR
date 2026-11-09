@@ -7,6 +7,22 @@ const RELACIONES_REGISTRO_MEDICO = {
   revisionCompleta: true,
 };
 
+const RELACIONES_LISTADO_REGISTRO_MEDICO = {
+  animal: true,
+  revisionInicial: true,
+  revisionCompleta: true,
+};
+
+const RELACIONES_DETALLE_REGISTRO_MEDICO = {
+  animal: true,
+  ingresoAnimal: true,
+  revisionInicial: true,
+  revisionCompleta: true,
+  enfermedades: true,
+  tratamientos: true,
+  atencionesSanitarias: true,
+};
+
 const SELECT_AUTOR = {
   id: true,
   nombre: true,
@@ -208,4 +224,20 @@ export async function guardarRevisionCompletaActual(data, cliente = prisma) {
     createdById,
     datosActualizados,
   );
+}
+
+export async function listarRegistrosMedicos(estado, cliente = prisma) {
+  const where = estado ? { estadoValidacion: estado } : {};
+  return cliente.registroMedicoAnimal.findMany({
+    where,
+    include: RELACIONES_LISTADO_REGISTRO_MEDICO,
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function obtenerDetalleRegistroMedico(id, cliente = prisma) {
+  return cliente.registroMedicoAnimal.findUnique({
+    where: { id },
+    include: RELACIONES_DETALLE_REGISTRO_MEDICO,
+  });
 }

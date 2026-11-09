@@ -5,6 +5,11 @@ import { generarReporteDevoluciones, listarReportesDevoluciones } from "../servi
 import { listarPostulacionesEntregadas, registrarDevolucion } from "../services/devolucionService.js";
 import { listarVoluntarios } from "../services/voluntariosService.js";
 import { puedeConsultarReportesDevolucion } from "../utils/permisosUsuario.js";
+import { erroresDeApi } from "../utils/erroresFormulario.js";
+import {
+  formatearFecha as formatearFechaCompartida,
+  hoyLocal,
+} from "../utils/formatoAdopcion.js";
 import "../styles/reporteDevoluciones.css";
 import mascotas from "../assets/mascotas.svg";
 import caritaGato from "../assets/carita-gato.svg";
@@ -31,10 +36,6 @@ const NOMBRES_ESTADO = {
   TRANSFERIDO: "Transferido",
 };
 
-function formatearFecha(fecha) {
-  return new Date(fecha).toLocaleDateString("es-CL", { timeZone: "UTC" });
-}
-
 function formatearFechaLarga(fecha) {
   return new Date(fecha).toLocaleDateString("es-CL", {
     day: "numeric",
@@ -47,13 +48,6 @@ function datosFicha(ficha) {
   const datos = [NOMBRES_ESPECIE[ficha.especie], ficha.raza, NOMBRES_SEXO[ficha.sexoAnimal]];
   if (ficha.edad != null) datos.push(`${ficha.edad} ${ficha.edad === 1 ? "año" : "años"}`);
   return datos.filter(Boolean).join(" · ");
-}
-
-function hoyEnTexto() {
-  const hoy = new Date();
-  const mes = String(hoy.getMonth() + 1).padStart(2, "0");
-  const dia = String(hoy.getDate()).padStart(2, "0");
-  return `${hoy.getFullYear()}-${mes}-${dia}`;
 }
 
 function textoDevoluciones(cantidad) {
@@ -163,7 +157,7 @@ function ReporteDevolucionesPage({ usuario }) {
     const faltan = {};
     if (!registro.postulacionId) faltan.postulacionId = "Elige el animal que se devuelve";
     if (!registro.receptorId) faltan.receptorId = "Elige quién recibe al animal";
-    if (registro.fechaDevolucion && registro.fechaDevolucion > hoyEnTexto()) {
+    if (registro.fechaDevolucion && registro.fechaDevolucion > hoyLocal()) {
       faltan.fechaDevolucion = "La fecha no puede ser futura";
     } else if (
       elegida &&
@@ -192,10 +186,7 @@ function ReporteDevolucionesPage({ usuario }) {
       cargarPostulaciones();
     } catch (error) {
       if (error instanceof ApiError) {
-        const erroresPorCampo = (error.detalles ?? [])
-          .filter((detalle) => detalle.campo)
-          .map((detalle) => [detalle.campo, detalle.mensaje]);
-        setErroresRegistro(Object.fromEntries(erroresPorCampo));
+        setErroresRegistro(erroresDeApi(error));
         setMensajeRegistro(error.message);
       } else {
         setMensajeRegistro("No se pudo contactar con el servidor. Intenta nuevamente.");
@@ -227,7 +218,7 @@ function ReporteDevolucionesPage({ usuario }) {
     setVentana({
       icono: "📋",
       titulo: "Reporte de devoluciones",
-      subtitulo: `${formatearFecha(reporte.fechaDesde)} al ${formatearFecha(reporte.fechaHasta)}`,
+      subtitulo: `${formatearFechaCompartida(reporte.fechaDesde, { soloFecha: true })} al ${formatearFechaCompartida(reporte.fechaHasta, { soloFecha: true })}`,
       devoluciones: devolucionesDelReporte(reporte).sort((a, b) => new Date(a.fecha) - new Date(b.fecha)),
       repetidos: reporte.resultado.repetidos,
       mostrarNombres: true,
@@ -277,10 +268,7 @@ function ReporteDevolucionesPage({ usuario }) {
       cargarReportes();
     } catch (error) {
       if (error instanceof ApiError) {
-        const erroresPorCampo = (error.detalles ?? [])
-          .filter((detalle) => detalle.campo)
-          .map((detalle) => [detalle.campo, detalle.mensaje]);
-        setErrores(Object.fromEntries(erroresPorCampo));
+        setErrores(erroresDeApi(error));
         setMensaje(error.message);
       } else {
         setMensaje("No se pudo contactar con el servidor. Intenta nuevamente.");
@@ -405,7 +393,7 @@ function ReporteDevolucionesPage({ usuario }) {
             error={erroresRegistro.fechaDevolucion}
             onChange={(e) => cambiarRegistro("fechaDevolucion", e.target.value)}
             min={elegida ? elegida.fechaEntrega.slice(0, 10) : undefined}
-            max={hoyEnTexto()}
+            max={hoyLocal()}
           />
           <Campo
             etiqueta="Motivo"
@@ -506,7 +494,7 @@ function ReporteDevolucionesPage({ usuario }) {
                       <h3>{datosAnimal.animal}</h3>
                       <p>
                         {datosAnimal.codigoAnimal} · {textoDevoluciones(datosAnimal.devoluciones.length)} · última el{" "}
-                        {formatearFecha(datosAnimal.devoluciones[datosAnimal.devoluciones.length - 1].fecha)}
+                        {formatearFechaCompartida(datosAnimal.devoluciones[datosAnimal.devoluciones.length - 1].fecha, { soloFecha: true })}
                       </p>
                     </div>
                     <button type="button" className="boton boton-secundario" onClick={() => abrirReporteAnimal(datosAnimal)}>
@@ -579,7 +567,7 @@ function ReporteDevolucionesPage({ usuario }) {
                             )}
                             <span>
                               {ventana.mostrarNombres && `${NOMBRES_MOTIVO[devolucion.motivo]} · `}
-                              {formatearFecha(devolucion.fecha)}
+                              {formatearFechaCompartida(devolucion.fecha, { soloFecha: true })}
                             </span>
                             <span>
                               Recibió {devolucion.receptor ?? "Sin registrar"} · Devolvió {devolucion.postulante ?? "Sin registrar"}
