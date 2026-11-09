@@ -68,6 +68,7 @@ export async function buscarPostulacionPorId(id, cliente = prisma) {
           raza: true,
           edad: true,
           estadoEstadia: true,
+          imagenUrl: true,
         },
       },
       revisor: { select: { id: true, nombre: true } },
