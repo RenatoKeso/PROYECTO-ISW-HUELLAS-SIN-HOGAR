@@ -14,6 +14,7 @@ import {
   formatearEdad,
   formatearFecha,
 } from "../utils/formatoAdopcion.js";
+import { urlImagen } from "../utils/urlImagen.js";
 import "../styles/postulaciones.css";
 
 // Aviso de devoluciones anteriores del mismo RUT. Informa, pero no bloquea.
@@ -204,6 +205,13 @@ function PostulacionDetallePage() {
 
         <div className="tarjeta">
           <h3>Animal</h3>
+          {animal.imagenUrl && (
+            <img
+              className="detalle-foto-animal"
+              src={urlImagen(animal.imagenUrl)}
+              alt={`Foto de ${animal.nombre || animal.codigoAnimal}`}
+            />
+          )}
           <dl className="datos">
             <Dato etiqueta="Nombre">{animal.nombre || "Sin nombre"}</Dato>
             <Dato etiqueta="Código">{animal.codigoAnimal}</Dato>

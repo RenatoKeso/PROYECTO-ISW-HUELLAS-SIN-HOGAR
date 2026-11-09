@@ -11,6 +11,7 @@ import {
   OPCIONES_VIVIENDA,
   postulacionFormSchema,
 } from "../validations/postulacionValidation.js";
+import { urlImagen } from "../utils/urlImagen.js";
 import "../styles/postulaciones.css";
 
 const DIBUJOS = { PERRO: "🐶", GATO: "🐱", OTRO: "🐾" };
@@ -91,9 +92,18 @@ function PostulacionPage() {
       <Link to="/adopcion" className="volver-link">← Volver al catálogo</Link>
 
       <div className="postulacion-animal">
-        <span className="postulacion-animal-dibujo" aria-hidden="true">
-          {DIBUJOS[animal.especie]}
-        </span>
+        {/* Si la ficha tiene imagen se muestra; si no, el dibujo de la especie. */}
+        {animal.imagenUrl ? (
+          <img
+            className="postulacion-animal-dibujo"
+            src={urlImagen(animal.imagenUrl)}
+            alt={`Foto de ${animal.nombre || animal.codigoAnimal}`}
+          />
+        ) : (
+          <span className="postulacion-animal-dibujo" aria-hidden="true">
+            {DIBUJOS[animal.especie]}
+          </span>
+        )}
         <div>
           <p className="etiqueta-pequena">Postulación para adoptar a</p>
           <h2>{animal.nombre || "Sin nombre"}</h2>
