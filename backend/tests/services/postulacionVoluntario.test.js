@@ -45,7 +45,7 @@ function falsas(cambios = {}) {
     buscarActividadVoluntario: async (id) => ({
       id,
       usuario: null,
-      _count: { inscripcionesTurno: 0, ingresosRecibidos: 0, devolucionesRecibidas: 0, postulacionesRevisadas: 0 },
+      _count: { inscripcionesTurno: 0, ingresosRecibidos: 0, devolucionesRecibidas: 0 },
     }),
     volverARevision: async (id, estado) => {
       guardado.deshechas.push({ id, estado });
@@ -211,7 +211,7 @@ test("no deja deshacer si el voluntario ya tiene cuenta o turnos", async () => {
     buscarActividadVoluntario: async () => ({
       id: 7,
       usuario: { id: 4 },
-      _count: { inscripcionesTurno: 2, ingresosRecibidos: 0, devolucionesRecibidas: 0, postulacionesRevisadas: 0 },
+      _count: { inscripcionesTurno: 2, ingresosRecibidos: 0, devolucionesRecibidas: 0 },
     }),
   });
 
