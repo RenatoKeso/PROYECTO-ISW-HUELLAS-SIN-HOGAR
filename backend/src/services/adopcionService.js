@@ -213,9 +213,8 @@ export async function resolverPostulacion(
   const cambios = await dependencias.resolverPostulacionEnRevision(id, {
     estado: decision,
     fechaResolucion: new Date(),
-    // El revisor es un Voluntario. Si la cuenta no tiene uno asociado
-    // (por ejemplo, la directora), queda vacio.
-    revisorId: usuario?.voluntarioId ?? null,
+    // El revisor es la cuenta (Usuario) que tomo la decision.
+    revisorId: usuario.id,
     ...(observaciones ? { observaciones } : {}),
   });
 

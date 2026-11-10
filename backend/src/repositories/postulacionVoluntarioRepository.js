@@ -79,7 +79,6 @@ export async function buscarActividadVoluntario(id, cliente = prisma) {
           inscripcionesTurno: true,
           ingresosRecibidos: true,
           devolucionesRecibidas: true,
-          postulacionesRevisadas: true,
         },
       },
     },
