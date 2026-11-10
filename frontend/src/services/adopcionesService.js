@@ -45,3 +45,10 @@ export function omitirVisitaHogar(postulacionId, datos) {
 export function formalizarEntrega(postulacionId, datos) {
   return api.post(`/adopciones/postulaciones/${postulacionId}/entrega`, datos);
 }
+
+export function marcarSeguimientoRealizado(postulacionId, seguimientoId) {
+  return api.patch(
+    `/adopciones/postulaciones/${postulacionId}/seguimientos/${seguimientoId}/realizado`,
+    {},
+  );
+}

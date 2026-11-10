@@ -305,6 +305,10 @@ img.postulacion-animal-dibujo {
     margin-left: 0.5rem;
 }
 
+.boton-seguimiento {
+    margin-left: 0.75rem;
+}
+
 .seguimiento-PENDIENTE {
     background: #f3e2b8;
     color: #7a5a12;

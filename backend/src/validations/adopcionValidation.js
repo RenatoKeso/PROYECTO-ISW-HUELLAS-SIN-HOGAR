@@ -108,27 +108,44 @@ export const postulacionIdParamSchema = z.object({
 
 export const animalIdParamSchema = postulacionIdParamSchema;
 
+// Ruta de un seguimiento: /postulaciones/:id/seguimientos/:seguimientoId
+export const seguimientoParamSchema = postulacionIdParamSchema.extend({
+  seguimientoId: postulacionIdParamSchema.shape.id,
+});
+
 export const listarPostulacionesQuerySchema = z.strictObject({
   estado: z
     .enum(ESTADO_POSTULACION_VALUES, { message: "El estado indicado no es válido" })
     .optional(),
 });
 
-export const resolverPostulacionSchema = z.strictObject({
-  decision: z.enum(DECISION_POSTULACION_VALUES, {
-    message: "La decisión debe ser APROBADA o RECHAZADA",
-  }),
-  observaciones: textoObligatorio("La observación", { maximo: 1000, genero: "a" }).optional(),
-});
+// Un rechazo siempre queda con su motivo; al aprobar, la observacion es opcional.
+export const resolverPostulacionSchema = z
+  .strictObject({
+    decision: z.enum(DECISION_POSTULACION_VALUES, {
+      message: "La decisión debe ser APROBADA o RECHAZADA",
+    }),
+    observaciones: textoObligatorio("La observación", { maximo: 1000, genero: "a" }).optional(),
+  })
+  .refine((datos) => datos.decision !== "RECHAZADA" || datos.observaciones, {
+    message: "Para rechazar, indica el motivo en las observaciones",
+    path: ["observaciones"],
+  });
 
-export const registrarVisitaSchema = z.strictObject({
-  tipo: z.enum(TIPO_VISITA_VALUES, { message: "El tipo de visita no es válido" }),
-  fechaVisita: fechaNoFuturaSchema,
-  resultado: z.enum(RESULTADO_VISITA_VALUES, {
-    message: "El resultado debe ser FAVORABLE o DESFAVORABLE",
-  }),
-  observaciones: textoObligatorio("La observación", { maximo: 1000, genero: "a" }).optional(),
-});
+// Una visita desfavorable cierra la postulacion, asi que debe explicar por que.
+export const registrarVisitaSchema = z
+  .strictObject({
+    tipo: z.enum(TIPO_VISITA_VALUES, { message: "El tipo de visita no es válido" }),
+    fechaVisita: fechaNoFuturaSchema,
+    resultado: z.enum(RESULTADO_VISITA_VALUES, {
+      message: "El resultado debe ser FAVORABLE o DESFAVORABLE",
+    }),
+    observaciones: textoObligatorio("La observación", { maximo: 1000, genero: "a" }).optional(),
+  })
+  .refine((datos) => datos.resultado !== "DESFAVORABLE" || datos.observaciones, {
+    message: "Si la visita fue desfavorable, explica el motivo en las observaciones",
+    path: ["observaciones"],
+  });
 
 export const omitirVisitaHogarSchema = z
   .strictObject({

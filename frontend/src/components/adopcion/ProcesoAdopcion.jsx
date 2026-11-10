@@ -4,6 +4,7 @@ import Mensaje from "../ui/Mensaje.jsx";
 import { useFormulario } from "../../hooks/useFormulario.js";
 import {
   formalizarEntrega,
+  marcarSeguimientoRealizado,
   omitirVisitaHogar,
   registrarVisita,
 } from "../../services/adopcionesService.js";
@@ -46,16 +47,63 @@ function Paso({ numero, titulo, estado, children }) {
 
 function VisitaRegistrada({ visita }) {
   return (
-    <dl className="datos">
-      <Dato etiqueta="Fecha">{formatearFecha(visita.fechaVisita, { soloFecha: true })}</Dato>
-      <Dato etiqueta="Resultado">
-        <span className={`resultado resultado-${visita.resultado}`}>
-          {RESULTADOS_VISITA[visita.resultado]}
-        </span>
-      </Dato>
-      <Dato etiqueta="Observaciones">{visita.observaciones}</Dato>
-      <Dato etiqueta="Registrada por">{visita.registradaPor?.nombre}</Dato>
-    </dl>
+    <>
+      <dl className="datos">
+        <Dato etiqueta="Fecha">{formatearFecha(visita.fechaVisita, { soloFecha: true })}</Dato>
+        <Dato etiqueta="Resultado">
+          <span className={`resultado resultado-${visita.resultado}`}>
+            {RESULTADOS_VISITA[visita.resultado]}
+          </span>
+        </Dato>
+        <Dato etiqueta="Observaciones">{visita.observaciones}</Dato>
+        <Dato etiqueta="Registrada por">{visita.registradaPor?.nombre}</Dato>
+      </dl>
+      {visita.resultado === "DESFAVORABLE" && (
+        <p className="mensaje mensaje-error">
+          La visita no fue favorable: la postulación quedó rechazada y el proceso terminó.
+        </p>
+      )}
+    </>
+  );
+}
+
+// Un seguimiento con su boton para marcarlo como realizado.
+function Seguimiento({ seguimiento, postulacionId, onActualizada }) {
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState("");
+
+  async function marcar() {
+    setError("");
+    setEnviando(true);
+
+    try {
+      await marcarSeguimientoRealizado(postulacionId, seguimiento.id);
+      onActualizada();
+    } catch (errorEnvio) {
+      setError(errorEnvio.message);
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <li>
+      <strong>{formatearFecha(seguimiento.fechaProgramada, { soloFecha: true })}</strong>
+      {" · "}a los {seguimiento.diasDesdeEntrega} días
+      <span className={`estado-chip seguimiento-${seguimiento.estado}`}>
+        {seguimiento.estado === "PENDIENTE" ? "Pendiente" : "Realizado"}
+      </span>
+      {seguimiento.estado === "PENDIENTE" && (
+        <button
+          type="button"
+          className="boton boton-chico boton-seguimiento"
+          disabled={enviando}
+          onClick={marcar}
+        >
+          {enviando ? "Guardando..." : "Marcar realizado"}
+        </button>
+      )}
+      {error && <p className="mensaje mensaje-error">{error}</p>}
+    </li>
   );
 }
 
@@ -98,7 +146,9 @@ function FormularioVisita({ postulacionId, tipo, onActualizada }) {
           control="textarea"
           ancho
           maxLength={1000}
-          placeholder="Opcional"
+          placeholder={
+            valores.resultado === "DESFAVORABLE" ? "Explica por qué no fue favorable" : "Opcional"
+          }
           valor={valores.observaciones}
           error={errores.observaciones}
           onChange={(evento) => cambiar("observaciones", evento.target.value)}
@@ -271,13 +321,12 @@ function SeccionEntrega({ postulacion, puedeEntregar, onActualizada }) {
         <h4 className="subtitulo">Seguimientos programados</h4>
         <ul className="lista-seguimientos">
           {postulacion.seguimientos.map((seguimiento) => (
-            <li key={seguimiento.id}>
-              <strong>{formatearFecha(seguimiento.fechaProgramada, { soloFecha: true })}</strong>
-              {" · "}a los {seguimiento.diasDesdeEntrega} días
-              <span className={`estado-chip seguimiento-${seguimiento.estado}`}>
-                {seguimiento.estado === "PENDIENTE" ? "Pendiente" : "Realizado"}
-              </span>
-            </li>
+            <Seguimiento
+              key={seguimiento.id}
+              seguimiento={seguimiento}
+              postulacionId={postulacion.id}
+              onActualizada={onActualizada}
+            />
           ))}
         </ul>
       </>
@@ -317,11 +366,6 @@ function ProcesoAdopcion({ postulacion, onActualizada }) {
 
       <Paso numero={1} titulo="Primera visita" estado={primera ? "listo" : "pendiente"}>
         {primera && <VisitaRegistrada visita={primera} />}
-        {primera && primera.resultado === "DESFAVORABLE" && (
-          <p className="mensaje mensaje-error">
-            La primera visita no fue favorable: esta adopción no puede continuar.
-          </p>
-        )}
         {!primera && editable && (
           <FormularioVisita
             postulacionId={postulacion.id}
