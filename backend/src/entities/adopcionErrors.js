@@ -11,6 +11,8 @@ export const CODIGO_ERROR_ADOPCION = {
   VISITA_HOGAR_YA_RESUELTA: "VISITA_HOGAR_YA_RESUELTA",
   ENTREGA_NO_PERMITIDA: "ENTREGA_NO_PERMITIDA",
   FECHA_INVALIDA: "FECHA_INVALIDA",
+  SEGUIMIENTO_INEXISTENTE: "SEGUIMIENTO_INEXISTENTE",
+  SEGUIMIENTO_YA_REALIZADO: "SEGUIMIENTO_YA_REALIZADO",
 };
 
 const ESTADO_HTTP_POR_CODIGO = {
@@ -26,6 +28,8 @@ const ESTADO_HTTP_POR_CODIGO = {
   [CODIGO_ERROR_ADOPCION.VISITA_HOGAR_YA_RESUELTA]: 409,
   [CODIGO_ERROR_ADOPCION.ENTREGA_NO_PERMITIDA]: 409,
   [CODIGO_ERROR_ADOPCION.FECHA_INVALIDA]: 400,
+  [CODIGO_ERROR_ADOPCION.SEGUIMIENTO_INEXISTENTE]: 404,
+  [CODIGO_ERROR_ADOPCION.SEGUIMIENTO_YA_REALIZADO]: 409,
 };
 
 // Error de una regla del modulo de adopcion. El manejador central lo
@@ -116,4 +120,18 @@ export function entregaNoPermitida(mensaje) {
 
 export function fechaInvalida(mensaje) {
   return new AdopcionError(CODIGO_ERROR_ADOPCION.FECHA_INVALIDA, mensaje);
+}
+
+export function seguimientoInexistente(id) {
+  return new AdopcionError(
+    CODIGO_ERROR_ADOPCION.SEGUIMIENTO_INEXISTENTE,
+    `No existe el seguimiento con id ${id} en esta postulacion`,
+  );
+}
+
+export function seguimientoYaRealizado() {
+  return new AdopcionError(
+    CODIGO_ERROR_ADOPCION.SEGUIMIENTO_YA_REALIZADO,
+    "Este seguimiento ya estaba marcado como realizado",
+  );
 }

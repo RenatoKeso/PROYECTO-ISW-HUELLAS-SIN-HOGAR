@@ -65,6 +65,7 @@ const RUTAS_PROTEGIDAS = [
   ["POST", "/postulaciones/1/visitas", { tipo: "PRIMERA_VISITA", fechaVisita: "2026-10-20", resultado: "FAVORABLE" }],
   ["POST", "/postulaciones/1/omision-visita", { motivo: "DISTANCIA" }],
   ["POST", "/postulaciones/1/entrega", { fechaEntrega: "2026-10-20", documentacionEntregada: "Contrato" }],
+  ["PATCH", "/postulaciones/1/seguimientos/2/realizado"],
 ];
 
 test("las rutas de publicacion, visitas y entrega exigen sesion", async () => {
@@ -171,4 +172,77 @@ test("POST /entrega exige fecha y documentacion", async () => {
     assert.ok(campos.includes("fechaEntrega"));
     assert.ok(campos.includes("documentacionEntregada"));
   });
+});
+
+test("POST /visitas exige explicar una visita desfavorable", async () => {
+  await conServidor({}, async (url) => {
+    const respuesta = await enviar(`${url}/postulaciones/1/visitas`, {
+      method: "POST",
+      rol: "DIRECTORA",
+      body: { tipo: "PRIMERA_VISITA", fechaVisita: "2026-10-20", resultado: "DESFAVORABLE" },
+    });
+    const cuerpo = await respuesta.json();
+
+    assert.equal(respuesta.status, 400);
+    assert.equal(cuerpo.detalles[0].campo, "observaciones");
+  });
+});
+
+test("PATCH /resolucion exige el motivo al rechazar, no al aprobar", async () => {
+  await conServidor(
+    { resolverPostulacionAdopcion: async (id, datos) => ({ id, estado: datos.decision }) },
+    async (url) => {
+      const sinMotivo = await enviar(`${url}/postulaciones/7/resolucion`, {
+        method: "PATCH",
+        rol: "DIRECTORA",
+        body: { decision: "RECHAZADA" },
+      });
+      const cuerpo = await sinMotivo.json();
+
+      assert.equal(sinMotivo.status, 400);
+      assert.equal(cuerpo.detalles[0].campo, "observaciones");
+
+      const conMotivo = await enviar(`${url}/postulaciones/7/resolucion`, {
+        method: "PATCH",
+        rol: "DIRECTORA",
+        body: { decision: "RECHAZADA", observaciones: "Vivienda sin cierre perimetral" },
+      });
+      assert.equal(conMotivo.status, 200);
+
+      const aprobar = await enviar(`${url}/postulaciones/7/resolucion`, {
+        method: "PATCH",
+        rol: "DIRECTORA",
+        body: { decision: "APROBADA" },
+      });
+      assert.equal(aprobar.status, 200);
+    },
+  );
+});
+
+test("PATCH /seguimientos/:seguimientoId/realizado pasa los dos ids numericos", async () => {
+  let recibido;
+
+  await conServidor(
+    {
+      realizarSeguimientoAdopcion: async (postulacionId, seguimientoId) => {
+        recibido = [postulacionId, seguimientoId];
+        return { id: postulacionId, estado: "ENTREGADA" };
+      },
+    },
+    async (url) => {
+      const respuesta = await enviar(`${url}/postulaciones/8/seguimientos/3/realizado`, {
+        method: "PATCH",
+        rol: "ENCARGADA_ADOPCIONES",
+      });
+
+      assert.equal(respuesta.status, 200);
+      assert.deepEqual(recibido, [8, 3]);
+
+      const idInvalido = await enviar(`${url}/postulaciones/8/seguimientos/abc/realizado`, {
+        method: "PATCH",
+        rol: "ENCARGADA_ADOPCIONES",
+      });
+      assert.equal(idInvalido.status, 400);
+    },
+  );
 });

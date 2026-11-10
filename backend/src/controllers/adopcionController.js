@@ -7,6 +7,7 @@ import {
   obtenerPostulaciones,
   omitirVisitaHogar,
   publicarAnimal,
+  realizarSeguimiento,
   registrarPostulacion,
   registrarVisita,
   resolverPostulacion,
@@ -25,6 +26,7 @@ export function crearAdopcionController({
   registrarVisitaAdopcion = registrarVisita,
   omitirVisitaHogarAdopcion = omitirVisitaHogar,
   formalizarEntregaAdopcion = formalizarEntrega,
+  realizarSeguimientoAdopcion = realizarSeguimiento,
 } = {}) {
   return {
     async listarAnimales(request, response) {
@@ -106,7 +108,10 @@ export function crearAdopcionController({
       );
 
       return enviarRespuestaExitosa(response, {
-        mensaje: "Visita registrada correctamente",
+        mensaje:
+          visita.resultado === "DESFAVORABLE"
+            ? "Visita registrada: la postulacion quedo rechazada"
+            : "Visita registrada correctamente",
         estado: 201,
         datos: { visita },
       });
@@ -131,6 +136,18 @@ export function crearAdopcionController({
       return enviarRespuestaExitosa(response, {
         mensaje: "Entrega registrada: el animal quedo adoptado",
         datos: resultado,
+      });
+    },
+
+    async realizarSeguimiento(request, response) {
+      const postulacion = await realizarSeguimientoAdopcion(
+        request.params.id,
+        request.params.seguimientoId,
+      );
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: "Seguimiento marcado como realizado",
+        datos: { postulacion },
       });
     },
   };

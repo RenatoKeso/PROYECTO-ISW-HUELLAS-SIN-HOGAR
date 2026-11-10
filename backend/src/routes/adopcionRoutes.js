@@ -14,6 +14,7 @@ import {
   postulacionIdParamSchema,
   registrarVisitaSchema,
   resolverPostulacionSchema,
+  seguimientoParamSchema,
 } from "../validations/adopcionValidation.js";
 
 export function crearAdopcionRouter({
@@ -95,6 +96,14 @@ export function crearAdopcionRouter({
     conPostulacionId,
     validarEsquema(entregaSchema),
     capturarErrores(controlador.formalizarEntrega),
+  );
+
+  // ---------- Equipo de adopciones: seguimientos ----------
+  router.patch(
+    "/postulaciones/:id/seguimientos/:seguimientoId/realizado",
+    ...soloEquipoAdopciones,
+    validarEsquema(seguimientoParamSchema, "params"),
+    capturarErrores(controlador.realizarSeguimiento),
   );
 
   return router;
