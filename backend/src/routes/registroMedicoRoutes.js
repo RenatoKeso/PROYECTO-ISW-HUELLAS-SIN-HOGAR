@@ -25,6 +25,12 @@ export function crearRegistroMedicoRouter({
   );
 
   router.get(
+    "/actualizaciones",
+    autenticar,
+    capturarErrores(controlador.listarActualizaciones),
+  );
+
+  router.get(
     "/:id",
     autenticar,
     validarEsquema(registroMedicoIdParamSchema, "params"),

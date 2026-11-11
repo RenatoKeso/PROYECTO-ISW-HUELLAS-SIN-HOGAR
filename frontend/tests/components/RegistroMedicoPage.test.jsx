@@ -14,6 +14,7 @@ vi.mock("../../src/services/registroMedicoService.js", () => ({
   iniciarActualizacion: vi.fn(),
   guardarActualizacion: vi.fn(),
   cancelarActualizacion: vi.fn(),
+  listarActualizacionesMedicas: vi.fn(),
   listarHistorialMedico: vi.fn(),
   listarSeguimientosMedico: vi.fn(),
 }));
@@ -52,6 +53,9 @@ describe("RegistroMedicoPage", () => {
     });
     registroMedicoService.listarHistorialMedico.mockResolvedValue({
       historial: [],
+    });
+    registroMedicoService.listarActualizacionesMedicas.mockResolvedValue({
+      actualizaciones: [],
     });
     registroMedicoService.listarSeguimientosMedico.mockResolvedValue({
       seguimientos: [],
@@ -92,5 +96,36 @@ describe("RegistroMedicoPage", () => {
         screen.queryByRole("button", { name: "Cancelar corrección" }),
       ).not.toBeInTheDocument();
     });
+  });
+
+  test("muestra el historial de actualizaciones en la pestaña Actualizados", async () => {
+    registroMedicoService.listarActualizacionesMedicas.mockResolvedValue({
+      actualizaciones: [
+        {
+          id: 10,
+          registroMedicoId: 1,
+          version: 2,
+          estadoOrigen: "REALIZADO",
+          peso: 13.1,
+          clasificacionSalud: "NORMAL",
+          observacionSeguimiento: "Mejora",
+          fecha: "2026-11-11T10:00:00.000Z",
+          actualizadoPor: { nombre: "Vet" },
+          registroMedico: {
+            id: 1,
+            animal: { codigoAnimal: "anim-001", nombre: "Gretel" },
+          },
+        },
+      ],
+    });
+
+    render(<RegistroMedicoPage usuario={{ id: 1, rol: "VETERINARIA", activo: true }} />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Actualizados" }));
+
+    expect(await screen.findByText("anim-001")).toBeInTheDocument();
+    expect(screen.getByText("Gretel")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.getByText("Vet")).toBeInTheDocument();
   });
 });

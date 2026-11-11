@@ -4,6 +4,7 @@ import {
   cancelarActualizacionRegistro,
   completarRevisionInicial,
   iniciarActualizacionRegistro,
+  listarActualizacionesMedicas as listarActualizacionesMedicasService,
   listarHistorialRegistroMedico as listarHistorialRegistroMedicoService,
   listarRegistrosMedicos as listarRegistrosMedicosService,
   listarSeguimientosRegistroMedico as listarSeguimientosRegistroMedicoService,
@@ -23,6 +24,8 @@ const MENSAJE_ACTUALIZACION_VETERINARIA =
 const MENSAJE_CANCELACION_ACTUALIZACION =
   "Actualización veterinaria cancelada correctamente";
 const MENSAJE_HISTORIAL = "Historial médico obtenido correctamente";
+const MENSAJE_ACTUALIZACIONES =
+  "Actualizaciones médicas obtenidas correctamente";
 const MENSAJE_SEGUIMIENTOS = "Seguimientos médicos obtenidos correctamente";
 
 export function crearRegistroMedicoController({
@@ -32,6 +35,7 @@ export function crearRegistroMedicoController({
   iniciarActualizacionRegistroMedico = iniciarActualizacionRegistro,
   actualizarRegistroMedico = actualizarRegistro,
   cancelarActualizacionRegistroMedico = cancelarActualizacionRegistro,
+  listarActualizacionesMedicas = listarActualizacionesMedicasService,
   listarHistorialRegistroMedico = listarHistorialRegistroMedicoService,
   listarRegistrosMedicos = listarRegistrosMedicosService,
   listarSeguimientosRegistroMedico = listarSeguimientosRegistroMedicoService,
@@ -111,6 +115,17 @@ export function crearRegistroMedicoController({
       return enviarRespuestaExitosa(response, {
         mensaje: MENSAJE_CANCELACION_ACTUALIZACION,
         datos: resultado,
+      });
+    },
+
+    async listarActualizaciones(request, response) {
+      const actualizaciones = await listarActualizacionesMedicas({
+        actor: request.usuario,
+      });
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: MENSAJE_ACTUALIZACIONES,
+        datos: { actualizaciones },
       });
     },
 
