@@ -512,3 +512,74 @@
 .resultado-revision .boton-mini {
   margin-top: 0.4rem;
 }
+/* ---------- TURNOS E INSCRIPCIONES ---------- */
+
+.turno-horario {
+  margin: 0.2rem 0 0 !important;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--cafe);
+}
+
+.turno-datos {
+  margin-top: 0.8rem;
+}
+
+.turno-acciones {
+  margin-top: 1rem;
+}
+
+.estado-abierta,
+.estado-activa {
+  background: var(--cafe);
+  color: var(--crema-dev);
+}
+
+.estado-cerrada,
+.estado-cancelada {
+  background: #f1d9d0;
+  color: #8a3b26;
+}
+
+.cambio-turno {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: var(--crema-dev);
+}
+
+.cambio-turno label {
+  font-weight: 600;
+  color: var(--cafe);
+}
+
+.cambio-turno select {
+  flex: 1 1 260px;
+  padding: 0.55rem 0.8rem;
+  border: 1.5px solid var(--rosado);
+  border-radius: 12px;
+  background: var(--blanco-dev);
+  font: inherit;
+}
+
+.historial-inscripcion {
+  margin: 0.9rem 0 0;
+  padding: 0.9rem 1rem 0.9rem 1.8rem;
+  border-radius: 14px;
+  background: var(--crema-dev);
+  font-size: 0.9rem;
+  color: var(--cafe);
+}
+
+.historial-inscripcion li + li {
+  margin-top: 0.5rem;
+}
+
+/* Separa el aviso de exito o error de la lista de turnos que viene debajo. */
+.voluntariado > .mensaje {
+  margin-bottom: 1rem;
+}
