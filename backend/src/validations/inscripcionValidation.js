@@ -27,3 +27,11 @@ export const inscripcionIdSchema = z.strictObject({
     .positive("El id de la inscripción debe ser un número positivo"),
 });
 
+// Cambiar una inscripcion a otro turno: solo se manda el turno nuevo.
+export const inscripcionUpdateSchema = z.strictObject({
+  turnoId: z
+    .number({ message: "El turno nuevo es obligatorio" })
+    .int("El turno debe ser un número entero")
+    .positive("El turno debe ser un número positivo"),
+});
+

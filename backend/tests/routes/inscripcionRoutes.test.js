@@ -58,7 +58,7 @@ function pedir(url, { metodo = "GET", rol, cuerpo } = {}) {
 }
 
 function controladorDePrueba(inscribirse) {
-  const llamadas = { inscribir: [], mias: [], historial: [], cancelar: [] };
+  const llamadas = { inscribir: [], mias: [], historial: [], cancelar: [], modificar: [] };
 
   const controlador = crearInscripcionController({
     inscribirse:
@@ -79,6 +79,10 @@ function controladorDePrueba(inscribirse) {
       llamadas.cancelar.push({ id, usuario });
       return { id, estado: "CANCELADA" };
     },
+    modificar: async (id, datos, usuario) => {
+      llamadas.modificar.push({ id, datos, usuario });
+      return { id, turnoId: datos.turnoId, estado: "ACTIVA" };
+    },
   });
 
   return { controlador, llamadas };
@@ -93,6 +97,7 @@ test("las rutas de inscripciones exigen sesion", async () => {
       ["GET", "/mias"],
       ["GET", "/3/historial"],
       ["PATCH", "/3/cancelacion"],
+      ["PATCH", "/3", { turnoId: 2 }],
     ]) {
       const respuesta = await pedir(`${url}${ruta}`, { metodo, cuerpo });
 
@@ -101,7 +106,11 @@ test("las rutas de inscripciones exigen sesion", async () => {
   });
 
   assert.equal(
-    llamadas.inscribir.length + llamadas.mias.length + llamadas.historial.length + llamadas.cancelar.length,
+    llamadas.inscribir.length +
+      llamadas.mias.length +
+      llamadas.historial.length +
+      llamadas.cancelar.length +
+      llamadas.modificar.length,
     0,
   );
 });
@@ -221,5 +230,24 @@ test("cancelar recibe el id como numero y solo lo usan los voluntarios", async (
 
   assert.deepEqual(llamadas.cancelar.map((llamada) => llamada.id), [7]);
   assert.equal(llamadas.cancelar[0].usuario.id, 5);
+});
+
+test("modificar valida el id y el cuerpo, y solo lo usan los voluntarios", async () => {
+  const { controlador, llamadas } = controladorDePrueba();
+
+  await conServidor(controlador, async (url) => {
+    const ok = await pedir(`${url}/7`, { metodo: "PATCH", rol: "VOLUNTARIO", cuerpo: { turnoId: 2 } });
+    const sinCuerpo = await pedir(`${url}/7`, { metodo: "PATCH", rol: "VOLUNTARIO", cuerpo: {} });
+    const idInvalido = await pedir(`${url}/x`, { metodo: "PATCH", rol: "VOLUNTARIO", cuerpo: { turnoId: 2 } });
+    const otroRol = await pedir(`${url}/7`, { metodo: "PATCH", rol: "DIRECTORA", cuerpo: { turnoId: 2 } });
+
+    assert.equal(ok.status, 200);
+    assert.equal((await ok.json()).inscripcion.turnoId, 2);
+    assert.equal(sinCuerpo.status, 400);
+    assert.equal(idInvalido.status, 400);
+    assert.equal(otroRol.status, 403);
+  });
+
+  assert.deepEqual(llamadas.modificar.map((llamada) => [llamada.id, llamada.datos]), [[7, { turnoId: 2 }]]);
 });
 

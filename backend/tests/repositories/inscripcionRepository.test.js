@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buscarInscripcionPorId,
+  cambiarTurnoDeInscripcion,
   cancelarInscripcion,
   crearInscripcion,
   liberarCupo,
@@ -144,5 +145,17 @@ test("cancelarInscripcion cambia el estado y guarda cuando se cancelo", async ()
   assert.deepEqual(argumentos.where, { id: 9 });
   assert.deepEqual(argumentos.data, { estado: "CANCELADA", canceladaEn: cuando });
   assert.equal(argumentos.select.turno.select.titulo, true);
+});
+
+test("cambiarTurnoDeInscripcion mueve la misma inscripcion al turno nuevo", async () => {
+  const { cliente, consultas } = clienteDePrueba({ id: 9 });
+
+  await cambiarTurnoDeInscripcion(9, 2, cliente);
+
+  const [[metodo, argumentos]] = consultas;
+  assert.equal(metodo, "inscripcion.update");
+  assert.deepEqual(argumentos.where, { id: 9 });
+  assert.deepEqual(argumentos.data, { turnoId: 2 });
+  assert.equal(argumentos.select.turno.select.inicio, true);
 });
 

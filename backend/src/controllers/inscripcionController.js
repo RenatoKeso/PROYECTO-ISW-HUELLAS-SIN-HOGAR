@@ -2,6 +2,7 @@ import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
 import {
   cancelarInscripcionEnTurno,
   inscribirseEnTurno,
+  modificarInscripcionDeTurno,
   obtenerHistorialDeInscripcion,
   obtenerMisInscripciones,
 } from "../services/inscripcionService.js";
@@ -11,6 +12,7 @@ export function crearInscripcionController({
   obtenerMias = obtenerMisInscripciones,
   obtenerHistorial = obtenerHistorialDeInscripcion,
   cancelar = cancelarInscripcionEnTurno,
+  modificar = modificarInscripcionDeTurno,
 } = {}) {
   return {
     async inscribirse(request, response) {
@@ -46,6 +48,15 @@ export function crearInscripcionController({
 
       return enviarRespuestaExitosa(response, {
         mensaje: "Inscripción cancelada correctamente",
+        datos: { inscripcion },
+      });
+    },
+
+    async modificar(request, response) {
+      const inscripcion = await modificar(request.params.id, request.body, request.usuario);
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: "Inscripción modificada correctamente",
         datos: { inscripcion },
       });
     },

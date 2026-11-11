@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   inscripcionCreateSchema,
   inscripcionIdSchema,
+  inscripcionUpdateSchema,
   misInscripcionesQuerySchema,
 } from "../../src/validations/inscripcionValidation.js";
 
@@ -38,5 +39,12 @@ test("el id de la URL se convierte a entero positivo", () => {
   for (const id of ["0", "-3", "1.5", "abc"]) {
     assert.equal(inscripcionIdSchema.safeParse({ id }).success, false, id);
   }
+});
+
+test("modificar solo acepta el turno nuevo como entero positivo", () => {
+  assert.deepEqual(inscripcionUpdateSchema.parse({ turnoId: 5 }), { turnoId: 5 });
+  assert.equal(inscripcionUpdateSchema.safeParse({}).success, false);
+  assert.equal(inscripcionUpdateSchema.safeParse({ turnoId: "5" }).success, false);
+  assert.equal(inscripcionUpdateSchema.safeParse({ turnoId: 5, estado: "ACTIVA" }).success, false);
 });
 

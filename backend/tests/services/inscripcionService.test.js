@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   cancelarInscripcionEnTurno,
   inscribirseEnTurno,
+  modificarInscripcionDeTurno,
   obtenerHistorialDeInscripcion,
   obtenerMisInscripciones,
 } from "../../src/services/inscripcionService.js";
@@ -294,5 +295,107 @@ test("no se puede cancelar si el turno ya comenzo", async () => {
   const turno = turnoBase({ inicio: new Date("2026-11-03T14:00:00.000Z"), termino: new Date("2026-11-03T18:00:00.000Z") });
 
   await debeRechazarCancelacion(inscripcionActiva({ turno }), "TURNO_YA_COMENZADO", 409);
+});
+
+// Dependencias de prueba para modificar (RF16): la inscripcion actual esta en el
+// turno 1 y se intenta mover al turno `nuevo`.
+function dependenciasDeModificacion({ inscripcion = inscripcionActiva(), nuevo = turnoBase({ id: 2 }), activas, cupoTomado = true } = {}) {
+  const llamadas = { liberados: [], reservas: [], cambios: [], historial: [] };
+  const tx = { id: "tx" };
+  const inscripcionesActivas = activas ?? (inscripcion ? [{ id: inscripcion.id, turnoId: inscripcion.turnoId, turno: inscripcion.turno }] : []);
+
+  return {
+    llamadas,
+    dependencias: {
+      enTransaccion: async (accion) => accion(tx),
+      bloquearVoluntario: async () => {},
+      buscarInscripcionPorId: async (id) => (inscripcion && inscripcion.id === id ? inscripcion : null),
+      buscarTurnoPorId: async (id) => (nuevo && nuevo.id === id ? nuevo : null),
+      listarInscripcionesActivasDeVoluntario: async () => inscripcionesActivas,
+      liberarCupo: async (turnoId) => {
+        llamadas.liberados.push(turnoId);
+      },
+      reservarCupo: async (turnoId) => {
+        llamadas.reservas.push(turnoId);
+        return cupoTomado;
+      },
+      cambiarTurnoDeInscripcion: async (id, turnoId) => {
+        llamadas.cambios.push({ id, turnoId });
+        return { ...inscripcion, turnoId, turno: nuevo };
+      },
+      registrarHistorial: async (data) => {
+        llamadas.historial.push(data);
+      },
+    },
+  };
+}
+
+test("modificar libera el cupo anterior, toma el nuevo y registra el turno anterior en el historial", async () => {
+  const { dependencias, llamadas } = dependenciasDeModificacion();
+
+  const modificada = await modificarInscripcionDeTurno(9, { turnoId: 2 }, VOLUNTARIO, dependencias, AHORA);
+
+  assert.equal(modificada.turnoId, 2);
+  assert.deepEqual(llamadas.liberados, [1]);
+  assert.deepEqual(llamadas.reservas, [2]);
+  assert.deepEqual(llamadas.cambios, [{ id: 9, turnoId: 2 }]);
+  assert.deepEqual(llamadas.historial, [
+    { inscripcionId: 9, accion: "MODIFICACION", turnoId: 2, turnoAnteriorId: 1, realizadoPorId: 20 },
+  ]);
+});
+
+async function debeRechazarModificacion(opciones, codigo, estadoHttp, turnoId = 2) {
+  const { dependencias, llamadas } = dependenciasDeModificacion(opciones);
+
+  await assert.rejects(modificarInscripcionDeTurno(9, { turnoId }, VOLUNTARIO, dependencias, AHORA), (error) => {
+    assert.equal(error.codigo, codigo);
+    assert.equal(error.estadoHttp, estadoHttp);
+    return true;
+  });
+  assert.equal(llamadas.cambios.length + llamadas.historial.length, 0, "no debe cambiar nada");
+}
+
+test("no se puede modificar una inscripcion inexistente, ajena o cancelada", async () => {
+  await debeRechazarModificacion({ inscripcion: null }, "INSCRIPCION_INEXISTENTE", 404);
+  await debeRechazarModificacion({ inscripcion: inscripcionActiva({ voluntarioId: 77 }) }, "INSCRIPCION_INEXISTENTE", 404);
+  await debeRechazarModificacion({ inscripcion: inscripcionActiva({ estado: "CANCELADA" }) }, "INSCRIPCION_NO_ACTIVA", 409);
+});
+
+test("cambiar al mismo turno responde 409", async () => {
+  await debeRechazarModificacion({}, "MISMO_TURNO", 409, 1);
+});
+
+test("no se puede modificar si el turno actual ya comenzo", async () => {
+  const turno = turnoBase({ inicio: new Date("2026-11-03T14:00:00.000Z"), termino: new Date("2026-11-03T18:00:00.000Z") });
+
+  await debeRechazarModificacion({ inscripcion: inscripcionActiva({ turno }) }, "TURNO_YA_COMENZADO", 409);
+});
+
+test("el turno nuevo cumple las mismas reglas que al inscribirse", async () => {
+  await debeRechazarModificacion({ nuevo: null }, "TURNO_INEXISTENTE", 404);
+  await debeRechazarModificacion({ nuevo: turnoBase({ id: 2, estado: "CANCELADO" }) }, "TURNO_CANCELADO", 409);
+  await debeRechazarModificacion({ nuevo: turnoBase({ id: 2, cuposDisponibles: 0 }) }, "TURNO_SIN_CUPOS", 409);
+  await debeRechazarModificacion({ cupoTomado: false }, "TURNO_SIN_CUPOS", 409);
+  await debeRechazarModificacion(
+    { nuevo: turnoBase({ id: 2, fechaLimiteInscripcion: new Date("2026-11-03T14:00:00.000Z") }) },
+    "PLAZO_INSCRIPCION_VENCIDO",
+    409,
+  );
+});
+
+test("al modificar, la inscripcion actual no cuenta como solape ni como duplicado", async () => {
+  // El turno nuevo tiene el mismo horario que el actual: solo solaparia consigo misma.
+  const { dependencias, llamadas } = dependenciasDeModificacion({ nuevo: turnoBase({ id: 2 }) });
+
+  await modificarInscripcionDeTurno(9, { turnoId: 2 }, VOLUNTARIO, dependencias, AHORA);
+
+  assert.deepEqual(llamadas.cambios, [{ id: 9, turnoId: 2 }]);
+});
+
+test("al modificar si se revisa el solape con las otras inscripciones activas", async () => {
+  const otra = { id: 30, turnoId: 3, turno: turnoBase({ id: 3 }) };
+  const activas = [{ id: 9, turnoId: 1, turno: turnoBase() }, otra];
+
+  await debeRechazarModificacion({ activas }, "HORARIO_SOLAPADO", 409);
 });
 

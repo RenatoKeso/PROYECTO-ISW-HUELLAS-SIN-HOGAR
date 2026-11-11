@@ -8,6 +8,7 @@ import { puedeGestionarInscripciones } from "../services/permisosUsuario.js";
 import {
   inscripcionCreateSchema,
   inscripcionIdSchema,
+  inscripcionUpdateSchema,
   misInscripcionesQuerySchema,
 } from "../validations/inscripcionValidation.js";
 
@@ -46,6 +47,14 @@ export function crearInscripcionRouter({
     "/:id/cancelacion",
     validarEsquema(inscripcionIdSchema, "params"),
     capturarErrores(controlador.cancelar),
+  );
+
+  // Cambiar una inscripcion propia a otro turno.
+  router.patch(
+    "/:id",
+    validarEsquema(inscripcionIdSchema, "params"),
+    validarEsquema(inscripcionUpdateSchema),
+    capturarErrores(controlador.modificar),
   );
 
   return router;
