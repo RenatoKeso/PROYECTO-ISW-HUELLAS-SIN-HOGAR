@@ -662,6 +662,37 @@
   margin-bottom: calc(-2.25rem + 10px);
 }
 
+/* Fila de mascotas abajo en la pantalla del reporte, de borde a borde */
+.app:has(.fila-mascotas) {
+  overflow-x: clip;
+}
+
+.contenido:has(.fila-mascotas) {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+.devoluciones:has(.fila-mascotas) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.fila-mascotas {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-top: auto;
+  padding-top: 8rem;
+  overflow: hidden;
+  justify-content: center;
+  pointer-events: none;
+}
+
+
 /* Las mascotas se ven suaves, como una sombra */
 .fila-mascotas img {
   flex: 0 0 auto;

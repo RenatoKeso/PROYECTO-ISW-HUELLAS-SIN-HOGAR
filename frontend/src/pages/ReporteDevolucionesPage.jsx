@@ -11,6 +11,7 @@ import {
   hoyLocal,
 } from "../utils/formatoAdopcion.js";
 import "../styles/reporteDevoluciones.css";
+import mascotas from "../assets/mascotas.svg";
 
 const NOMBRES_MOTIVO = {
   COMPORTAMIENTO: "Comportamiento",
