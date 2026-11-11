@@ -5,7 +5,12 @@ import { validarEsquema } from "../middlewares/validarEsquema.js";
 import { crearAutenticacion } from "../middlewares/autenticarUsuario.js";
 import { autorizarAccion } from "../middlewares/autorizarAccion.js";
 import { puedeGestionarInscripciones } from "../services/permisosUsuario.js";
-import { inscripcionCreateSchema } from "../validations/inscripcionValidation.js";
+import {
+  inscripcionCreateSchema,
+  inscripcionIdSchema,
+  inscripcionUpdateSchema,
+  misInscripcionesQuerySchema,
+} from "../validations/inscripcionValidation.js";
 
 export function crearInscripcionRouter({
   controlador = crearInscripcionController(),
@@ -21,6 +26,35 @@ export function crearInscripcionRouter({
     "/",
     validarEsquema(inscripcionCreateSchema),
     capturarErrores(controlador.inscribirse),
+  );
+
+  // Mis inscripciones, con filtro opcional ?estado=ACTIVA|CANCELADA.
+  router.get(
+    "/mias",
+    validarEsquema(misInscripcionesQuerySchema, "query"),
+    capturarErrores(controlador.listarMias),
+  );
+
+  router.get(
+    "/:id/historial",
+    validarEsquema(inscripcionIdSchema, "params"),
+    capturarErrores(controlador.verHistorial),
+  );
+
+  // Cancelar una inscripcion propia. Es PATCH porque la inscripcion no se borra:
+  // cambia de estado y conserva su historial.
+  router.patch(
+    "/:id/cancelacion",
+    validarEsquema(inscripcionIdSchema, "params"),
+    capturarErrores(controlador.cancelar),
+  );
+
+  // Cambiar una inscripcion propia a otro turno.
+  router.patch(
+    "/:id",
+    validarEsquema(inscripcionIdSchema, "params"),
+    validarEsquema(inscripcionUpdateSchema),
+    capturarErrores(controlador.modificar),
   );
 
   return router;

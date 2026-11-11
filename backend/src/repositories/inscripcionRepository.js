@@ -53,3 +53,67 @@ export async function crearInscripcion(data, cliente = prisma) {
 export async function registrarHistorial(data, cliente = prisma) {
   return cliente.historialInscripcion.create({ data });
 }
+
+// Inscripciones del voluntario, opcionalmente filtradas por estado, con su turno.
+// Las mas recientes primero.
+export async function listarInscripcionesDeVoluntario(voluntarioId, estado, cliente = prisma) {
+  return cliente.inscripcionTurno.findMany({
+    where: { voluntarioId, ...(estado ? { estado } : {}) },
+    select: CAMPOS_INSCRIPCION,
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+// Una inscripcion por id, con su turno. Devuelve null si no existe.
+export async function buscarInscripcionPorId(id, cliente = prisma) {
+  return cliente.inscripcionTurno.findUnique({
+    where: { id },
+    select: CAMPOS_INSCRIPCION,
+  });
+}
+
+// Historial de una inscripcion en orden cronologico, con el titulo y horario de
+// los turnos involucrados y quien hizo cada operacion.
+export async function listarHistorialDeInscripcion(inscripcionId, cliente = prisma) {
+  return cliente.historialInscripcion.findMany({
+    where: { inscripcionId },
+    select: {
+      id: true,
+      accion: true,
+      detalle: true,
+      fecha: true,
+      turno: { select: { id: true, titulo: true, inicio: true, termino: true } },
+      turnoAnterior: { select: { id: true, titulo: true, inicio: true, termino: true } },
+      realizadoPor: { select: { id: true, nombre: true, rol: true } },
+    },
+    orderBy: { fecha: "asc" },
+  });
+}
+
+// Devuelve el cupo de un turno. Se usa al cancelar o cambiar de turno.
+export async function liberarCupo(turnoId, cliente = prisma) {
+  await cliente.turno.update({
+    where: { id: turnoId },
+    data: { cuposDisponibles: { increment: 1 } },
+  });
+}
+
+// Marca la inscripcion como cancelada. Nunca se borra: queda en el historial.
+export async function cancelarInscripcion(id, canceladaEn, cliente = prisma) {
+  return cliente.inscripcionTurno.update({
+    where: { id },
+    data: { estado: "CANCELADA", canceladaEn },
+    select: CAMPOS_INSCRIPCION,
+  });
+}
+
+// Mueve la inscripcion a otro turno. Sigue siendo la misma inscripcion (mismo id),
+// asi su historial queda completo.
+export async function cambiarTurnoDeInscripcion(id, turnoId, cliente = prisma) {
+  return cliente.inscripcionTurno.update({
+    where: { id },
+    data: { turnoId },
+    select: CAMPOS_INSCRIPCION,
+  });
+}
+
