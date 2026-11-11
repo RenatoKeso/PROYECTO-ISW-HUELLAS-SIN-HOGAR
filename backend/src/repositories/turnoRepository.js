@@ -1,7 +1,7 @@
 import prisma from "../config/prisma.js";
 
 // Campos del turno que se devuelven a la pantalla.
-const CAMPOS_TURNO = {
+export const CAMPOS_TURNO = {
   id: true,
   titulo: true,
   descripcion: true,
@@ -32,5 +32,12 @@ export async function listarTurnosPublicados(ahora, cliente = prisma) {
     where: { estado: "PUBLICADO", inicio: { gt: ahora } },
     select: CAMPOS_TURNO,
     orderBy: { inicio: "asc" },
+  });
+}
+
+export async function buscarTurnoPorId(id, cliente = prisma) {
+  return cliente.turno.findUnique({
+    where: { id },
+    select: CAMPOS_TURNO,
   });
 }
