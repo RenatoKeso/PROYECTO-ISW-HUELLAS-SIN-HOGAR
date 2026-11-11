@@ -1,0 +1,60 @@
+.invitacion-voluntariado {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+    align-items: center;
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border-radius: 22px;
+    background: linear-gradient(120deg, var(--verde-claro), var(--verde));
+    color: var(--crema-claro);
+    box-shadow: var(--sombra);
+}
+
+.bloque.invitacion-voluntariado h2 {
+    max-width: 22ch;
+    color: inherit;
+    font-size: clamp(1.85rem, 4vw, 2.75rem);
+    line-height: 1.1;
+    text-wrap: balance;
+}
+
+.invitacion-voluntariado p {
+    max-width: 38ch;
+    margin: 0 0 1.5rem;
+}
+
+.invitacion-voluntariado .invitacion-enlace {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--crema-claro);
+    color: var(--verde-claro);
+}
+
+.invitacion-voluntariado .invitacion-enlace:hover {
+    background: var(--arena);
+}
+
+.invitacion-enlace:focus-visible {
+    outline: 2px solid var(--crema-claro);
+    outline-offset: 4px;
+}
+
+.invitacion-mascotas {
+    display: block;
+    width: 100%;
+    padding: 1.5rem 1rem 0.9rem;
+    border-radius: 45% 45% 18px 18px / 65% 65% 18px 18px;
+    background: var(--crema);
+}
+
+@media (max-width: 720px) {
+    .invitacion-voluntariado {
+    grid-template-columns: 1fr;
+}
+
+    .invitacion-mascotas {
+    max-width: 28rem;
+    justify-self: center;
+    }
+}
