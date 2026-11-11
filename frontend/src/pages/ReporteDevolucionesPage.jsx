@@ -11,11 +11,6 @@ import {
   hoyLocal,
 } from "../utils/formatoAdopcion.js";
 import "../styles/reporteDevoluciones.css";
-import mascotas from "../assets/mascotas.svg";
-import caritaGato from "../assets/carita-gato.svg";
-import caritaPerro from "../assets/carita-perro.svg";
-import caritaConejo from "../assets/carita-conejo.svg";
-import caritaGatoCafe from "../assets/carita-gato-cafe.svg";
 
 const NOMBRES_MOTIVO = {
   COMPORTAMIENTO: "Comportamiento",
@@ -308,17 +303,6 @@ function ReporteDevolucionesPage({ usuario }) {
               <p className="decoracion-bajada">Saber por qué volvió nos ayuda a encontrarle el hogar ideal.</p>
             </div>
             <img src={mascotas} alt="" className="mascotas" />
-          </div>
-
-          <div className="huellas-fondo" aria-hidden="true">
-            <img src={caritaGato} alt="" className="carita f1" />
-            <img src={caritaConejo} alt="" className="carita f2" />
-            <img src={caritaGatoCafe} alt="" className="carita f3" />
-            <img src={caritaPerro} alt="" className="carita f4" />
-            <span className="huella-fondo h1">🐾</span>
-            <span className="huella-fondo h2">🐾</span>
-            <span className="huella-fondo h3">🐾</span>
-            <span className="huella-fondo h4">🐾</span>
           </div>
   </div>
 )}
