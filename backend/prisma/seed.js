@@ -743,7 +743,6 @@ async function main() {
   await prisma.postulacionVoluntario.create({
     data: {
       nombre: "Diego Fuentes",
-      rut: "19876543-0",
       email: "diego@refugio.cl",
       telefono: "955512345",
       diasDisponibles: ["SABADO", "DOMINGO"],
@@ -759,7 +758,6 @@ async function main() {
   await prisma.postulacionVoluntario.create({
     data: {
       nombre: "Ignacio Perez",
-      rut: "20123456-5",
       email: "ignacio.perez@gmail.com",
       telefono: "944433322",
       diasDisponibles: ["MIERCOLES"],
@@ -775,7 +773,6 @@ async function main() {
   await prisma.postulacionVoluntario.create({
     data: {
       nombre: "Camila Soto",
-      rut: "18765432-7",
       email: "camila.soto@gmail.com",
       telefono: "933322211",
       diasDisponibles: ["LUNES", "MIERCOLES", "VIERNES"],
@@ -787,7 +784,6 @@ async function main() {
   await prisma.postulacionVoluntario.create({
     data: {
       nombre: "Sofia Muñoz",
-      rut: "21456789-K",
       email: "sofia.munoz@gmail.com",
       telefono: "922211100",
       diasDisponibles: ["SABADO"],

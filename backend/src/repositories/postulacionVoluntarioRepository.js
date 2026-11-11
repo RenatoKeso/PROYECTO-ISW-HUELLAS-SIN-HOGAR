@@ -3,7 +3,6 @@ import prisma from "../config/prisma.js";
 const CAMPOS_POSTULACION = {
   id: true,
   nombre: true,
-  rut: true,
   email: true,
   telefono: true,
   diasDisponibles: true,
@@ -23,11 +22,11 @@ export async function buscarVoluntarioPorEmail(email, cliente = prisma) {
   return cliente.voluntario.findUnique({ where: { email } });
 }
 
-export async function buscarPostulacionVigente(rut, email, cliente = prisma) {
+export async function buscarPostulacionVigente( email, cliente = prisma) {
   return cliente.postulacionVoluntario.findFirst({
     where: {
       estado: { in: ["EN_REVISION", "ACEPTADA"] },
-      OR: [{ rut }, { email }],
+       email,
     },
     select: { id: true, estado: true },
   });

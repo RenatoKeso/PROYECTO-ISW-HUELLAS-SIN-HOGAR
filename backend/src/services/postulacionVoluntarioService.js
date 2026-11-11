@@ -41,7 +41,7 @@ export async function postularComoVoluntario(datos, dependencias = DEPENDENCIAS_
 
   if (voluntario) throw yaEsVoluntario();
 
-  const vigente = await buscarPostulacionVigente(datos.rut, datos.email);
+  const vigente = await buscarPostulacionVigente(datos.email);
 
   if (vigente && vigente.estado === "ACEPTADA") throw yaEsVoluntario();
   if (vigente) throw postulacionEnRevision();
