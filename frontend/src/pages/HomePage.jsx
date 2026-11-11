@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import perritos from "../assets/perritos.jpg";
+import mascotas from "../assets/mascotas.svg";
+import "../styles/inicio.css";
 
 function HomePage() {
   return (
@@ -27,21 +29,21 @@ function HomePage() {
       </section>
 
       <section className="bloque">
-        <h2>Que hacemos</h2>
+        <h2>Qué hacemos</h2>
 
         <div className="tarjetas">
           <article className="tarjeta">
             <h3>Rescate e ingreso</h3>
             <p>
-              Recibimos animales desde la via publica, entregas voluntarias,
+              Recibimos animales desde la vía pública, entregas voluntarias,
               decomisos municipales y traslados de otros refugios.
             </p>
           </article>
 
           <article className="tarjeta">
-            <h3>Adopcion responsable</h3>
+            <h3>Adopción responsable</h3>
             <p>
-              Evaluamos cada postulacion con visitas previas para asegurar que
+              Evaluamos cada postulación con visitas previas para asegurar que
               el animal llegue a un hogar adecuado.
             </p>
           </article>
@@ -54,22 +56,25 @@ function HomePage() {
             </p>
           </article>
         </div>
-        
-         <Link to="/Voluntariado" className="boton boton-voluntariado">
-          Quiero ser voluntario.
-         </Link>
       </section>
 
-      <section className="bloque">
-        <h2>Acceso al sistema</h2>
-        <p>
-          Desde aqui el personal del refugio registra y consulta la informacion
-          de los animales.
-        </p>
+      <section
+        className="bloque invitacion-voluntariado"
+        aria-labelledby="titulo-invitacion"
+      >
+        <div>
+          <h2 id="titulo-invitacion">Hazles un espacio en tu semana</h2>
+          <p>
+            Súmate a los paseos y al cuidado diario de los animales mientras
+            encuentran una familia.
+          </p>
 
-        <Link to="/registro" className="boton">
-          Registrar ficha e ingreso
-        </Link>
+          <Link to="/voluntariado" className="boton invitacion-enlace">
+            Quiero ser voluntario <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+
+        <img className="invitacion-mascotas" src={mascotas} alt="" />
       </section>
     </>
   );
