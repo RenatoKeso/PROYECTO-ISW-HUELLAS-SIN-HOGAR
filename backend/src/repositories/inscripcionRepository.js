@@ -90,3 +90,20 @@ export async function listarHistorialDeInscripcion(inscripcionId, cliente = pris
   });
 }
 
+// Devuelve el cupo de un turno. Se usa al cancelar o cambiar de turno.
+export async function liberarCupo(turnoId, cliente = prisma) {
+  await cliente.turno.update({
+    where: { id: turnoId },
+    data: { cuposDisponibles: { increment: 1 } },
+  });
+}
+
+// Marca la inscripcion como cancelada. Nunca se borra: queda en el historial.
+export async function cancelarInscripcion(id, canceladaEn, cliente = prisma) {
+  return cliente.inscripcionTurno.update({
+    where: { id },
+    data: { estado: "CANCELADA", canceladaEn },
+    select: CAMPOS_INSCRIPCION,
+  });
+}
+

@@ -2,7 +2,9 @@ import { ejecutarEnTransaccion } from "../config/prisma.js";
 import {
   bloquearVoluntario,
   buscarInscripcionPorId,
+  cancelarInscripcion,
   crearInscripcion,
+  liberarCupo,
   listarHistorialDeInscripcion,
   listarInscripcionesActivasDeVoluntario,
   listarInscripcionesDeVoluntario,
@@ -14,6 +16,7 @@ import {
   horarioSolapado,
   inscripcionDuplicada,
   inscripcionInexistente,
+  inscripcionNoActiva,
   plazoInscripcionVencido,
   turnoCancelado,
   turnoInexistente,
@@ -39,6 +42,8 @@ const DEPENDENCIAS_POR_DEFECTO = {
   listarInscripcionesDeVoluntario,
   buscarInscripcionPorId,
   listarHistorialDeInscripcion,
+  liberarCupo,
+  cancelarInscripcion,
 };
 
 // El voluntario sale de la cuenta con sesion, nunca del cuerpo de la peticion.
@@ -155,5 +160,46 @@ export async function obtenerHistorialDeInscripcion(
   const historial = await dependencias.listarHistorialDeInscripcion(inscripcion.id);
 
   return { inscripcion, historial };
+}
+
+// RF17. Cancela una inscripcion propia que siga activa y cuyo turno no haya
+// comenzado. Devuelve el cupo y deja constancia en el historial, todo en una transaccion.
+export async function cancelarInscripcionEnTurno(
+  id,
+  usuario,
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+  ahora = new Date(),
+) {
+  const voluntarioId = voluntarioDe(usuario);
+
+  return dependencias.enTransaccion(async (tx) => {
+    await dependencias.bloquearVoluntario(voluntarioId, tx);
+
+    const inscripcion = await buscarInscripcionPropia(id, usuario, dependencias, tx);
+
+    if (inscripcion.estado !== "ACTIVA") {
+      throw inscripcionNoActiva();
+    }
+
+    if (turnoYaComenzo(inscripcion.turno, ahora)) {
+      throw turnoYaComenzado();
+    }
+
+    await dependencias.liberarCupo(inscripcion.turnoId, tx);
+
+    const cancelada = await dependencias.cancelarInscripcion(inscripcion.id, ahora, tx);
+
+    await dependencias.registrarHistorial(
+      {
+        inscripcionId: inscripcion.id,
+        accion: "CANCELACION",
+        turnoId: inscripcion.turnoId,
+        realizadoPorId: usuario.id,
+      },
+      tx,
+    );
+
+    return cancelada;
+  });
 }
 

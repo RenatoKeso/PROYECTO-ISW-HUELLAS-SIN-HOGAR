@@ -1,5 +1,6 @@
 import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
 import {
+  cancelarInscripcionEnTurno,
   inscribirseEnTurno,
   obtenerHistorialDeInscripcion,
   obtenerMisInscripciones,
@@ -9,6 +10,7 @@ export function crearInscripcionController({
   inscribirse = inscribirseEnTurno,
   obtenerMias = obtenerMisInscripciones,
   obtenerHistorial = obtenerHistorialDeInscripcion,
+  cancelar = cancelarInscripcionEnTurno,
 } = {}) {
   return {
     async inscribirse(request, response) {
@@ -36,6 +38,15 @@ export function crearInscripcionController({
       return enviarRespuestaExitosa(response, {
         mensaje: "Historial obtenido correctamente",
         datos: { inscripcion, historial },
+      });
+    },
+
+    async cancelar(request, response) {
+      const inscripcion = await cancelar(request.params.id, request.usuario);
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: "Inscripción cancelada correctamente",
+        datos: { inscripcion },
       });
     },
   };

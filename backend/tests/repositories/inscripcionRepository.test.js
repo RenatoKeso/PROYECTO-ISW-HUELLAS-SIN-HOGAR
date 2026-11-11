@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buscarInscripcionPorId,
+  cancelarInscripcion,
   crearInscripcion,
+  liberarCupo,
   listarHistorialDeInscripcion,
   listarInscripcionesActivasDeVoluntario,
   listarInscripcionesDeVoluntario,
@@ -21,11 +23,15 @@ function clienteDePrueba(respuesta) {
   return {
     consultas,
     cliente: {
-      turno: { updateMany: registrar("turno.updateMany") },
+      turno: {
+        updateMany: registrar("turno.updateMany"),
+        update: registrar("turno.update"),
+      },
       inscripcionTurno: {
         findMany: registrar("inscripcion.findMany"),
         findUnique: registrar("inscripcion.findUnique"),
         create: registrar("inscripcion.create"),
+        update: registrar("inscripcion.update"),
       },
       historialInscripcion: {
         create: registrar("historial.create"),
@@ -114,5 +120,29 @@ test("listarHistorialDeInscripcion trae el historial en orden cronologico", asyn
   assert.deepEqual(argumentos.orderBy, { fecha: "asc" });
   assert.equal(argumentos.select.turnoAnterior.select.titulo, true);
   assert.equal(argumentos.select.realizadoPor.select.nombre, true);
+});
+
+test("liberarCupo suma un cupo al turno", async () => {
+  const { cliente, consultas } = clienteDePrueba({});
+
+  await liberarCupo(3, cliente);
+
+  const [[metodo, argumentos]] = consultas;
+  assert.equal(metodo, "turno.update");
+  assert.deepEqual(argumentos.where, { id: 3 });
+  assert.deepEqual(argumentos.data, { cuposDisponibles: { increment: 1 } });
+});
+
+test("cancelarInscripcion cambia el estado y guarda cuando se cancelo", async () => {
+  const { cliente, consultas } = clienteDePrueba({ id: 9 });
+  const cuando = new Date("2026-11-03T15:00:00.000Z");
+
+  await cancelarInscripcion(9, cuando, cliente);
+
+  const [[metodo, argumentos]] = consultas;
+  assert.equal(metodo, "inscripcion.update");
+  assert.deepEqual(argumentos.where, { id: 9 });
+  assert.deepEqual(argumentos.data, { estado: "CANCELADA", canceladaEn: cuando });
+  assert.equal(argumentos.select.turno.select.titulo, true);
 });
 

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  cancelarInscripcionEnTurno,
   inscribirseEnTurno,
   obtenerHistorialDeInscripcion,
   obtenerMisInscripciones,
@@ -222,5 +223,76 @@ test("el historial de una inscripcion inexistente o ajena responde 404 sin revel
     });
     assert.equal(llamadas.historial.length, 0);
   }
+});
+
+// Dependencias de prueba para cancelar (RF17).
+function dependenciasDeCancelacion(inscripcion) {
+  const llamadas = { liberados: [], canceladas: [], historial: [] };
+  const tx = { id: "tx" };
+
+  return {
+    llamadas,
+    dependencias: {
+      enTransaccion: async (accion) => accion(tx),
+      bloquearVoluntario: async () => {},
+      buscarInscripcionPorId: async (id, cliente) => {
+        assert.equal(cliente, tx, "debe leer dentro de la transaccion");
+        return inscripcion && inscripcion.id === id ? inscripcion : null;
+      },
+      liberarCupo: async (turnoId) => {
+        llamadas.liberados.push(turnoId);
+      },
+      cancelarInscripcion: async (id, canceladaEn) => {
+        llamadas.canceladas.push({ id, canceladaEn });
+        return { ...inscripcion, estado: "CANCELADA", canceladaEn };
+      },
+      registrarHistorial: async (data) => {
+        llamadas.historial.push(data);
+      },
+    },
+  };
+}
+
+function inscripcionActiva(cambios = {}) {
+  return { id: 9, turnoId: 1, voluntarioId: 4, estado: "ACTIVA", turno: turnoBase(), ...cambios };
+}
+
+test("cancelar devuelve el cupo, marca la inscripcion y registra el historial", async () => {
+  const { dependencias, llamadas } = dependenciasDeCancelacion(inscripcionActiva());
+
+  const cancelada = await cancelarInscripcionEnTurno(9, VOLUNTARIO, dependencias, AHORA);
+
+  assert.equal(cancelada.estado, "CANCELADA");
+  assert.deepEqual(llamadas.liberados, [1]);
+  assert.deepEqual(llamadas.canceladas, [{ id: 9, canceladaEn: AHORA }]);
+  assert.deepEqual(llamadas.historial, [
+    { inscripcionId: 9, accion: "CANCELACION", turnoId: 1, realizadoPorId: 20 },
+  ]);
+});
+
+async function debeRechazarCancelacion(inscripcion, codigo, estadoHttp) {
+  const { dependencias, llamadas } = dependenciasDeCancelacion(inscripcion);
+
+  await assert.rejects(cancelarInscripcionEnTurno(9, VOLUNTARIO, dependencias, AHORA), (error) => {
+    assert.equal(error.codigo, codigo);
+    assert.equal(error.estadoHttp, estadoHttp);
+    return true;
+  });
+  assert.equal(llamadas.liberados.length + llamadas.canceladas.length + llamadas.historial.length, 0);
+}
+
+test("no se puede cancelar una inscripcion inexistente o de otro voluntario", async () => {
+  await debeRechazarCancelacion(null, "INSCRIPCION_INEXISTENTE", 404);
+  await debeRechazarCancelacion(inscripcionActiva({ voluntarioId: 77 }), "INSCRIPCION_INEXISTENTE", 404);
+});
+
+test("una inscripcion ya cancelada no se cancela de nuevo", async () => {
+  await debeRechazarCancelacion(inscripcionActiva({ estado: "CANCELADA" }), "INSCRIPCION_NO_ACTIVA", 409);
+});
+
+test("no se puede cancelar si el turno ya comenzo", async () => {
+  const turno = turnoBase({ inicio: new Date("2026-11-03T14:00:00.000Z"), termino: new Date("2026-11-03T18:00:00.000Z") });
+
+  await debeRechazarCancelacion(inscripcionActiva({ turno }), "TURNO_YA_COMENZADO", 409);
 });
 

@@ -40,5 +40,13 @@ export function crearInscripcionRouter({
     capturarErrores(controlador.verHistorial),
   );
 
+  // Cancelar una inscripcion propia. Es PATCH porque la inscripcion no se borra:
+  // cambia de estado y conserva su historial.
+  router.patch(
+    "/:id/cancelacion",
+    validarEsquema(inscripcionIdSchema, "params"),
+    capturarErrores(controlador.cancelar),
+  );
+
   return router;
 }

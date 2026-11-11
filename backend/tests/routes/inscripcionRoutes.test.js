@@ -58,7 +58,7 @@ function pedir(url, { metodo = "GET", rol, cuerpo } = {}) {
 }
 
 function controladorDePrueba(inscribirse) {
-  const llamadas = { inscribir: [], mias: [], historial: [] };
+  const llamadas = { inscribir: [], mias: [], historial: [], cancelar: [] };
 
   const controlador = crearInscripcionController({
     inscribirse:
@@ -75,6 +75,10 @@ function controladorDePrueba(inscribirse) {
       llamadas.historial.push({ id, usuario });
       return { inscripcion: { id }, historial: [] };
     },
+    cancelar: async (id, usuario) => {
+      llamadas.cancelar.push({ id, usuario });
+      return { id, estado: "CANCELADA" };
+    },
   });
 
   return { controlador, llamadas };
@@ -88,6 +92,7 @@ test("las rutas de inscripciones exigen sesion", async () => {
       ["POST", "", { turnoId: 1 }],
       ["GET", "/mias"],
       ["GET", "/3/historial"],
+      ["PATCH", "/3/cancelacion"],
     ]) {
       const respuesta = await pedir(`${url}${ruta}`, { metodo, cuerpo });
 
@@ -95,7 +100,10 @@ test("las rutas de inscripciones exigen sesion", async () => {
     }
   });
 
-  assert.equal(llamadas.inscribir.length + llamadas.mias.length + llamadas.historial.length, 0);
+  assert.equal(
+    llamadas.inscribir.length + llamadas.mias.length + llamadas.historial.length + llamadas.cancelar.length,
+    0,
+  );
 });
 
 test("solo los voluntarios se inscriben", async () => {
@@ -195,5 +203,23 @@ test("el historial recibe el id como numero y rechaza ids invalidos", async () =
   });
 
   assert.deepEqual(llamadas.historial.map((llamada) => llamada.id), [7]);
+});
+
+test("cancelar recibe el id como numero y solo lo usan los voluntarios", async () => {
+  const { controlador, llamadas } = controladorDePrueba();
+
+  await conServidor(controlador, async (url) => {
+    const ok = await pedir(`${url}/7/cancelacion`, { metodo: "PATCH", rol: "VOLUNTARIO" });
+    const invalido = await pedir(`${url}/x/cancelacion`, { metodo: "PATCH", rol: "VOLUNTARIO" });
+    const otroRol = await pedir(`${url}/7/cancelacion`, { metodo: "PATCH", rol: "DIRECTORA" });
+
+    assert.equal(ok.status, 200);
+    assert.equal((await ok.json()).inscripcion.estado, "CANCELADA");
+    assert.equal(invalido.status, 400);
+    assert.equal(otroRol.status, 403);
+  });
+
+  assert.deepEqual(llamadas.cancelar.map((llamada) => llamada.id), [7]);
+  assert.equal(llamadas.cancelar[0].usuario.id, 5);
 });
 
