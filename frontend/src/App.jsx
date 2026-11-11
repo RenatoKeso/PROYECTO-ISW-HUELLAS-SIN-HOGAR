@@ -13,8 +13,10 @@ import PublicarAnimalesPage from "./pages/PublicarAnimalesPage.jsx";
 import VoluntariadoPage from "./pages/VoluntariadoPage.jsx";
 import PostulacionesVoluntarioPage from "./pages/PostulacionesVoluntarioPage.jsx";
 import RegistroMedicoPage from "./pages/RegistroMedicoPage.jsx";
+import TurnosPage from "./pages/TurnosPage.jsx";
+import MisInscripcionesPage from "./pages/MisInscripcionesPage.jsx";
 import useSesion from "./hooks/useSesion.js";
-import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeGestionarAdopciones,puedeRevisarPostulacionesVoluntario,puedeConsultarRegistroMedico,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
+import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeGestionarAdopciones,puedeRevisarPostulacionesVoluntario,puedeConsultarRegistroMedico,puedeConsultarTurnos,puedeGestionarInscripciones,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
 
 const TITULOS_POR_RUTA = {
   "/": "Inicio",
@@ -26,6 +28,8 @@ const TITULOS_POR_RUTA = {
   "/adopcion/:animalId/postular": "Postular a adopción",
   "/voluntariado": "Voluntariado",
   "/voluntariado/postulaciones": "Postulaciones de voluntariado",
+  "/turnos": "Turnos de voluntariado",
+  "/turnos/mis-inscripciones": "Mis inscripciones",
   "/postulaciones": "Postulaciones de adopción",
   "/postulaciones/:id": "Detalle de postulación",
   "/adopciones/publicar": "Publicar animales en adopción",
@@ -121,6 +125,14 @@ function App() {
                   </Link>
                 )}
 
+                {puedeConsultarTurnos(usuario) && (
+                  <Link to="/turnos">Turnos</Link>
+                )}
+
+                {puedeGestionarInscripciones(usuario) && (
+                  <Link to="/turnos/mis-inscripciones">Mis inscripciones</Link>
+                )}
+
                 <span>
                   {usuario.nombre} · {NOMBRES_ROL[usuario.rol]}
                 </span>
@@ -193,6 +205,22 @@ function App() {
             element={proteger(
               <PostulacionesVoluntarioPage />,
               puedeRevisarPostulacionesVoluntario
+            )}
+          />
+
+          <Route
+            path="/turnos"
+            element={proteger(
+              <TurnosPage usuario={usuario} />,
+              puedeConsultarTurnos
+            )}
+          />
+
+          <Route
+            path="/turnos/mis-inscripciones"
+            element={proteger(
+              <MisInscripcionesPage />,
+              puedeGestionarInscripciones
             )}
           />
 

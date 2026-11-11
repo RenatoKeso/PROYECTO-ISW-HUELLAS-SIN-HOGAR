@@ -1,60 +1,90 @@
 # Huellas Sin Hogar
 
-Sistema de gestion para el refugio de animales Huellas Sin Hogar, desarrollado
-como proyecto del ramo de Ingenieria de Software.
+Sistema web de gestión para el refugio de animales **Huellas Sin Hogar**, desarrollado como proyecto del ramo de Ingeniería de Software (Universidad del Bío-Bío).
 
-## Descripcion
+El sistema reemplaza el registro manual del refugio: centraliza las fichas de los animales y su historial médico, el proceso de adopción completo y la organización de los voluntarios y sus turnos.
 
-Aplicacion web que permite al refugio administrar la informacion de los animales
-a su cuidado, registrar sus ingresos y gestionar los procesos de adopcion.
+## Contenido
 
-Esta version implementa el modulo de fichas e ingresos de animales, con el flujo
-completo de frontend, backend y base de datos.
+- [Módulos](#módulos)
+- [Roles](#roles)
+- [Tecnologías](#tecnologías)
+- [Estructura del repositorio](#estructura-del-repositorio)
+- [Instalación local](#instalación-local)
+- [Cuentas de prueba](#cuentas-de-prueba)
+- [Pruebas automatizadas](#pruebas-automatizadas)
+- [API](#api)
+- [Problemas comunes](#problemas-comunes)
+- [Convenciones del equipo](#convenciones-del-equipo)
 
-## Tecnologias
+## Módulos
 
-- **Frontend:** React 19 con Vite, React Router y validacion con Zod
-- **Backend:** Node.js con Express, en modulos ESM
-- **Base de datos:** PostgreSQL con Prisma como ORM
+| Módulo | Qué permite |
+|---|---|
+| Registro de animales | Crear la ficha de un animal (con foto) y registrar sus ingresos al refugio. |
+| Registro médico | Revisión inicial al ingreso, validación y revisión final de la veterinaria, enfermedades, tratamientos y seguimientos, con historial de cambios. |
+| Salud | Alertas sanitarias y plan sanitario por animal: vacunas, tratamientos, controles, desparasitaciones y esterilizaciones. |
+| Adopción | Publicar animales, recibir postulaciones del público, visitas, resolución, entrega y seguimientos posteriores. |
+| Devoluciones | Registrar la devolución de un animal adoptado y consultar reportes por rango de fechas. |
+| Voluntariado | Postulación pública para ser voluntario y revisión por parte de la encargada. |
+| Turnos de voluntariado | La encargada publica turnos con cupos; los voluntarios se inscriben, cambian de turno, cancelan y consultan su historial de participación. |
+| Notificaciones | Avisos internos entre roles, por ejemplo cuando se actualiza una revisión inicial médica. |
 
-## Estructura del proyecto
+## Roles
+
+Cada cuenta tiene un rol, y el sistema muestra solo los módulos que ese rol puede usar. Los permisos se revisan en el backend (`backend/src/services/permisosUsuario.js`); el frontend tiene una copia (`frontend/src/utils/permisosUsuario.js`) solo para decidir qué enlaces mostrar.
+
+| Rol | Uso principal |
+|---|---|
+| `DIRECTORA` | Acceso administrativo general: adopciones, devoluciones, alertas, turnos y postulaciones de voluntarios. |
+| `ENCARGADA_VOLUNTARIADO` | Revisa postulaciones de voluntarios, publica turnos y registra fichas. |
+| `ENCARGADA_ADOPCIONES` | Gestiona adopciones, devoluciones y sus reportes. |
+| `VETERINARIA` | Registro médico, validaciones, seguimientos y alertas sanitarias. |
+| `VOLUNTARIO` | Registra fichas, consulta el registro médico y se inscribe en turnos. |
+| `VOLUNTARIO_CONFIANZA` | Lo mismo que un voluntario, además de la revisión inicial médica y el registro de devoluciones. |
+
+## Tecnologías
+
+- **Frontend:** React 19, Vite y React Router. Validación de formularios con Zod.
+- **Backend:** Node.js con Express 4 (módulos ES), validación con Zod y autenticación con JWT (contraseñas con bcrypt).
+- **Base de datos:** PostgreSQL con Prisma ORM (migraciones versionadas en `backend/prisma/migrations`).
+- **Pruebas:** `node:test` en backend y frontend; Vitest y Testing Library para componentes del frontend.
+
+## Estructura del repositorio
 
 ```
 backend/
-  prisma/
-    schema.prisma        modelo de datos
-    migrations/          historial de cambios de la base
-    seed.js              datos de prueba
+  prisma/        schema.prisma, migraciones y seed con datos de ejemplo
+  scripts/       utilidades (crear la primera directora, cuentas de prueba, etc.)
   src/
-    config/              conexion a la base de datos
-    controllers/         reciben la peticion y arman la respuesta
-    entities/            errores propios del dominio
-    handlers/            manejo centralizado de errores y respuestas
-    middlewares/         validacion de esquemas y captura de errores
-    repositories/        acceso a la base de datos
-    routes/              definicion de endpoints
-    services/            reglas de negocio
-    validations/         esquemas de Zod
-  tests/                 pruebas unitarias
-
+    routes/        rutas de la API: sesión obligatoria y permiso por rol
+    middlewares/   autenticación, autorización, validación con Zod, imágenes
+    controllers/   reciben la petición y arman la respuesta
+    services/      reglas de negocio
+    repositories/  consultas a la base de datos con Prisma
+    validations/   esquemas Zod de cada endpoint
+    entities/      errores de cada módulo, con su código y estado HTTP
+    handlers/      manejo central de errores y respuestas exitosas
+  tests/         pruebas por capa (routes, services, repositories, validations)
 frontend/
   src/
-    components/ui/       elementos reutilizables
-    hooks/               logica reutilizable de React
-    pages/               pantallas completas
-    services/            comunicacion con el backend
-    validations/         esquemas de Zod del formulario
-
-docs/                    documentacion de arquitectura y API
+    pages/         una página por ruta
+    components/    componentes reutilizables (ui/) y por módulo
+    services/      llamadas a la API; todas pasan por services/api.js
+    validations/   esquemas Zod de los formularios
+    hooks/ utils/ styles/
+  tests/
 ```
 
-## Requisitos previos
+Una petición recorre siempre el mismo camino: **ruta → middlewares → controlador → servicio → repositorio**. Los errores se lanzan como errores del módulo y `manejadorErrores` los convierte en una respuesta con `message` y `code`.
 
-- Node.js LTS (version 20 o superior)
+## Instalación local
+
+### Requisitos
+
+- Node.js 20.19 o superior (se recomienda la versión LTS actual)
 - PostgreSQL 16 o superior
 - Git
-
-## Instalacion
 
 ### 1. Clonar el repositorio
 
@@ -65,7 +95,7 @@ cd PROYECTO-ISW-HUELLAS-SIN-HOGAR
 
 ### 2. Crear la base de datos
 
-Desde pgAdmin, o desde la terminal con `psql -U postgres`:
+Con PostgreSQL corriendo (en `psql` o pgAdmin):
 
 ```sql
 CREATE DATABASE huellas_sin_hogar;
@@ -76,186 +106,149 @@ CREATE DATABASE huellas_sin_hogar;
 ```bash
 cd backend
 npm install
-cp .env.example .env
+cp .env.example .env        # en Windows (cmd): copy .env.example .env
 ```
 
-Editar el `.env` y reemplazar `cambiame` por la contrasena del usuario
-`postgres` **de esta maquina**:
+Editar `backend/.env`:
 
-```
-DATABASE_URL="postgresql://postgres:TU_CONTRASENA@localhost:5432/huellas_sin_hogar?schema=public"
-```
+| Variable | Qué es |
+|---|---|
+| `PORT` | Puerto de la API. Por defecto `3000`. |
+| `CORS_ORIGIN` | Dirección del frontend. En local, `http://localhost:5173`. |
+| `DATABASE_URL` | Conexión a PostgreSQL. Cambiar `cambiame` por la contraseña local de `postgres`. |
+| `JWT_SECRET` | Clave para firmar las sesiones. **Obligatoria, de al menos 32 bytes aleatorios.** Sin ella el login responde error 500. |
+| `JWT_EXPIRES_IN` | Duración de la sesión, por ejemplo `1d`. |
 
-Crear las tablas y cargar los datos de prueba:
+Para generar un `JWT_SECRET` y agregarlo al `.env` en un solo paso:
 
 ```bash
-npx prisma migrate dev
+node -e "require('fs').appendFileSync('.env', '\nJWT_SECRET=' + require('crypto').randomBytes(48).toString('base64') + '\n')"
+```
+
+Si el `.env` ya tenía una línea `JWT_SECRET`, borrar la antigua para que quede solo una.
+
+Luego crear las tablas, cargar los datos de ejemplo y levantar la API:
+
+```bash
+npx prisma migrate deploy
+npx prisma generate
 npx prisma db seed
-```
-
-El seed es obligatorio: sin el, la tabla de voluntarios queda vacia y el
-formulario de ingreso no tiene receptores que seleccionar.
-
-Levantar el servidor:
-
-```bash
 npm run dev
 ```
 
-La API queda en `http://localhost:3000`. Para verificar que responde:
-`http://localhost:3000/health`
+La API queda en `http://localhost:3000`. Para comprobar que responde, abrir `http://localhost:3000/health`.
+
+> **Ojo:** `npx prisma db seed` **borra todos los datos** antes de cargar los de ejemplo. Úsalo para partir de cero, no sobre una base con datos reales.
 
 ### 4. Frontend
 
-En otra terminal, con el backend ya corriendo:
+En otra terminal, con el backend corriendo:
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env
+cp .env.example .env        # en Windows (cmd): copy .env.example .env
 npm run dev
 ```
 
-La aplicacion queda en `http://localhost:5173`.
+El `.env` del frontend tiene una sola variable, `VITE_API_URL=http://localhost:3000/api`. Vite la lee solo al arrancar: si se cambia, hay que reiniciar `npm run dev`.
 
-## Endpoints disponibles
+La aplicación queda en `http://localhost:5173`.
 
-La base es `/api` y toda respuesta incluye un campo `message`.
+### Después de cada `git pull`
 
-| Metodo | Ruta | Que hace |
-| --- | --- | --- |
-| `GET` | `/health` | Verifica que el servidor responde. |
-| `POST` | `/api/fichas` | Crea la ficha de un animal. |
-| `PATCH` | `/api/fichas/:id` | Actualiza una ficha existente. |
-| `POST` | `/api/animales/ingresos` | Registra un ingreso o reingreso. |
-| `GET` | `/api/voluntarios` | Lista los voluntarios activos. |
-
-El detalle de cada endpoint, con ejemplos de peticion y respuesta, esta en
-`docs/API_FICHAS_INGRESOS.md`.
-
-## Como probar el flujo completo
-
-1. Entrar a `http://localhost:5173` y abrir "Registro".
-2. Completar el formulario de ficha. Sexo y especie son obligatorios.
-3. Al guardar, el sistema devuelve el codigo generado (por ejemplo `anim-004`).
-4. Copiar ese codigo en el formulario de ingreso, elegir un receptor de la
-   lista, indicar fecha y procedencia, y guardar.
-5. Para ver los datos en la base: `npx prisma studio` desde `backend`.
-
-## Comandos utiles
-
-Desde `backend/`:
+Si llegaron cambios de otros integrantes, en cada carpeta que cambió:
 
 ```bash
-npm run dev              # servidor con recarga automatica
-npm start                # servidor sin recarga
-npm test                 # pruebas unitarias
-npx prisma studio        # interfaz para ver y editar la base
-npx prisma migrate dev   # aplica cambios del schema a la base
-npx prisma generate      # regenera el cliente de Prisma
-npx prisma db seed       # carga los datos de prueba
-npx prisma migrate reset # borra la base, la recrea y corre el seed
+npm install                  # si cambió package.json
+npx prisma migrate deploy    # (backend) si llegaron migraciones nuevas
+npx prisma generate          # (backend) si cambió schema.prisma
 ```
 
-Desde `frontend/`:
+## Cuentas de prueba
+
+El seed crea estas cuentas. Todas usan la contraseña **`refugio2026`**.
+
+| Correo | Rol |
+|---|---|
+| `directora@refugio.cl` | Directora |
+| `encargada@refugio.cl` | Encargada de voluntariado |
+| `veterinaria@refugio.cl` | Veterinaria |
+| `voluntario@refugio.cl` | Voluntario (vinculado a un voluntario: puede inscribirse en turnos) |
+| `voluntaria@refugio.cl` | Voluntaria (vinculada a un voluntario: puede inscribirse en turnos) |
+
+Para tener una cuenta de **cada** rol, incluidos encargada de adopciones y voluntario de confianza, existe un script que crea cuentas con contraseñas aleatorias y las muestra en pantalla una sola vez:
 
 ```bash
-npm run dev              # servidor de desarrollo
-npm run build            # compila para produccion
-npm run lint             # revisa el codigo con ESLint
+cd backend
+node scripts/crearCuentasPrueba.js          # crea las que falten
+node scripts/crearCuentasPrueba.js --reset  # regenera las contraseñas
 ```
 
-## Variables de entorno
+Estas contraseñas son solo para desarrollo. En producción se usan contraseñas propias.
 
-Los archivos `.env` no se versionan porque contienen contrasenas propias de cada
-maquina. Cada integrante crea el suyo copiando el `.env.example` correspondiente.
-
-**backend/.env**
-
-| Variable | Para que sirve |
-| --- | --- |
-| `PORT` | Puerto del servidor. Por defecto 3000. |
-| `CORS_ORIGIN` | Direccion del frontend autorizada a consumir la API. |
-| `DATABASE_URL` | Cadena de conexion a PostgreSQL. |
-| `JWT_SECRET` | Reservado para la autenticacion, aun no implementada. |
-| `JWT_EXPIRES_IN` | Reservado para la autenticacion, aun no implementada. |
-
-**frontend/.env**
-
-| Variable | Para que sirve |
-| --- | --- |
-| `VITE_API_URL` | Direccion base de la API. |
-
-Solo las variables que empiezan con `VITE_` quedan disponibles en el frontend:
-es una restriccion de Vite para evitar que se filtren secretos al navegador.
-
-Para desplegar en otro servidor basta con cambiar `DATABASE_URL`, `CORS_ORIGIN` y
-`VITE_API_URL`. El codigo no se modifica.
-
-## Solucion de problemas frecuentes
-
-**`Environment variable not found: DATABASE_URL`**
-Falta crear el `.env` a partir del `.env.example`, o el archivo se creo pero no
-se guardo.
-
-**`P1000: Authentication failed against database server`**
-La contrasena del `.env` no coincide con la de PostgreSQL de esta maquina. Se
-puede cambiar desde pgAdmin con el Query Tool:
-`ALTER USER postgres WITH PASSWORD 'nueva_contrasena';`
-
-**`ERR_CONNECTION_REFUSED` en el navegador**
-El backend no esta corriendo. Hay que levantarlo antes que el frontend.
-
-**El selector de receptores aparece vacio**
-Falta correr `npx prisma db seed`.
-
-**`La ficha indicada no existe` al registrar un ingreso**
-El codigo escrito no corresponde a ninguna ficha. Se puede revisar cuales
-existen con `npx prisma studio`. Este mensaje tambien aparece cuando el receptor
-seleccionado no existe en la base.
-
-**El comando `npm` o `git` no se reconoce**
-La terminal estaba abierta antes de instalar el programa. Cerrarla y abrir una
-nueva.
-
-## Estado del proyecto
-
-**Implementado**
-
-- Registro de fichas de animales con generacion automatica del codigo unico.
-- Registro de ingresos, con vinculacion a ficha existente para reingresos.
-- Listado de voluntarios.
-- Validacion de datos en frontend y backend con Zod.
-- Manejo centralizado de errores.
-- Pruebas unitarias de servicios y validaciones del modulo de animales.
-
-**Pendiente**
-
-- Autenticacion y control de acceso por rol.
-- Modulos de turnos y voluntariado, adopciones, devoluciones y reportes.
-- El campo `procedencia` acepta texto libre; el requisito define cinco
-  categorias cerradas.
-- El router de salud veterinaria existe pero aun no esta registrado en
-  `routes/index.js`, por lo que sus endpoints no responden.
-
-## Flujo de trabajo con Git
-
-- `main`: versiones estables y entregables.
-- `dev`: integracion de los modulos.
-- Una rama por integrante para el desarrollo de su modulo.
-
-Antes de empezar a trabajar, actualizar la rama personal:
+## Pruebas automatizadas
 
 ```bash
-git checkout dev
-git pull
-git checkout mi-rama
-git merge dev
-npm install
+cd backend
+npm test
+
+cd frontend
+npm test
 ```
 
-Los cambios se integran a `dev` mediante pull request.
+El backend se prueba por capas: validaciones (Zod), servicios con dependencias simuladas, repositorios con un cliente de Prisma falso y rutas con un servidor Express de prueba. No necesitan una base de datos corriendo.
 
-## Equipo
+## API
 
-Grupo 10 - Ingenieria de Software, Universidad del Bio-Bio.
+Todas las rutas cuelgan de `/api`. Salvo las públicas, requieren el encabezado `Authorization: Bearer <token>` que entrega el login.
+
+| Prefijo | Contenido |
+|---|---|
+| `/api/auth` | `POST /login`, `GET /me`, `POST /logout` |
+| `/api/fichas`, `/api/animales/ingresos` | Fichas de animales, imagen e ingresos |
+| `/api/registros-medicos` | Registro médico, validación, actualizaciones, historial y seguimientos |
+| `/api/salud` | Alertas sanitarias y plan sanitario |
+| `/api/adopciones` | Animales publicados (público), postulaciones (público) y su gestión |
+| `/api/devoluciones`, `/api/reportes/devoluciones` | Devoluciones y reportes |
+| `/api/postulaciones-voluntario` | Postular como voluntario (público) y revisión |
+| `/api/turnos` | Publicar turnos, listarlos para gestión y ver los disponibles |
+| `/api/inscripciones` | Inscribirse, mis inscripciones, historial, cambiar de turno y cancelar |
+| `/api/notificaciones` | Notificaciones del usuario |
+| `/api/voluntarios` | Listado de voluntarios activos |
+
+### Turnos e inscripciones
+
+| Método y ruta | Quién | Qué hace |
+|---|---|---|
+| `POST /api/turnos` | Directora, encargada de voluntariado | Publica un turno: título, descripción opcional, fecha, hora de inicio y término, fecha límite de inscripción y cupo máximo. |
+| `GET /api/turnos/gestion` | Directora, encargada de voluntariado | Todos los turnos, con inscritos y cupos. |
+| `GET /api/turnos` | Las anteriores y voluntarios | Turnos publicados que aún no comienzan. |
+| `POST /api/inscripciones` | Voluntarios | Se inscribe en un turno: `{ "turnoId": 1 }`. |
+| `GET /api/inscripciones/mias?estado=ACTIVA` | Voluntarios | Sus inscripciones, con filtro opcional `ACTIVA` o `CANCELADA`. |
+| `GET /api/inscripciones/:id/historial` | Voluntarios | Historial de una inscripción propia. |
+| `PATCH /api/inscripciones/:id` | Voluntarios | Cambia la inscripción a otro turno: `{ "turnoId": 2 }`. |
+| `PATCH /api/inscripciones/:id/cancelacion` | Voluntarios | Cancela una inscripción propia. |
+
+Reglas principales: un voluntario solo se inscribe si el turno está publicado, no ha comenzado, el plazo sigue vigente, quedan cupos y no se solapa con otra inscripción activa suya. Cupo, inscripción e historial se guardan en una misma transacción; las inscripciones nunca se borran, solo se cancelan.
+
+Las fechas y horas se guardan en UTC. La encargada las ingresa en hora de Chile y el backend las convierte considerando el cambio de horario (`backend/src/services/horarioChile.js`).
+
+## Problemas comunes
+
+| Síntoma | Causa y solución |
+|---|---|
+| Login responde **500** y la consola del backend dice `Configura JWT_SECRET con al menos 32 bytes aleatorios` | Falta `JWT_SECRET` en `backend/.env` o es muy corto. Generarlo con el comando de la sección del backend y reiniciar `npm run dev`. |
+| Login responde **404** desde el frontend | Falta `frontend/.env`. Copiarlo desde `.env.example` y reiniciar `npm run dev` del frontend. |
+| `npm run dev` del frontend: `Cannot find package 'vitest'` | Llegaron dependencias nuevas. Correr `npm install` en `frontend/`. |
+| Errores de Prisma sobre tablas o columnas inexistentes | Faltan migraciones. Correr `npx prisma migrate deploy` y `npx prisma generate` en `backend/`. |
+| `Can't reach database server` | PostgreSQL no está corriendo, o la contraseña de `DATABASE_URL` no es la correcta. pgAdmin no necesita estar abierto. |
+| En Windows fallan 5 tests de `imagenAnimalService` | Los tests comparan rutas armadas con `/` y Windows usa `\`. No afecta el funcionamiento; en Linux y macOS pasan. |
+| Git avisa `CRLF will be replaced by LF` | Es normal en Windows: el repositorio guarda los archivos con fin de línea LF (`.gitattributes`). |
+
+## Convenciones del equipo
+
+- Cada integrante trabaja en su rama y abre pull requests hacia `dev`. Nunca directo a `main`.
+- Los archivos `.env` no se suben al repositorio; `.env.example` es la plantilla.
+- Cada endpoint valida en tres capas: la forma de los datos con Zod en la ruta, las reglas de negocio en el servicio y las restricciones de la base de datos.
+- Todo cambio de base de datos va con su migración de Prisma; no se edita la base a mano.

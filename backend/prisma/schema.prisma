@@ -728,7 +728,6 @@ enum HabilidadVoluntario {
 model PostulacionVoluntario {
   id              Int                         @id @default(autoincrement())
   nombre          String
-  rut             String
   email           String
   telefono        String
   diasDisponibles DiaSemana[]
@@ -750,6 +749,5 @@ model PostulacionVoluntario {
   createdAt DateTime @default(now())
 
   @@index([estado])
-  @@index([rut])
   @@index([email])
 }
