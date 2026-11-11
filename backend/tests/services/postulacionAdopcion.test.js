@@ -140,13 +140,13 @@ test("el detalle de una postulacion inexistente responde POSTULACION_INEXISTENTE
 
 // ---------- resolverPostulacion ----------
 
-test("resolverPostulacion aprueba y registra al voluntario revisor", async () => {
+test("resolverPostulacion aprueba y registra la cuenta que reviso", async () => {
   let cambiosGuardados;
 
   await resolverPostulacion(
     10,
     { decision: "APROBADA", observaciones: "Buen espacio" },
-    { id: 1, voluntarioId: 6 },
+    { id: 4, voluntarioId: 6 },
     {
       buscarPostulacionPorId: async () => postulacionEnRevision(),
       resolverPostulacionEnRevision: async (id, cambios) => {
@@ -157,18 +157,19 @@ test("resolverPostulacion aprueba y registra al voluntario revisor", async () =>
   );
 
   assert.equal(cambiosGuardados.estado, "APROBADA");
-  assert.equal(cambiosGuardados.revisorId, 6);
+  // Se guarda el id de la cuenta, no el de su ficha de voluntario.
+  assert.equal(cambiosGuardados.revisorId, 4);
   assert.equal(cambiosGuardados.observaciones, "Buen espacio");
   assert.ok(cambiosGuardados.fechaResolucion instanceof Date);
 });
 
-test("resolverPostulacion deja el revisor vacio si la cuenta no tiene voluntario", async () => {
+test("resolverPostulacion registra al revisor aunque la cuenta no tenga voluntario", async () => {
   let cambiosGuardados;
 
   await resolverPostulacion(
     10,
     { decision: "RECHAZADA" },
-    { id: 1, voluntarioId: null },
+    { id: 2, voluntarioId: null },
     {
       buscarPostulacionPorId: async () => postulacionEnRevision(),
       resolverPostulacionEnRevision: async (id, cambios) => {
@@ -178,7 +179,7 @@ test("resolverPostulacion deja el revisor vacio si la cuenta no tiene voluntario
     },
   );
 
-  assert.equal(cambiosGuardados.revisorId, null);
+  assert.equal(cambiosGuardados.revisorId, 2);
   assert.equal("observaciones" in cambiosGuardados, false);
 });
 

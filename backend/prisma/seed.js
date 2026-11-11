@@ -443,6 +443,7 @@ async function main() {
       telefonoPostulante: "912345678",
       tipoVivienda: "DEPARTAMENTO",
       disponibilidadTiempo: "Trabaja desde casa",
+      createdAt: new Date("2026-11-02T13:30:00.000Z"),
     },
   });
 
@@ -455,11 +456,12 @@ async function main() {
       tipoVivienda: "CASA",
       disponibilidadTiempo: "Trabaja fuera de casa",
       estado: "APROBADA",
-      revisorId: Martina.id,
+      revisorId: cuentaDirectora.id,
       fechaResolucion: new Date("2026-09-10"),
       observaciones: "Postulante tiene experiencia previa con perros y cuenta con un espacio adecuado para su cuidado.",
       emailPostulante: "Espe@gmail.com",
       otrasMascotas: "Si, tiene un perro y un gato.",
+      createdAt: new Date("2026-09-05T15:00:00.000Z"),
     },
   });
 
@@ -472,13 +474,14 @@ async function main() {
       tipoVivienda: "DEPARTAMENTO",
       disponibilidadTiempo: "Trabaja desde casa",
       estado: "RECHAZADA",
-      revisorId: Tomas.id,
+      revisorId: cuentaDirectora.id,
       fechaResolucion: new Date("2026-09-12"),
       observaciones: "El postulante no tiene experiencia previa con perros y vive en un departamento pequeño.",
+      createdAt: new Date("2026-09-08T15:00:00.000Z"),
     },
   });
-  
-  await prisma.postulacion.create({
+
+  const postulacionValentina = await prisma.postulacion.create({
     data: {
       fichaAnimalId: Triton.id,
       nombrePostulante: "Valentina Soto",
@@ -488,11 +491,51 @@ async function main() {
       tipoVivienda: "CASA",
       disponibilidadTiempo: "Trabaja medio tiempo",
       estado: "ENTREGADA",
-      revisorId: Martina.id,
+      revisorId: cuentaDirectora.id,
       fechaResolucion: new Date("2026-10-10"),
       fechaEntrega: new Date("2026-10-20"),
       observaciones: "Casa con patio cerrado y experiencia con perros.",
+      documentacionEntregada: "Contrato de adopción firmado y carnet de vacunas al día.",
+      createdAt: new Date("2026-10-01T14:00:00.000Z"),
     },
+  });
+
+  // Una adopcion entregada cumple las reglas del modulo: primera visita y
+  // visita al hogar favorables antes de la entrega, y sus dos seguimientos.
+  await prisma.visitaAdopcion.createMany({
+    data: [
+      {
+        postulacionId: postulacionValentina.id,
+        tipo: "PRIMERA_VISITA",
+        fechaVisita: new Date("2026-10-13"),
+        resultado: "FAVORABLE",
+        observaciones: "Se conocieron en el refugio y Triton se mostró tranquilo con ella.",
+        registradaPorId: cuentaDirectora.id,
+      },
+      {
+        postulacionId: postulacionValentina.id,
+        tipo: "VISITA_HOGAR",
+        fechaVisita: new Date("2026-10-16"),
+        resultado: "FAVORABLE",
+        observaciones: "Patio cerrado y espacio adecuado para un perro mediano.",
+        registradaPorId: cuentaDirectora.id,
+      },
+    ],
+  });
+
+  await prisma.seguimientoAdopcion.createMany({
+    data: [
+      {
+        postulacionId: postulacionValentina.id,
+        diasDesdeEntrega: 15,
+        fechaProgramada: new Date("2026-11-04"),
+      },
+      {
+        postulacionId: postulacionValentina.id,
+        diasDesdeEntrega: 30,
+        fechaProgramada: new Date("2026-11-19"),
+      },
+    ],
   });
 
 
@@ -753,7 +796,7 @@ async function main() {
       otraHabilidad: "Fotografia",
     },
   });
-  
+
   console.log("Seed completado");
   console.log(`  Usuarios: ${cuentaDirectora.email}, ${cuentaVeterinaria.email}, ${cuentaVoluntaria.email}, ${cuentaVoluntario.email}, ${cuentaEncargada.email}`);
   console.log("  Turnos: 6 (futuros, solapados, lleno, cerrado a inscripciones y ya iniciado)");

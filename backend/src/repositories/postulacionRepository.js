@@ -68,6 +68,7 @@ export async function buscarPostulacionPorId(id, cliente = prisma) {
           raza: true,
           edad: true,
           estadoEstadia: true,
+          imagenUrl: true,
         },
       },
       revisor: { select: { id: true, nombre: true } },
@@ -121,6 +122,17 @@ export async function crearVisita(data, cliente = prisma) {
   return cliente.visitaAdopcion.create({ data });
 }
 
+// Una visita desfavorable termina el proceso: la postulacion pasa a RECHAZADA.
+// Solo cambia si sigue APROBADA. Devuelve cuantas filas cambio (0 o 1).
+export async function rechazarPostulacionAprobada(id, cliente = prisma) {
+  const { count } = await cliente.postulacion.updateMany({
+    where: { id, estado: "APROBADA" },
+    data: { estado: "RECHAZADA" },
+  });
+
+  return count;
+}
+
 // Solo guarda la omision si la postulacion sigue APROBADA y no se habia omitido.
 export async function registrarOmisionVisitaHogar(id, data, cliente = prisma) {
   const { count } = await cliente.postulacion.updateMany({
@@ -170,4 +182,24 @@ export async function cerrarOtrasPostulacionesAbiertas(
 
 export async function crearSeguimientos(seguimientos, cliente = prisma) {
   return cliente.seguimientoAdopcion.createMany({ data: seguimientos });
+}
+
+// ---------- Seguimientos ----------
+
+// Busca el seguimiento solo dentro de su postulacion.
+export async function buscarSeguimiento({ id, postulacionId }, cliente = prisma) {
+  return cliente.seguimientoAdopcion.findFirst({
+    where: { id, postulacionId },
+    select: { id: true, estado: true },
+  });
+}
+
+// Solo cambia si sigue PENDIENTE. Devuelve cuantas filas cambio (0 o 1).
+export async function marcarSeguimientoRealizado(id, cliente = prisma) {
+  const { count } = await cliente.seguimientoAdopcion.updateMany({
+    where: { id, estado: "PENDIENTE" },
+    data: { estado: "REALIZADO" },
+  });
+
+  return count;
 }

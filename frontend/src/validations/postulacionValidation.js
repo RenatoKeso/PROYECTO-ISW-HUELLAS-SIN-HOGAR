@@ -62,6 +62,15 @@ export const observacionResolucionSchema = z.preprocess(
   z.string().trim().max(1000, "La observación no puede superar los 1000 caracteres").optional(),
 );
 
+// Al rechazar, la observacion pasa a ser obligatoria: es el motivo del rechazo.
+export const motivoRechazoSchema = z.preprocess(
+  vacioAUndefined,
+  z
+    .string({ message: "Para rechazar, indica el motivo en las observaciones" })
+    .trim()
+    .max(1000, "La observación no puede superar los 1000 caracteres"),
+);
+
 // ---------- Visitas, omision y entrega ----------
 
 const fechaObligatoria = (mensaje) =>
@@ -75,13 +84,18 @@ const observacionOpcional = z.preprocess(
   z.string().trim().max(1000, "No puede superar los 1000 caracteres").optional(),
 );
 
-export const visitaFormSchema = z.strictObject({
-  fechaVisita: fechaObligatoria("Indica la fecha de la visita"),
-  resultado: z.enum(["FAVORABLE", "DESFAVORABLE"], {
-    message: "Indica el resultado de la visita",
-  }),
-  observaciones: observacionOpcional,
-});
+export const visitaFormSchema = z
+  .strictObject({
+    fechaVisita: fechaObligatoria("Indica la fecha de la visita"),
+    resultado: z.enum(["FAVORABLE", "DESFAVORABLE"], {
+      message: "Indica el resultado de la visita",
+    }),
+    observaciones: observacionOpcional,
+  })
+  .refine((datos) => datos.resultado !== "DESFAVORABLE" || datos.observaciones, {
+    message: "Si la visita fue desfavorable, explica el motivo aquí",
+    path: ["observaciones"],
+  });
 
 export const omisionFormSchema = z
   .strictObject({

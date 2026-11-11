@@ -6,7 +6,10 @@ import {
   obtenerPostulacion,
   resolverPostulacion,
 } from "../services/adopcionesService.js";
-import { observacionResolucionSchema } from "../validations/postulacionValidation.js";
+import {
+  motivoRechazoSchema,
+  observacionResolucionSchema,
+} from "../validations/postulacionValidation.js";
 import {
   ESTADOS_POSTULACION,
   MOTIVOS_DEVOLUCION,
@@ -14,6 +17,7 @@ import {
   formatearEdad,
   formatearFecha,
 } from "../utils/formatoAdopcion.js";
+import { urlImagen } from "../utils/urlImagen.js";
 import "../styles/postulaciones.css";
 
 // Aviso de devoluciones anteriores del mismo RUT. Informa, pero no bloquea.
@@ -64,7 +68,9 @@ function FormularioResolucion({ postulacionId, onResuelta }) {
   async function resolver(decision) {
     setError("");
 
-    const validacion = observacionResolucionSchema.safeParse(observaciones);
+    const esquema =
+      decision === "RECHAZADA" ? motivoRechazoSchema : observacionResolucionSchema;
+    const validacion = esquema.safeParse(observaciones);
 
     if (!validacion.success) {
       setError(validacion.error.issues[0].message);
@@ -96,7 +102,7 @@ function FormularioResolucion({ postulacionId, onResuelta }) {
         control="textarea"
         valor={observaciones}
         maxLength={1000}
-        placeholder="Opcional. Ej: cuenta con patio cerrado y experiencia previa."
+        placeholder="Opcional al aprobar, obligatoria al rechazar (motivo)."
         onChange={(evento) => setObservaciones(evento.target.value)}
       />
 
@@ -173,6 +179,11 @@ function PostulacionDetallePage() {
 
   const { postulacion, antecedentes } = detalle;
   const animal = postulacion.fichaAnimal;
+  // Si hay una visita desfavorable, la postulacion fue aprobada y despues se
+  // cerro por esa visita: la decision de la revision sigue siendo "Aprobada".
+  const cerradaPorVisita = postulacion.visitas?.some(
+    (visita) => visita.resultado === "DESFAVORABLE",
+  );
 
   return (
     <section className="bloque">
@@ -204,6 +215,13 @@ function PostulacionDetallePage() {
 
         <div className="tarjeta">
           <h3>Animal</h3>
+          {animal.imagenUrl && (
+            <img
+              className="detalle-foto-animal"
+              src={urlImagen(animal.imagenUrl)}
+              alt={`Foto de ${animal.nombre || animal.codigoAnimal}`}
+            />
+          )}
           <dl className="datos">
             <Dato etiqueta="Nombre">{animal.nombre || "Sin nombre"}</Dato>
             <Dato etiqueta="Código">{animal.codigoAnimal}</Dato>
@@ -223,8 +241,8 @@ function PostulacionDetallePage() {
           <h3>Resolución</h3>
           <dl className="datos">
             <Dato etiqueta="Decisión">
-              {/* Una postulación entregada fue aprobada antes de la entrega. */}
-              {postulacion.estado === "ENTREGADA"
+              {/* Entregada o cerrada por una visita: antes fue aprobada. */}
+              {postulacion.estado === "ENTREGADA" || cerradaPorVisita
                 ? ESTADOS_POSTULACION.APROBADA
                 : ESTADOS_POSTULACION[postulacion.estado]}
             </Dato>

@@ -10,6 +10,7 @@ import {
   buscarAnimalPorId,
   buscarPostulacionAbierta,
   buscarPostulacionPorId,
+  buscarSeguimiento,
   cerrarOtrasPostulacionesAbiertas,
   crearPostulacion,
   crearSeguimientos,
@@ -18,6 +19,8 @@ import {
   listarPostulaciones,
   marcarAnimalAdoptado,
   marcarPostulacionEntregada,
+  marcarSeguimientoRealizado,
+  rechazarPostulacionAprobada,
   registrarAlertaMostrada,
   registrarOmisionVisitaHogar,
   resolverPostulacionEnRevision,
@@ -33,6 +36,8 @@ import {
   postulacionNoAprobada,
   postulacionYaResuelta,
   primeraVisitaPendiente,
+  seguimientoInexistente,
+  seguimientoYaRealizado,
   visitaHogarYaResuelta,
   visitaYaRegistrada,
 } from "../entities/adopcionErrors.js";
@@ -52,11 +57,14 @@ const DEPENDENCIAS_POR_DEFECTO = {
   registrarAlertaMostrada,
   resolverPostulacionEnRevision,
   crearVisita,
+  rechazarPostulacionAprobada,
   registrarOmisionVisitaHogar,
   marcarPostulacionEntregada,
   marcarAnimalAdoptado,
   cerrarOtrasPostulacionesAbiertas,
   crearSeguimientos,
+  buscarSeguimiento,
+  marcarSeguimientoRealizado,
   ejecutarEnTransaccion,
 };
 
@@ -205,9 +213,8 @@ export async function resolverPostulacion(
   const cambios = await dependencias.resolverPostulacionEnRevision(id, {
     estado: decision,
     fechaResolucion: new Date(),
-    // El revisor es un Voluntario. Si la cuenta no tiene uno asociado
-    // (por ejemplo, la directora), queda vacio.
-    revisorId: usuario?.voluntarioId ?? null,
+    // El revisor es la cuenta (Usuario) que tomo la decision.
+    revisorId: usuario.id,
     ...(observaciones ? { observaciones } : {}),
   });
 
@@ -237,6 +244,8 @@ function exigirPrimeraVisitaFavorable(postulacion) {
 
 // Registra la primera visita o la visita al hogar. La visita al hogar solo se
 // registra despues de una primera visita favorable.
+// Si el resultado es DESFAVORABLE, la postulacion queda RECHAZADA en la misma
+// transaccion: la visita y el cierre se guardan juntos o no se guarda nada.
 export async function registrarVisita(
   id,
   { tipo, fechaVisita, resultado, observaciones },
@@ -265,13 +274,26 @@ export async function registrarVisita(
   if (diaDeFechaSinHora(fechaVisita) < fechaMinima) throw fechaInvalida(mensajeFecha);
 
   try {
-    return await dependencias.crearVisita({
-      postulacionId: id,
-      tipo,
-      fechaVisita,
-      resultado,
-      observaciones: observaciones ?? null,
-      registradaPorId: usuario.id,
+    return await dependencias.ejecutarEnTransaccion(async (cliente) => {
+      const visita = await dependencias.crearVisita(
+        {
+          postulacionId: id,
+          tipo,
+          fechaVisita,
+          resultado,
+          observaciones: observaciones ?? null,
+          registradaPorId: usuario.id,
+        },
+        cliente,
+      );
+
+      if (resultado === "DESFAVORABLE") {
+        const rechazadas = await dependencias.rechazarPostulacionAprobada(id, cliente);
+
+        if (rechazadas === 0) throw postulacionNoAprobada();
+      }
+
+      return visita;
     });
   } catch (error) {
     // Dos personas registrando la misma visita al mismo tiempo.
@@ -415,4 +437,27 @@ export async function formalizarEntrega(
     postulacion: await dependencias.buscarPostulacionPorId(id),
     postulacionesCerradas,
   };
+}
+
+// ---------- Seguimientos ----------
+
+// Marca como realizado un seguimiento (15 o 30 dias) de una adopcion entregada.
+export async function realizarSeguimiento(
+  postulacionId,
+  seguimientoId,
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  const seguimiento = await dependencias.buscarSeguimiento({
+    id: seguimientoId,
+    postulacionId,
+  });
+
+  if (!seguimiento) throw seguimientoInexistente(seguimientoId);
+  if (seguimiento.estado !== "PENDIENTE") throw seguimientoYaRealizado();
+
+  const cambios = await dependencias.marcarSeguimientoRealizado(seguimientoId);
+
+  if (cambios === 0) throw seguimientoYaRealizado();
+
+  return dependencias.buscarPostulacionPorId(postulacionId);
 }

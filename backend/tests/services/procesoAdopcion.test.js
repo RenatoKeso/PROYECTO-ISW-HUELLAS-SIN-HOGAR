@@ -6,6 +6,7 @@ import {
   registrarVisita,
   omitirVisitaHogar,
   formalizarEntrega,
+  realizarSeguimiento,
 } from "../../src/services/adopcionService.js";
 import { CODIGO_ERROR_ADOPCION } from "../../src/entities/adopcionErrors.js";
 
@@ -92,9 +93,13 @@ test("registrarVisita guarda la primera visita con quien la registro", async () 
     USUARIO,
     {
       buscarPostulacionPorId: async () => postulacionAprobada(),
+      ejecutarEnTransaccion: async (callback) => callback("cliente-de-transaccion"),
       crearVisita: async (datos) => {
         guardada = datos;
         return { id: 1, ...datos };
+      },
+      rechazarPostulacionAprobada: async () => {
+        throw new Error("una visita favorable no debe rechazar la postulacion");
       },
     },
   );
@@ -292,5 +297,109 @@ test("si el animal ya no esta disponible, la transaccion se cancela", async () =
   await assert.rejects(
     formalizarEntrega(10, { fechaEntrega: dia("2026-10-25"), documentacionEntregada: "x" }, dependencias),
     conCodigo(CODIGO_ERROR_ADOPCION.ANIMAL_NO_DISPONIBLE),
+  );
+});
+
+// ---------- visita desfavorable ----------
+
+test("una visita desfavorable rechaza la postulacion en la misma transaccion", async () => {
+  const registro = {};
+
+  await registrarVisita(
+    10,
+    {
+      tipo: "PRIMERA_VISITA",
+      fechaVisita: dia("2026-10-16"),
+      resultado: "DESFAVORABLE",
+      observaciones: "El animal se mostro muy estresado",
+    },
+    USUARIO,
+    {
+      buscarPostulacionPorId: async () => postulacionAprobada(),
+      ejecutarEnTransaccion: async (callback) => callback("cliente-de-transaccion"),
+      crearVisita: async (datos, cliente) => {
+        registro.clienteVisita = cliente;
+        return { id: 1, ...datos };
+      },
+      rechazarPostulacionAprobada: async (id, cliente) => {
+        registro.rechazada = id;
+        registro.clienteRechazo = cliente;
+        return 1;
+      },
+    },
+  );
+
+  assert.equal(registro.rechazada, 10);
+  assert.equal(registro.clienteVisita, "cliente-de-transaccion");
+  assert.equal(registro.clienteRechazo, "cliente-de-transaccion");
+});
+
+test("si la postulacion dejo de estar aprobada, la visita desfavorable no se guarda", async () => {
+  await assert.rejects(
+    registrarVisita(
+      10,
+      {
+        tipo: "PRIMERA_VISITA",
+        fechaVisita: dia("2026-10-16"),
+        resultado: "DESFAVORABLE",
+        observaciones: "No hubo afinidad",
+      },
+      USUARIO,
+      {
+        buscarPostulacionPorId: async () => postulacionAprobada(),
+        ejecutarEnTransaccion: async (callback) => callback("cliente-de-transaccion"),
+        crearVisita: async (datos) => ({ id: 1, ...datos }),
+        rechazarPostulacionAprobada: async () => 0,
+      },
+    ),
+    conCodigo(CODIGO_ERROR_ADOPCION.POSTULACION_NO_APROBADA),
+  );
+});
+
+// ---------- realizarSeguimiento ----------
+
+test("realizarSeguimiento marca un seguimiento pendiente de esa postulacion", async () => {
+  let buscado;
+  let marcado;
+
+  const postulacion = await realizarSeguimiento(10, 4, {
+    buscarSeguimiento: async (filtro) => {
+      buscado = filtro;
+      return { id: 4, estado: "PENDIENTE" };
+    },
+    marcarSeguimientoRealizado: async (id) => {
+      marcado = id;
+      return 1;
+    },
+    buscarPostulacionPorId: async (id) => ({ id, estado: "ENTREGADA" }),
+  });
+
+  assert.deepEqual(buscado, { id: 4, postulacionId: 10 });
+  assert.equal(marcado, 4);
+  assert.equal(postulacion.id, 10);
+});
+
+test("realizarSeguimiento responde SEGUIMIENTO_INEXISTENTE si no pertenece a la postulacion", async () => {
+  await assert.rejects(
+    realizarSeguimiento(10, 99, { buscarSeguimiento: async () => null }),
+    conCodigo(CODIGO_ERROR_ADOPCION.SEGUIMIENTO_INEXISTENTE),
+  );
+});
+
+test("realizarSeguimiento no marca dos veces el mismo seguimiento", async () => {
+  await assert.rejects(
+    realizarSeguimiento(10, 4, {
+      buscarSeguimiento: async () => ({ id: 4, estado: "REALIZADO" }),
+    }),
+    conCodigo(CODIGO_ERROR_ADOPCION.SEGUIMIENTO_YA_REALIZADO),
+  );
+
+  // Otra persona lo marco entre la lectura y la escritura.
+  await assert.rejects(
+    realizarSeguimiento(10, 4, {
+      buscarSeguimiento: async () => ({ id: 4, estado: "PENDIENTE" }),
+      marcarSeguimientoRealizado: async () => 0,
+    }),
+    conCodigo(CODIGO_ERROR_ADOPCION.SEGUIMIENTO_YA_REALIZADO),
   );
 });
