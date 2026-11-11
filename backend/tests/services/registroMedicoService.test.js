@@ -8,6 +8,7 @@ import {
   completarRevisionInicial,
   crearRegistroMedicoParaIngreso,
   iniciarActualizacionRegistro,
+  listarActualizacionesMedicas,
   listarHistorialRegistroMedico,
   listarRegistrosMedicos,
   listarSeguimientosRegistroMedico,
@@ -901,24 +902,20 @@ test("un voluntario de confianza tambien puede actualizar la revision inicial", 
   assert.equal(resultado.revisadoNuevamente, false);
 });
 
-test("un voluntario no puede actualizar la revision inicial", async () => {
+test("un voluntario tambien puede actualizar la revision inicial", async () => {
   const { dependencias, llamadas } = crearDependenciasActualizacionRevision();
 
-  const error = await capturarError(
-    actualizarRevisionInicial(
-      {
-        registroMedicoId: 14,
-        datos: datosActualizacionRevision,
-        actor: actoraVoluntaria,
-      },
-      dependencias,
-    ),
+  const resultado = await actualizarRevisionInicial(
+    {
+      registroMedicoId: 14,
+      datos: datosActualizacionRevision,
+      actor: actoraVoluntaria,
+    },
+    dependencias,
   );
 
-  assert.equal(error.codigo, "ROL_INSUFICIENTE");
-  assert.equal(error.estadoHttp, 403);
-  assert.equal(llamadas.transacciones, 0);
-  assert.equal(llamadas.consultas.length, 0);
+  assert.equal(llamadas.bloqueos[0].data.updatedById, actoraVoluntaria.id);
+  assert.equal(resultado.revisadoNuevamente, false);
 });
 
 test("una cuenta inactiva no puede actualizar la revision inicial", async () => {
@@ -1599,6 +1596,49 @@ test("listarRegistrosMedicos convierte Decimal a numero", async () => {
   assert.equal(resultado.length, 1);
   assert.equal(resultado[0].pesoKg, 12.4);
   assert.equal(resultado[0].revisionCompleta.peso, 13.1);
+});
+
+test("listarActualizacionesMedicas rechaza roles sin permiso y no consulta", async () => {
+  let consultas = 0;
+  const error = await capturarError(
+    listarActualizacionesMedicas(
+      { actor: { id: 9, rol: "ENCARGADA_ADOPCIONES", activo: true } },
+      {
+        listarActualizacionesMedicas: async () => {
+          consultas += 1;
+          return [];
+        },
+      },
+    ),
+  );
+
+  assert.ok(error);
+  assert.equal(error.codigo, "ROL_INSUFICIENTE");
+  assert.equal(consultas, 0);
+});
+
+test("listarActualizacionesMedicas convierte Decimal a numero", async () => {
+  const dependencias = {
+    async listarActualizacionesMedicas() {
+      return [
+        {
+          id: 1,
+          version: 1,
+          peso: new Prisma.Decimal("13.10"),
+          registroMedico: { id: 14, animal: { codigoAnimal: "anim-005" } },
+        },
+      ];
+    },
+  };
+
+  const resultado = await listarActualizacionesMedicas(
+    { actor: { id: 1, rol: "VOLUNTARIO", activo: true } },
+    dependencias,
+  );
+
+  assert.equal(resultado.length, 1);
+  assert.equal(resultado[0].peso, 13.1);
+  assert.equal(resultado[0].registroMedico.animal.codigoAnimal, "anim-005");
 });
 
 test("obtenerRegistroMedico lanza 404 si no existe", async () => {

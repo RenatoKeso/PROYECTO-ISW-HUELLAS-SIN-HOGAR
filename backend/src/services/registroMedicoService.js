@@ -25,6 +25,7 @@ import {
   crearSeguimientoMedico,
   crearTratamiento,
   guardarRevisionCompletaActual,
+  listarActualizacionesMedicas as listarActualizacionesMedicasRepositorio,
   listarHistorialRegistroMedico as listarHistorialRegistroMedicoRepositorio,
   listarRegistrosMedicos as listarRegistrosMedicosRepositorio,
   listarSeguimientosMedicos,
@@ -63,6 +64,7 @@ const DEPENDENCIAS_POR_DEFECTO = {
   crearHistorialRegistroMedico,
   crearSeguimientoMedico,
   guardarRevisionCompletaActual,
+  listarActualizacionesMedicas: listarActualizacionesMedicasRepositorio,
   listarHistorialRegistroMedico: listarHistorialRegistroMedicoRepositorio,
   listarRegistrosMedicos: listarRegistrosMedicosRepositorio,
   listarSeguimientosMedicos,
@@ -989,6 +991,19 @@ export async function listarHistorialRegistroMedico(
   );
 
   return historial.map(serializarHistorial);
+}
+
+export async function listarActualizacionesMedicas(
+  { actor },
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  if (!puedeConsultarRegistroMedico(actor)) {
+    throw rolInsuficiente();
+  }
+
+  const actualizaciones = await dependencias.listarActualizacionesMedicas();
+
+  return actualizaciones.map(serializarHistorial);
 }
 
 export async function listarSeguimientosRegistroMedico(

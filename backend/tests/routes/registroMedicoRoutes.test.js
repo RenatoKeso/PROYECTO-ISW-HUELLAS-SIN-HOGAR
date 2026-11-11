@@ -793,6 +793,37 @@ test("GET /registros-medicos reenvia el filtro validado y el actor", async () =>
   }
 });
 
+test("GET /registros-medicos/actualizaciones devuelve las actualizaciones", async () => {
+  const { url, cerrar } = await levantarApp(async () => {
+    throw new Error("no deberia llamarse");
+  }, async () => {
+    throw new Error("no deberia llamarse");
+  }, async () => {
+    throw new Error("no deberia llamarse");
+  }, {
+    listarActualizacionesMedicas: async () => [
+      { id: 1, version: 1, registroMedicoId: 14 },
+    ],
+  });
+
+  try {
+    const respuesta = await fetch(`${url}/actualizaciones`, {
+      headers: { Authorization: "Bearer valido" },
+    });
+    const cuerpo = await respuesta.json();
+
+    assert.equal(respuesta.status, 200);
+    assert.equal(
+      cuerpo.message,
+      "Actualizaciones médicas obtenidas correctamente",
+    );
+    assert.equal(cuerpo.actualizaciones.length, 1);
+    assert.equal(cuerpo.actualizaciones[0].version, 1);
+  } finally {
+    await cerrar();
+  }
+});
+
 test("GET /registros-medicos/:id exige un token valido", async () => {
   const { url, cerrar } = await levantarApp(async () => {
     throw new Error("no deberia llamarse");

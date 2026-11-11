@@ -323,6 +323,33 @@ export const historialMedicoResponseSchema = z.object({
   historial: z.array(historialMedicoItemSchema),
 });
 
+export const actualizacionMedicaItemSchema = z.object({
+  id: z.number().int().positive(),
+  registroMedicoId: z.number().int().positive(),
+  version: z.number().int().positive(),
+  estadoOrigen: z.enum(ESTADOS_VALIDACION_MEDICA),
+  peso: z.coerce.number().nullable().optional(),
+  clasificacionSalud: z.enum(CLASIFICACIONES_SALUD).nullable().optional(),
+  descripcionCuidadosEspeciales: z.string().nullable().optional(),
+  descripcionCondicionMedica: z.string().nullable().optional(),
+  descripcionTratamientos: z.string().nullable().optional(),
+  descripcionEnfermedades: z.string().nullable().optional(),
+  observacionSeguimiento: z.string().nullable().optional(),
+  fecha: z.string(),
+  actualizadoPor: z.object({}).passthrough().optional(),
+  registroMedico: z
+    .object({
+      id: z.number().int().positive(),
+      animal: animalMedicoSchema.optional(),
+    })
+    .passthrough(),
+});
+
+export const actualizacionesMedicasResponseSchema = z.object({
+  message: z.string(),
+  actualizaciones: z.array(actualizacionMedicaItemSchema),
+});
+
 export const seguimientoMedicoItemSchema = z.object({
   id: z.number().int().positive(),
   fechaRegistro: z.string(),

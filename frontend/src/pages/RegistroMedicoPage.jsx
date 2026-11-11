@@ -8,16 +8,19 @@ import {
   iniciarActualizacion,
   guardarActualizacion,
   cancelarActualizacion,
+  listarActualizacionesMedicas,
   listarHistorialMedico,
   listarSeguimientosMedico,
 } from "../services/registroMedicoService.js";
 import { listarNotificaciones, marcarNotificacionLeida } from "../services/notificacionService.js";
 import BandejaRegistros from "../components/registroMedico/BandejaRegistros.jsx";
+import BandejaActualizaciones from "../components/registroMedico/BandejaActualizaciones.jsx";
 import RevisionInicialForm from "../components/registroMedico/RevisionInicialForm.jsx";
 import RevisionFinalForm from "../components/registroMedico/RevisionFinalForm.jsx";
 import ActualizacionForm from "../components/registroMedico/ActualizacionForm.jsx";
 import HistorialMedico from "../components/registroMedico/HistorialMedico.jsx";
 import SeguimientosMedicos from "../components/registroMedico/SeguimientosMedicos.jsx";
+import RevisionCompletaDetalle from "../components/registroMedico/RevisionCompletaDetalle.jsx";
 import NotificacionesMedicas from "../components/registroMedico/NotificacionesMedicas.jsx";
 import {
   puedeActualizarRegistroMedico,
@@ -32,13 +35,18 @@ const FILTROS = [
   { valor: "PROVISIONAL", texto: "Revisión inicial" },
   { valor: "VALIDACION_PENDIENTE", texto: "Revisión completa" },
   { valor: "REALIZADO", texto: "Realizados" },
-  { valor: "ACTUALIZADO", texto: "Actualizados" },
+  { valor: "ACTUALIZACIONES", texto: "Actualizados" },
   { valor: "", texto: "Todos" },
 ];
 
 export default function RegistroMedicoPage({ usuario }) {
   const [filtro, setFiltro] = useState("PROVISIONAL");
   const [resultado, setResultado] = useState({ filtro: null, registros: [], error: "" });
+  const [actualizaciones, setActualizaciones] = useState({
+    filtro: null,
+    items: [],
+    error: "",
+  });
   const [seleccionadoId, setSeleccionadoId] = useState(null);
   const [detalle, setDetalle] = useState(null);
   const [mensaje, setMensaje] = useState("");
@@ -78,6 +86,29 @@ export default function RegistroMedicoPage({ usuario }) {
 
   useEffect(() => {
     let vigente = true;
+
+    if (filtro === "ACTUALIZACIONES") {
+      listarActualizacionesMedicas()
+        .then((respuesta) => {
+          if (vigente) {
+            setActualizaciones({
+              filtro,
+              items: respuesta.actualizaciones,
+              error: "",
+            });
+          }
+        })
+        .catch((error) => {
+          if (vigente) {
+            setActualizaciones({ filtro, items: [], error: error.message });
+          }
+        });
+
+      return () => {
+        vigente = false;
+      };
+    }
+
     listarRegistrosMedicos(filtro)
       .then((respuesta) => {
         if (vigente) {
@@ -131,8 +162,17 @@ export default function RegistroMedicoPage({ usuario }) {
   }, [esVeterinaria]);
 
   async function refrescar() {
-    const respuesta = await listarRegistrosMedicos(filtro);
-    setResultado({ filtro, registros: respuesta.registros, error: "" });
+    if (filtro === "ACTUALIZACIONES") {
+      const respuesta = await listarActualizacionesMedicas();
+      setActualizaciones({
+        filtro,
+        items: respuesta.actualizaciones,
+        error: "",
+      });
+    } else {
+      const respuesta = await listarRegistrosMedicos(filtro);
+      setResultado({ filtro, registros: respuesta.registros, error: "" });
+    }
     if (seleccionadoId) {
       const detalleRespuesta = await obtenerRegistroMedico(seleccionadoId);
       setDetalle(detalleRespuesta.registro);
@@ -145,10 +185,14 @@ export default function RegistroMedicoPage({ usuario }) {
     }
   }
 
-  const cargando = resultado.filtro !== filtro;
+  const cargando =
+    filtro === "ACTUALIZACIONES"
+      ? actualizaciones.filtro !== filtro
+      : resultado.filtro !== filtro;
   const cargandoDetalle = seleccionadoId !== null && detalle?.id !== seleccionadoId;
   const registros = resultado.registros;
-  const error = resultado.error;
+  const error =
+    filtro === "ACTUALIZACIONES" ? actualizaciones.error : resultado.error;
 
   async function manejarRevisionInicial(datos) {
     const respuesta = await registrarRevisionInicial(seleccionadoId, datos);
@@ -240,7 +284,13 @@ export default function RegistroMedicoPage({ usuario }) {
 
       {cargando && <p>Cargando registros...</p>}
       {!cargando && error && <p className="mensaje mensaje-error">{error}</p>}
-      {!cargando && !error && (
+      {!cargando && !error && filtro === "ACTUALIZACIONES" && (
+        <BandejaActualizaciones
+          actualizaciones={actualizaciones.items}
+          cargando={false}
+        />
+      )}
+      {!cargando && !error && filtro !== "ACTUALIZACIONES" && (
         <BandejaRegistros
           registros={registros}
           seleccionadoId={seleccionadoId}
@@ -270,6 +320,8 @@ export default function RegistroMedicoPage({ usuario }) {
           {detalle.pesoKg != null && <p>Peso inicial: {detalle.pesoKg} kg</p>}
           {detalle.clasificacionSalud && <p>Clasificación: {detalle.clasificacionSalud}</p>}
           {detalle.observacionInicial && <p>Observación: {detalle.observacionInicial}</p>}
+
+          <RevisionCompletaDetalle registro={detalle} />
 
           {puedeRevisionInicial && detalle.estadoValidacion === "PROVISIONAL" && (
             <RevisionInicialForm
