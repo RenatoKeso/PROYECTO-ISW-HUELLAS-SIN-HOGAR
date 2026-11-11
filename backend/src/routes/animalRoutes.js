@@ -1,21 +1,45 @@
 import { Router } from "express";
 import { crearAnimalController } from "../controllers/animalController.js";
 import { capturarErrores } from "../middlewares/capturarErrores.js";
+import { recibirImagen } from "../middlewares/subirImagenAnimal.js";
+import { validarCreacionFicha } from "../middlewares/validarCreacionFicha.js";
 import { validarEsquema } from "../middlewares/validarEsquema.js";
 import {
   fichaAnimalUpdateSchema,
-  fichaCreateSchema,
   fichaIdParamSchema,
 } from "../validations/fichaAnimalValidation.js";
 import { registroIngresoSchema } from "../validations/registroIngresoValidation.js";
+import { listarIngresosQuerySchema } from "../validations/ingresoAnimalValidation.js";
 
 export function crearAnimalRouter({ controlador = crearAnimalController() } = {}) {
   const router = Router();
 
   router.post(
     "/fichas",
-    validarEsquema(fichaCreateSchema),
+    recibirImagen("imagen"),
+    validarCreacionFicha,
     capturarErrores(controlador.crearFicha),
+  );
+
+  router.get("/fichas", capturarErrores(controlador.listarFichas));
+
+  router.get(
+    "/animales/ingresos",
+    validarEsquema(listarIngresosQuerySchema, "query"),
+    capturarErrores(controlador.listarTodosLosIngresos),
+  );
+
+  router.post(
+    "/fichas/:id/imagen",
+    validarEsquema(fichaIdParamSchema, "params"),
+    recibirImagen("imagen"),
+    capturarErrores(controlador.subirImagen),
+  );
+
+  router.delete(
+    "/fichas/:id/imagen",
+    validarEsquema(fichaIdParamSchema, "params"),
+    capturarErrores(controlador.quitarImagen),
   );
 
   router.patch(
@@ -29,6 +53,12 @@ export function crearAnimalRouter({ controlador = crearAnimalController() } = {}
     "/animales/ingresos",
     validarEsquema(registroIngresoSchema),
     capturarErrores(controlador.registrarIngreso),
+  );
+
+  router.get(
+    "/animales/:id/ingresos",
+    validarEsquema(fichaIdParamSchema, "params"),
+    capturarErrores(controlador.listarIngresos),
   );
 
   return router;

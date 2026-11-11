@@ -1,4 +1,12 @@
+import { randomUUID } from "node:crypto";
+import fs from "node:fs/promises";
 import { Prisma } from "@prisma/client";
+import {
+  CARPETA_IMAGENES_ANIMALES,
+  rutaImagenAnimal,
+  rutaImagenDesdeUrl,
+  urlImagenAnimal,
+} from "../config/almacenamientoImagenes.js";
 import { ejecutarEnTransaccion } from "../config/prisma.js";
 import {
   conflictoIdentificador,
@@ -9,19 +17,46 @@ import {
   procedenciaInvalida,
   referenciaFichaAusente,
 } from "../entities/animalErrors.js";
+import { AuthError } from "../entities/authErrors.js";
+import {
+  esErrorImagenAnimal,
+  falloGuardadoImagen,
+  imagenAusente,
+} from "../entities/imagenAnimalErrors.js";
+import { esErrorRegistroMedico } from "../entities/registroMedicoErrors.js";
 import {
   actualizarFichaAnimal,
   crearFichaAnimal,
+  listarFichasAnimales,
   obtenerFichaAnimalPorCodigo,
+  obtenerFichaAnimalPorId,
 } from "../repositories/fichaAnimalRepository.js";
-import { crearIngresoAnimal } from "../repositories/ingresoAnimalRepository.js";
+import {
+  crearIngresoAnimal,
+  listarIngresosAnimales,
+  listarIngresosPorFicha,
+} from "../repositories/ingresoAnimalRepository.js";
+import { crearRegistroMedicoParaIngreso } from "./registroMedicoService.js";
+import { puedeGestionarFichas } from "./permisosUsuario.js";
+import { validarImagenParaSubir } from "../validations/imagenAnimalValidation.js";
 
 const DEPENDENCIAS_POR_DEFECTO = {
-  crearFichaAnimal,
-  obtenerFichaAnimalPorCodigo,
+
+  obtenerFichaAnimalPorId,
   actualizarFichaAnimal,
+  listarFichasAnimales,
+  listarIngresosAnimales,
   crearIngresoAnimal,
+  listarIngresosPorFicha,
+  crearRegistroMedicoParaIngreso,
   ejecutarEnTransaccion,
+  puedeGestionarFichas,
+  validarImagenParaSubir,
+  crearDirectorio: (ruta) => fs.mkdir(ruta, { recursive: true }),
+  escribirArchivo: (ruta, contenido) => fs.writeFile(ruta, contenido),
+  eliminarArchivo: (ruta) => fs.unlink(ruta),
+  generarNombreArchivo: randomUUID,
+  ahora: () => new Date(),
 };
 
 const CODIGO_CONFLICTO_UNICO = "P2002";
@@ -50,6 +85,8 @@ function construirDatosIngreso(ingreso, fichaAnimalId) {
 
 function traducirError(error) {
   if (esErrorAnimal(error)) return error;
+  if (esErrorRegistroMedico(error)) return error;
+  if (esErrorImagenAnimal(error)) return error;
 
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     if (error.code === CODIGO_CONFLICTO_UNICO) return conflictoIdentificador();
@@ -69,18 +106,30 @@ async function guardarEnTransaccion(operacion, dependencias) {
 }
 
 async function registrarIngresoInicial({ ficha, ingreso }, dependencias) {
-  const nuevaFicha = await guardarEnTransaccion(async (cliente) => {
+  const resultado = await guardarEnTransaccion(async (cliente) => {
     const fichaCreada = await dependencias.crearFichaAnimal(ficha, cliente);
 
-    await dependencias.crearIngresoAnimal(
+    const ingresoCreado = await dependencias.crearIngresoAnimal(
       construirDatosIngreso(ingreso, fichaCreada.id),
       cliente,
     );
 
-    return fichaCreada;
+    const registroMedico = await dependencias.crearRegistroMedicoParaIngreso(
+      {
+        animalId: fichaCreada.id,
+        ingresoAnimalId: ingresoCreado.id,
+      },
+      cliente,
+    );
+
+    return { ficha: fichaCreada, registroMedico };
   }, dependencias);
 
-  return { ficha: nuevaFicha, reingreso: false };
+  return {
+    ficha: resultado.ficha,
+    reingreso: false,
+    registroMedico: resultado.registroMedico,
+  };
 }
 
 async function registrarReingresoPorDevolucion({ ingreso }, dependencias) {
@@ -90,7 +139,7 @@ async function registrarReingresoPorDevolucion({ ingreso }, dependencias) {
     throw referenciaFichaAusente();
   }
 
-  const fichaExistente = await guardarEnTransaccion(async (cliente) => {
+  const resultado = await guardarEnTransaccion(async (cliente) => {
     const fichaEncontrada = await dependencias.obtenerFichaAnimalPorCodigo(
       codigoAnimal.trim(),
       cliente,
@@ -98,15 +147,42 @@ async function registrarReingresoPorDevolucion({ ingreso }, dependencias) {
 
     if (!fichaEncontrada) throw fichaInexistente(codigoAnimal.trim());
 
-    await dependencias.crearIngresoAnimal(
+    const ingresoCreado = await dependencias.crearIngresoAnimal(
       construirDatosIngreso(ingreso, fichaEncontrada.id),
       cliente,
     );
 
-    return fichaEncontrada;
+    let registroMedico = null;
+
+    // Si el animal no tenia registro medico provisional, se crea uno vinculado
+    // al reingreso actual. No se duplica si ya existe.
+    if (!fichaEncontrada.registroMedicoAnimal) {
+      registroMedico = await dependencias.crearRegistroMedicoParaIngreso(
+        {
+          animalId: fichaEncontrada.id,
+          ingresoAnimalId: ingresoCreado.id,
+        },
+        cliente,
+      );
+    }
+
+    // El reingreso vuelve a poner al animal a cargo del refugio.
+    const fichaActualizada = await dependencias.actualizarFichaAnimal(
+      fichaEncontrada.id,
+      { estadoEstadia: ESTADO_ESTADIA_NUEVA_FICHA },
+      cliente,
+    );
+
+    return { ficha: fichaActualizada, registroMedico };
   }, dependencias);
 
-  return { ficha: fichaExistente, reingreso: true };
+  return {
+    ficha: resultado.ficha,
+    reingreso: true,
+    ...(resultado.registroMedico
+      ? { registroMedico: resultado.registroMedico }
+      : {}),
+  };
 }
 
 export async function registrarIngreso(datos, dependencias = DEPENDENCIAS_POR_DEFECTO) {
@@ -121,15 +197,230 @@ export async function registrarIngreso(datos, dependencias = DEPENDENCIAS_POR_DE
   return registrarIngresoInicial(datos, dependencias);
 }
 
-export async function crearFicha(datos, dependencias = DEPENDENCIAS_POR_DEFECTO) {
+export async function listarIngresosDeFicha(
+  fichaId,
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  const ficha = await dependencias.obtenerFichaAnimalPorId(fichaId);
+
+  if (!ficha) throw fichaInexistentePorId(fichaId);
+
+  const ingresos = await dependencias.listarIngresosPorFicha(fichaId);
+  const ingresosConTipo = marcarTipoIngresos(ingresos);
+
+  return { ficha, ingresos: ingresosConTipo };
+}
+
+function esRegistroInexistente(error) {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === CODIGO_REGISTRO_INEXISTENTE
+  );
+}
+
+async function eliminarArchivoSiExiste(ruta, dependencias) {
   try {
-    return await dependencias.crearFichaAnimal({
+    await dependencias.eliminarArchivo(ruta);
+  } catch {
+    // La eliminacion es best effort: no debe romper una operacion ya confirmada.
+  }
+}
+
+function exigirGestionFichas(actor, dependencias, mensaje) {
+  if (!dependencias.puedeGestionarFichas(actor)) {
+    throw new AuthError(mensaje, 403, "ROL_INSUFICIENTE");
+  }
+}
+
+async function obtenerFichaGestionable(fichaId, dependencias) {
+  const ficha = await dependencias.obtenerFichaAnimalPorId(fichaId);
+
+  if (!ficha) throw fichaInexistentePorId(fichaId);
+
+  return ficha;
+}
+
+async function guardarArchivoImagen(archivo, dependencias) {
+  const extension = dependencias.validarImagenParaSubir(archivo);
+  const nombre = `${dependencias.generarNombreArchivo()}.${extension}`;
+  const ruta = rutaImagenAnimal(nombre);
+
+  try {
+    await dependencias.crearDirectorio(CARPETA_IMAGENES_ANIMALES);
+    await dependencias.escribirArchivo(ruta, archivo.buffer);
+  } catch (error) {
+    throw falloGuardadoImagen(error);
+  }
+
+  return {
+    nombre,
+    ruta,
+    url: urlImagenAnimal(nombre),
+  };
+}
+
+export async function crearFicha(
+  datos,
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+  archivo = null,
+) {
+  const deps = { ...DEPENDENCIAS_POR_DEFECTO, ...dependencias };
+  const imagen = archivo ? await guardarArchivoImagen(archivo, deps) : null;
+
+  try {
+    const datosFicha = {
       ...datos,
       estadoEstadia: ESTADO_ESTADIA_NUEVA_FICHA,
-    });
+    };
+
+    if (imagen) {
+      datosFicha.imagenUrl = imagen.url;
+      datosFicha.imagenSubidaEn = deps.ahora();
+    }
+
+    return await deps.crearFichaAnimal(datosFicha);
   } catch (error) {
+    if (imagen) await eliminarArchivoSiExiste(imagen.ruta, deps);
+
     throw traducirError(error);
   }
+}
+
+export async function guardarImagenDeFicha(
+  fichaId,
+  archivo,
+  actor,
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  const deps = { ...DEPENDENCIAS_POR_DEFECTO, ...dependencias };
+
+  exigirGestionFichas(
+    actor,
+    deps,
+    "No tienes permiso para subir imagenes de animales",
+  );
+
+  if (!archivo) throw imagenAusente();
+
+  const ficha = await obtenerFichaGestionable(fichaId, deps);
+
+  const imagen = await guardarArchivoImagen(archivo, deps);
+
+  try {
+    const actualizada = await deps.actualizarFichaAnimal(fichaId, {
+      imagenUrl: imagen.url,
+      imagenSubidaEn: deps.ahora(),
+    });
+
+    if (ficha.imagenUrl) {
+      await eliminarArchivoSiExiste(
+        rutaImagenDesdeUrl(ficha.imagenUrl),
+        deps,
+      );
+    }
+
+    return actualizada;
+  } catch (error) {
+    await eliminarArchivoSiExiste(imagen.ruta, deps);
+
+    if (esRegistroInexistente(error)) throw fichaInexistentePorId(fichaId);
+
+    throw falloGuardadoImagen(error);
+  }
+}
+
+export async function quitarImagenDeFicha(
+  fichaId,
+  actor,
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  const deps = { ...DEPENDENCIAS_POR_DEFECTO, ...dependencias };
+
+  exigirGestionFichas(
+    actor,
+    deps,
+    "No tienes permiso para quitar imagenes de animales",
+  );
+
+  const ficha = await obtenerFichaGestionable(fichaId, deps);
+
+  let actualizada;
+
+  try {
+    actualizada = await deps.actualizarFichaAnimal(fichaId, {
+      imagenUrl: null,
+      imagenSubidaEn: null,
+    });
+  } catch (error) {
+    if (esRegistroInexistente(error)) throw fichaInexistentePorId(fichaId);
+
+    throw falloGuardadoImagen(error);
+  }
+
+  if (ficha.imagenUrl) {
+    await eliminarArchivoSiExiste(rutaImagenDesdeUrl(ficha.imagenUrl), deps);
+  }
+
+  return actualizada;
+}
+
+export async function listarFichas(
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  const deps = { ...DEPENDENCIAS_POR_DEFECTO, ...dependencias };
+
+  return deps.listarFichasAnimales();
+}
+
+
+function marcarTipoIngresos(ingresos) {
+  const ingresoInicialPorFicha = new Map();
+
+  for (const ingreso of ingresos) {
+    const actual = ingresoInicialPorFicha.get(ingreso.fichaAnimalId);
+
+    if (actual === undefined || ingreso.id < actual) {
+      ingresoInicialPorFicha.set(ingreso.fichaAnimalId, ingreso.id);
+    }
+  }
+
+  return ingresos.map((ingreso) => ({
+    ...ingreso,
+    tipo:
+      ingreso.id === ingresoInicialPorFicha.get(ingreso.fichaAnimalId)
+        ? "INGRESO"
+        : "REINGRESO",
+  }));
+}
+
+export async function listarIngresosGlobales(
+  { codigo, nombre } = {},
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  const deps = { ...DEPENDENCIAS_POR_DEFECTO, ...dependencias };
+  const ingresos = await deps.listarIngresosAnimales();
+  const ingresosConTipo = marcarTipoIngresos(ingresos);
+
+  const codigoBuscado = codigo?.trim().toLowerCase();
+  const nombreBuscado = nombre?.trim().toLowerCase();
+
+  return ingresosConTipo.filter((ingreso) => {
+    const ficha = ingreso.fichaAnimal;
+
+    const coincideCodigo =
+      !codigoBuscado ||
+      String(ficha?.codigoAnimal ?? "")
+        .toLowerCase()
+        .includes(codigoBuscado);
+
+    const coincideNombre =
+      !nombreBuscado ||
+      String(ficha?.nombre ?? "")
+        .toLowerCase()
+        .includes(nombreBuscado);
+
+    return coincideCodigo && coincideNombre;
+  });
 }
 
 export async function actualizarFicha(id, datos, dependencias = DEPENDENCIAS_POR_DEFECTO) {

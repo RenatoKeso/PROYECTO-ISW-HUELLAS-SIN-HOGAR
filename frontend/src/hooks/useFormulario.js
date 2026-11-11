@@ -1,24 +1,19 @@
 import { useState } from "react";
 import { ApiError } from "../services/api.js";
-
-function erroresDeCampo(error) {
-  if (!Array.isArray(error.detalles)) return {};
-
-  const mapa = {};
-
-  for (const detalle of error.detalles) {
-    if (detalle.campo) mapa[detalle.campo] = detalle.mensaje;
-  }
-
-  return mapa;
-}
+import { erroresDeApi, erroresDeZod } from "../utils/erroresFormulario.js";
 
 function mensajeDeError(error) {
   if (error instanceof ApiError) return error.message;
   return "No se pudo contactar con el servidor, intenta de nuevo";
 }
 
-export function useFormulario({ iniciales = {}, esquema, enviar, mensajeExito }) {
+export function useFormulario({
+  iniciales = {},
+  esquema,
+  enviar,
+  mensajeExito,
+  confirmar,
+}) {
   const [valores, setValores] = useState(iniciales);
   const [errores, setErrores] = useState({});
   const [mensaje, setMensaje] = useState(null);
@@ -40,15 +35,13 @@ export function useFormulario({ iniciales = {}, esquema, enviar, mensajeExito })
     const resultado = esquema.safeParse(valores);
 
     if (!resultado.success) {
-      const nuevosErrores = {};
-      for (const issue of resultado.error.issues) {
-        nuevosErrores[issue.path.join(".")] = issue.message;
-      }
-      setErrores(nuevosErrores);
+      setErrores(erroresDeZod(resultado.error));
       return;
     }
 
     setErrores({});
+
+    if (confirmar && !confirmar(resultado.data)) return;
 
     try {
       const respuesta = await enviar(resultado.data);
@@ -62,7 +55,7 @@ export function useFormulario({ iniciales = {}, esquema, enviar, mensajeExito })
       });
       setValores(iniciales);
     } catch (error) {
-      setErrores(erroresDeCampo(error));
+      setErrores(erroresDeApi(error));
       setMensaje({ tipo: "error", texto: mensajeDeError(error) });
     }
   }

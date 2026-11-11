@@ -1,0 +1,199 @@
+export const ROLES_USUARIO = Object.freeze([
+  "DIRECTORA",
+  "ENCARGADA_VOLUNTARIADO",
+  "ENCARGADA_ADOPCIONES",
+  "VETERINARIA",
+  "VOLUNTARIO",
+  "VOLUNTARIO_CONFIANZA",
+]);
+
+function esCuentaActiva(usuario) {
+  return (
+    usuario?.activo === true &&
+    ROLES_USUARIO.includes(usuario.rol)
+  );
+}
+
+function tieneRol(usuario, roles) {
+  return (
+    esCuentaActiva(usuario) &&
+    roles.includes(usuario.rol)
+  );
+}
+
+// La directora puede crear cuentas de todos los roles.
+// La encargada conserva la creación de voluntarios normales.
+export function puedeCrearUsuario(actor, rolNuevo) {
+  if (
+    !esCuentaActiva(actor) ||
+    !ROLES_USUARIO.includes(rolNuevo)
+  ) {
+    return false;
+  }
+
+  return (
+    actor.rol === "DIRECTORA" ||
+    (
+      actor.rol === "ENCARGADA_VOLUNTARIADO" &&
+      rolNuevo === "VOLUNTARIO"
+    )
+  );
+}
+
+// Solo la directora cambia el rol de otras cuentas.
+export function puedeCambiarRol(
+  actor,
+  usuarioDestino,
+  rolNuevo
+) {
+  return (
+    esCuentaActiva(actor) &&
+    actor.rol === "DIRECTORA" &&
+    Number.isInteger(usuarioDestino?.id) &&
+    usuarioDestino.id > 0 &&
+    actor.id !== usuarioDestino.id &&
+    ROLES_USUARIO.includes(rolNuevo)
+  );
+}
+
+export function puedeDesactivarUsuario(
+  actor,
+  usuarioDestino
+) {
+  if (
+    !esCuentaActiva(actor) ||
+    !Number.isInteger(usuarioDestino?.id) ||
+    usuarioDestino.id <= 0 ||
+    actor.id === usuarioDestino.id ||
+    !ROLES_USUARIO.includes(usuarioDestino.rol)
+  ) {
+    return false;
+  }
+
+  return (
+    actor.rol === "DIRECTORA" ||
+    (
+      actor.rol === "ENCARGADA_VOLUNTARIADO" &&
+      usuarioDestino.rol === "VOLUNTARIO"
+    )
+  );
+}
+
+export function puedeGestionarFichas(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "ENCARGADA_VOLUNTARIADO",
+    "VOLUNTARIO",
+    "VOLUNTARIO_CONFIANZA",
+  ]);
+}
+
+export function puedeConsultarAlertas(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "VETERINARIA",
+  ]);
+}
+
+export function puedeConsultarReportesDevolucion(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "ENCARGADA_ADOPCIONES",
+  ]);
+}
+
+export function puedeConsultarVoluntarios(usuario) {
+  return (
+    puedeGestionarFichas(usuario) ||
+    puedeConsultarReportesDevolucion(usuario)
+  );
+}
+
+export function puedeGestionarAdopciones(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "ENCARGADA_ADOPCIONES",
+  ]);
+}
+
+export function puedeRegistrarDevoluciones(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "ENCARGADA_ADOPCIONES",
+    "VOLUNTARIO_CONFIANZA",
+  ]);
+}
+
+// r3: la revision inicial la registra el voluntario de confianza o la veterinaria.
+export function puedeRegistrarRevisionInicial(usuario) {
+  return tieneRol(usuario, [
+    "VOLUNTARIO_CONFIANZA",
+    "VETERINARIA",
+  ]);
+}
+
+// r4: la revision final la realiza la veterinaria.
+export function puedeRealizarRevisionFinal(usuario) {
+  return tieneRol(usuario, ["VETERINARIA"]);
+}
+
+// r5: la correccion de la revision inicial la hace el voluntario de confianza o la veterinaria.
+export function puedeActualizarRevisionInicial(usuario) {
+  return tieneRol(usuario, [
+    "VOLUNTARIO_CONFIANZA",
+    "VETERINARIA",
+  ]);
+}
+
+// Modulo de turnos y voluntariado.
+// La directora y la encargada de voluntariado publican y administran los turnos.
+export function puedeGestionarTurnos(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "ENCARGADA_VOLUNTARIADO",
+  ]);
+}
+
+// Los voluntarios se inscriben en turnos y consultan, modifican y cancelan
+// sus propias inscripciones.
+export function puedeGestionarInscripciones(usuario) {
+  return tieneRol(usuario, [
+    "VOLUNTARIO",
+    "VOLUNTARIO_CONFIANZA",
+  ]);
+}
+
+// Ver la lista de turnos publicados: quien los publica y quien se inscribe.
+export function puedeConsultarTurnos(usuario) {
+  return (
+    puedeGestionarTurnos(usuario) ||
+    puedeGestionarInscripciones(usuario)
+  );
+}
+
+export function puedeRevisarPostulacionesVoluntario(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "ENCARGADA_VOLUNTARIADO",
+  ]);
+}
+
+// r6: la veterinaria actualiza el registro y registra seguimientos.
+export function puedeActualizarRegistroMedico(usuario) {
+  return tieneRol(usuario, ["VETERINARIA"]);
+}
+
+export function puedeRegistrarSeguimiento(usuario) {
+  return tieneRol(usuario, ["VETERINARIA"]);
+}
+
+
+// r7: consulta de registros medicos.
+export function puedeConsultarRegistroMedico(usuario) {
+  return tieneRol(usuario, [
+    "DIRECTORA",
+    "VETERINARIA",
+    "VOLUNTARIO",
+    "VOLUNTARIO_CONFIANZA",
+  ]);
+}

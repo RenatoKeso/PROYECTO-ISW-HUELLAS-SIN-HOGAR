@@ -1,0 +1,59 @@
+.registro-medico .fila-seleccionada {
+  background: #e8dfc8;
+}
+
+.registro-medico .estado-chip.estado-PROVISIONAL {
+  background: #f3e2b8;
+  color: #7a5a12;
+}
+
+.registro-medico .estado-chip.estado-VALIDACION_PENDIENTE {
+  background: #dce7f3;
+  color: #1f3d6b;
+}
+
+.registro-medico .estado-chip.estado-REVISANDO {
+  background: #efe0f3;
+  color: #5a2d6b;
+}
+
+.registro-medico .estado-chip.estado-REALIZADO {
+  background: #d5e6d8;
+  color: var(--verde);
+}
+
+.registro-medico .estado-chip.estado-ACTUALIZADO {
+  background: #d9ebe3;
+  color: #1f5a40;
+}
+
+.registro-medico section.tarjeta {
+  margin-top: 1rem;
+}
+
+.registro-medico .alertas-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.acciones-formulario {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.encabezado-detalle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.encabezado-detalle h3 {
+  margin: 0;
+}

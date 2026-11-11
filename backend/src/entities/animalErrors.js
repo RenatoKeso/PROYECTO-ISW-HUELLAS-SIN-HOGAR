@@ -17,6 +17,7 @@ const ESTADO_HTTP_POR_CODIGO = {
 export class AnimalError extends Error {
   constructor(codigo, mensaje, opcion = {}) {
     super(mensaje, { cause: opcion.cause });
+
     this.name = "AnimalError";
     this.codigo = codigo;
     this.estadoHttp = ESTADO_HTTP_POR_CODIGO[codigo] ?? 500;

@@ -73,3 +73,29 @@ export const fichaIdParamSchema = z.object({
     .int("El identificador debe ser un número entero")
     .positive("El identificador debe ser mayor que cero"),
 });
+
+const vacioAUndefined = (valor) =>
+  valor === "" || valor === undefined ? undefined : valor;
+
+const textoOpcionalMultipartSchema = z.preprocess(
+  vacioAUndefined,
+  optionalTextSchema.optional(),
+);
+
+const edadMultipartSchema = z.preprocess(
+  vacioAUndefined,
+  z
+    .coerce.number({ message: "La edad debe ser un número" })
+    .int("La edad debe ser un número entero")
+    .min(0, "La edad no puede ser negativa")
+    .optional(),
+);
+
+export const fichaCreateMultipartSchema = z.strictObject({
+  nombre: textoOpcionalMultipartSchema,
+  sexoAnimal: sexoAnimalSchema,
+  especie: especieSchema,
+  raza: textoOpcionalMultipartSchema,
+  edad: edadMultipartSchema,
+  observaciones: textoOpcionalMultipartSchema,
+});
