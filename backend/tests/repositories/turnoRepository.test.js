@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  buscarTurnoPorId,
   crearTurno,
   listarTurnosParaGestion,
   listarTurnosPublicados,
@@ -16,6 +17,10 @@ function clienteDePrueba(respuesta = []) {
       turno: {
         create: async (argumentos) => {
           consultas.push(["create", argumentos]);
+          return respuesta;
+        },
+        findUnique: async (argumentos) => {
+          consultas.push(["findUnique", argumentos]);
           return respuesta;
         },
         findMany: async (argumentos) => {
@@ -61,4 +66,16 @@ test("listarTurnosPublicados solo trae turnos publicados que no han comenzado", 
   const [[, argumentos]] = consultas;
   assert.deepEqual(argumentos.where, { estado: "PUBLICADO", inicio: { gt: ahora } });
   assert.deepEqual(argumentos.orderBy, { inicio: "asc" });
+});
+
+test("buscarTurnoPorId busca por id y devuelve los campos del turno", async () => {
+  const { cliente, consultas } = clienteDePrueba({ id: 4 });
+
+  const turno = await buscarTurnoPorId(4, cliente);
+
+  assert.deepEqual(turno, { id: 4 });
+  const [[metodo, argumentos]] = consultas;
+  assert.equal(metodo, "findUnique");
+  assert.deepEqual(argumentos.where, { id: 4 });
+  assert.equal(argumentos.select.cuposDisponibles, true);
 });

@@ -9,6 +9,7 @@ import { crearAdopcionRouter } from "./adopcionRoutes.js";
 import { crearPostulacionVoluntarioRouter } from "./postulacionVoluntarioRoutes.js";
 import { crearAuthRouter } from "./authRoutes.js";
 import { crearTurnoRouter } from "./turnoRoutes.js";
+import { crearInscripcionRouter } from "./inscripcionRoutes.js";
 import { crearAutenticacion } from "../middlewares/autenticarUsuario.js";
 import { autorizarAccion } from "../middlewares/autorizarAccion.js";
 import {
@@ -47,6 +48,11 @@ export function crearRouter({
   router.use(
     "/turnos",
     crearTurnoRouter({ autenticar })
+  );
+
+  router.use(
+    "/inscripciones",
+    crearInscripcionRouter({ autenticar })
   );
 
   router.use(

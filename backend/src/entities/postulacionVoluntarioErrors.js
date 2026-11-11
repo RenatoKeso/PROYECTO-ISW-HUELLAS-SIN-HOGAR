@@ -19,7 +19,7 @@ export function yaEsVoluntario() {
 export function postulacionEnRevision() {
   return new PostulacionVoluntarioError(
     "POSTULACION_EN_REVISION",
-    "Ya tienes una postulación en revisión con ese RUT o correo",
+    "Ya tienes una postulación en revisión con ese correo",
     409,
   );
 }

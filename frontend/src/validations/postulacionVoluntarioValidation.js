@@ -26,12 +26,6 @@ const vacioAUndefined = (valor) =>
 export const postulacionVoluntarioFormSchema = z
   .strictObject({
     nombre: z.string().trim().min(1, "El nombre es obligatorio").max(255, "El nombre es demasiado largo"),
-    rut: z
-      .string()
-      .trim()
-      .min(1, "El RUT es obligatorio")
-      .transform((valor) => valor.replace(/\./g, "").toUpperCase())
-      .pipe(z.string().regex(/^\d{7,8}-[\dK]$/, "El RUT debe tener el formato 12345678-9")),
     email: z.string().trim().min(1, "El correo es obligatorio").pipe(z.email("El correo no es válido")),
     telefono: z
       .string()
