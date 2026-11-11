@@ -42,7 +42,9 @@ import { validarImagenParaSubir } from "../validations/imagenAnimalValidation.js
 
 const DEPENDENCIAS_POR_DEFECTO = {
 
+  crearFichaAnimal,
   obtenerFichaAnimalPorId,
+  obtenerFichaAnimalPorCodigo,
   actualizarFichaAnimal,
   listarFichasAnimales,
   listarIngresosAnimales,
