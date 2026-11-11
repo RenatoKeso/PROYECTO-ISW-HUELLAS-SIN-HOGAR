@@ -53,3 +53,40 @@ export async function crearInscripcion(data, cliente = prisma) {
 export async function registrarHistorial(data, cliente = prisma) {
   return cliente.historialInscripcion.create({ data });
 }
+
+// Inscripciones del voluntario, opcionalmente filtradas por estado, con su turno.
+// Las mas recientes primero.
+export async function listarInscripcionesDeVoluntario(voluntarioId, estado, cliente = prisma) {
+  return cliente.inscripcionTurno.findMany({
+    where: { voluntarioId, ...(estado ? { estado } : {}) },
+    select: CAMPOS_INSCRIPCION,
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+// Una inscripcion por id, con su turno. Devuelve null si no existe.
+export async function buscarInscripcionPorId(id, cliente = prisma) {
+  return cliente.inscripcionTurno.findUnique({
+    where: { id },
+    select: CAMPOS_INSCRIPCION,
+  });
+}
+
+// Historial de una inscripcion en orden cronologico, con el titulo y horario de
+// los turnos involucrados y quien hizo cada operacion.
+export async function listarHistorialDeInscripcion(inscripcionId, cliente = prisma) {
+  return cliente.historialInscripcion.findMany({
+    where: { inscripcionId },
+    select: {
+      id: true,
+      accion: true,
+      detalle: true,
+      fecha: true,
+      turno: { select: { id: true, titulo: true, inicio: true, termino: true } },
+      turnoAnterior: { select: { id: true, titulo: true, inicio: true, termino: true } },
+      realizadoPor: { select: { id: true, nombre: true, rol: true } },
+    },
+    orderBy: { fecha: "asc" },
+  });
+}
+

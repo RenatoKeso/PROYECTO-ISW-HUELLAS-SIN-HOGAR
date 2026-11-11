@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  buscarInscripcionPorId,
   crearInscripcion,
+  listarHistorialDeInscripcion,
   listarInscripcionesActivasDeVoluntario,
+  listarInscripcionesDeVoluntario,
   registrarHistorial,
   reservarCupo,
 } from "../../src/repositories/inscripcionRepository.js";
@@ -21,9 +24,13 @@ function clienteDePrueba(respuesta) {
       turno: { updateMany: registrar("turno.updateMany") },
       inscripcionTurno: {
         findMany: registrar("inscripcion.findMany"),
+        findUnique: registrar("inscripcion.findUnique"),
         create: registrar("inscripcion.create"),
       },
-      historialInscripcion: { create: registrar("historial.create") },
+      historialInscripcion: {
+        create: registrar("historial.create"),
+        findMany: registrar("historial.findMany"),
+      },
     },
   };
 }
@@ -75,3 +82,37 @@ test("registrarHistorial guarda la fila recibida", async () => {
 
   assert.equal(consultas[0][1].data, data);
 });
+
+test("listarInscripcionesDeVoluntario filtra por estado solo si se pide", async () => {
+  const sinFiltro = clienteDePrueba([]);
+  await listarInscripcionesDeVoluntario(4, undefined, sinFiltro.cliente);
+  assert.deepEqual(sinFiltro.consultas[0][1].where, { voluntarioId: 4 });
+  assert.deepEqual(sinFiltro.consultas[0][1].orderBy, { createdAt: "desc" });
+
+  const conFiltro = clienteDePrueba([]);
+  await listarInscripcionesDeVoluntario(4, "CANCELADA", conFiltro.cliente);
+  assert.deepEqual(conFiltro.consultas[0][1].where, { voluntarioId: 4, estado: "CANCELADA" });
+});
+
+test("buscarInscripcionPorId busca por id con su turno", async () => {
+  const { cliente, consultas } = clienteDePrueba({ id: 9 });
+
+  assert.deepEqual(await buscarInscripcionPorId(9, cliente), { id: 9 });
+  assert.equal(consultas[0][0], "inscripcion.findUnique");
+  assert.deepEqual(consultas[0][1].where, { id: 9 });
+  assert.equal(consultas[0][1].select.turno.select.inicio, true);
+});
+
+test("listarHistorialDeInscripcion trae el historial en orden cronologico", async () => {
+  const { cliente, consultas } = clienteDePrueba([]);
+
+  await listarHistorialDeInscripcion(9, cliente);
+
+  const [[metodo, argumentos]] = consultas;
+  assert.equal(metodo, "historial.findMany");
+  assert.deepEqual(argumentos.where, { inscripcionId: 9 });
+  assert.deepEqual(argumentos.orderBy, { fecha: "asc" });
+  assert.equal(argumentos.select.turnoAnterior.select.titulo, true);
+  assert.equal(argumentos.select.realizadoPor.select.nombre, true);
+});
+

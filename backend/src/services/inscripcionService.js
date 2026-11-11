@@ -1,8 +1,11 @@
 import { ejecutarEnTransaccion } from "../config/prisma.js";
 import {
   bloquearVoluntario,
+  buscarInscripcionPorId,
   crearInscripcion,
+  listarHistorialDeInscripcion,
   listarInscripcionesActivasDeVoluntario,
+  listarInscripcionesDeVoluntario,
   registrarHistorial,
   reservarCupo,
 } from "../repositories/inscripcionRepository.js";
@@ -10,6 +13,7 @@ import { buscarTurnoPorId } from "../repositories/turnoRepository.js";
 import {
   horarioSolapado,
   inscripcionDuplicada,
+  inscripcionInexistente,
   plazoInscripcionVencido,
   turnoCancelado,
   turnoInexistente,
@@ -32,6 +36,9 @@ const DEPENDENCIAS_POR_DEFECTO = {
   reservarCupo,
   crearInscripcion,
   registrarHistorial,
+  listarInscripcionesDeVoluntario,
+  buscarInscripcionPorId,
+  listarHistorialDeInscripcion,
 };
 
 // El voluntario sale de la cuenta con sesion, nunca del cuerpo de la peticion.
@@ -108,3 +115,45 @@ export async function inscribirseEnTurno(
     return inscripcion;
   });
 }
+
+// RF15. Las inscripciones del voluntario con sesion, todas o solo las de un estado.
+export async function obtenerMisInscripciones(
+  { estado } = {},
+  usuario,
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  const voluntarioId = voluntarioDe(usuario);
+
+  return dependencias.listarInscripcionesDeVoluntario(voluntarioId, estado);
+}
+
+// Busca una inscripcion del voluntario con sesion. Si no existe o es de otro
+// voluntario responde lo mismo (404), para no revelar inscripciones ajenas.
+export async function buscarInscripcionPropia(
+  id,
+  usuario,
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+  cliente,
+) {
+  const voluntarioId = voluntarioDe(usuario);
+  const inscripcion = await dependencias.buscarInscripcionPorId(id, cliente);
+
+  if (!inscripcion || inscripcion.voluntarioId !== voluntarioId) {
+    throw inscripcionInexistente(id);
+  }
+
+  return inscripcion;
+}
+
+// RF15. El historial de una inscripcion propia: inscripcion, cambios de turno y cancelacion.
+export async function obtenerHistorialDeInscripcion(
+  id,
+  usuario,
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  const inscripcion = await buscarInscripcionPropia(id, usuario, dependencias);
+  const historial = await dependencias.listarHistorialDeInscripcion(inscripcion.id);
+
+  return { inscripcion, historial };
+}
+

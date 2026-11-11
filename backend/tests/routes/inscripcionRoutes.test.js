@@ -58,7 +58,7 @@ function pedir(url, { metodo = "GET", rol, cuerpo } = {}) {
 }
 
 function controladorDePrueba(inscribirse) {
-  const llamadas = { inscribir: [] };
+  const llamadas = { inscribir: [], mias: [], historial: [] };
 
   const controlador = crearInscripcionController({
     inscribirse:
@@ -67,21 +67,35 @@ function controladorDePrueba(inscribirse) {
         llamadas.inscribir.push({ datos, usuario });
         return { id: 1, turnoId: datos.turnoId, estado: "ACTIVA" };
       }),
+    obtenerMias: async (filtro, usuario) => {
+      llamadas.mias.push({ filtro, usuario });
+      return [{ id: 1 }];
+    },
+    obtenerHistorial: async (id, usuario) => {
+      llamadas.historial.push({ id, usuario });
+      return { inscripcion: { id }, historial: [] };
+    },
   });
 
   return { controlador, llamadas };
 }
 
-test("inscribirse exige sesion", async () => {
+test("las rutas de inscripciones exigen sesion", async () => {
   const { controlador, llamadas } = controladorDePrueba();
 
   await conServidor(controlador, async (url) => {
-    const respuesta = await pedir(url, { metodo: "POST", cuerpo: { turnoId: 1 } });
+    for (const [metodo, ruta, cuerpo] of [
+      ["POST", "", { turnoId: 1 }],
+      ["GET", "/mias"],
+      ["GET", "/3/historial"],
+    ]) {
+      const respuesta = await pedir(`${url}${ruta}`, { metodo, cuerpo });
 
-    assert.equal(respuesta.status, 401);
+      assert.equal(respuesta.status, 401, `${metodo} ${ruta}`);
+    }
   });
 
-  assert.equal(llamadas.inscribir.length, 0);
+  assert.equal(llamadas.inscribir.length + llamadas.mias.length + llamadas.historial.length, 0);
 });
 
 test("solo los voluntarios se inscriben", async () => {
@@ -147,3 +161,39 @@ test("un error de regla de negocio se responde con su estado y su codigo", async
     assert.equal((await respuesta.json()).code, "TURNO_SIN_CUPOS");
   });
 });
+
+test("mis inscripciones pasa el filtro validado y el usuario de la sesion", async () => {
+  const { controlador, llamadas } = controladorDePrueba();
+
+  await conServidor(controlador, async (url) => {
+    const todas = await pedir(`${url}/mias`, { rol: "VOLUNTARIO" });
+    const activas = await pedir(`${url}/mias?estado=ACTIVA`, { rol: "VOLUNTARIO_CONFIANZA" });
+    const invalida = await pedir(`${url}/mias?estado=OTRA`, { rol: "VOLUNTARIO" });
+    const otroRol = await pedir(`${url}/mias`, { rol: "ENCARGADA_VOLUNTARIADO" });
+
+    assert.equal(todas.status, 200);
+    assert.deepEqual((await todas.json()).inscripciones, [{ id: 1 }]);
+    assert.equal(activas.status, 200);
+    assert.equal(invalida.status, 400);
+    assert.equal(otroRol.status, 403);
+  });
+
+  assert.deepEqual(llamadas.mias.map((llamada) => llamada.filtro), [{}, { estado: "ACTIVA" }]);
+  assert.equal(llamadas.mias[0].usuario.voluntarioId, 2);
+});
+
+test("el historial recibe el id como numero y rechaza ids invalidos", async () => {
+  const { controlador, llamadas } = controladorDePrueba();
+
+  await conServidor(controlador, async (url) => {
+    const ok = await pedir(`${url}/7/historial`, { rol: "VOLUNTARIO" });
+    const invalido = await pedir(`${url}/abc/historial`, { rol: "VOLUNTARIO" });
+
+    assert.equal(ok.status, 200);
+    assert.deepEqual((await ok.json()).inscripcion, { id: 7 });
+    assert.equal(invalido.status, 400);
+  });
+
+  assert.deepEqual(llamadas.historial.map((llamada) => llamada.id), [7]);
+});
+

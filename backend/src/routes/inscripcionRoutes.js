@@ -5,7 +5,11 @@ import { validarEsquema } from "../middlewares/validarEsquema.js";
 import { crearAutenticacion } from "../middlewares/autenticarUsuario.js";
 import { autorizarAccion } from "../middlewares/autorizarAccion.js";
 import { puedeGestionarInscripciones } from "../services/permisosUsuario.js";
-import { inscripcionCreateSchema } from "../validations/inscripcionValidation.js";
+import {
+  inscripcionCreateSchema,
+  inscripcionIdSchema,
+  misInscripcionesQuerySchema,
+} from "../validations/inscripcionValidation.js";
 
 export function crearInscripcionRouter({
   controlador = crearInscripcionController(),
@@ -21,6 +25,19 @@ export function crearInscripcionRouter({
     "/",
     validarEsquema(inscripcionCreateSchema),
     capturarErrores(controlador.inscribirse),
+  );
+
+  // Mis inscripciones, con filtro opcional ?estado=ACTIVA|CANCELADA.
+  router.get(
+    "/mias",
+    validarEsquema(misInscripcionesQuerySchema, "query"),
+    capturarErrores(controlador.listarMias),
+  );
+
+  router.get(
+    "/:id/historial",
+    validarEsquema(inscripcionIdSchema, "params"),
+    capturarErrores(controlador.verHistorial),
   );
 
   return router;

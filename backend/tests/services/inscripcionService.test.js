@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { inscribirseEnTurno } from "../../src/services/inscripcionService.js";
+import {
+  inscribirseEnTurno,
+  obtenerHistorialDeInscripcion,
+  obtenerMisInscripciones,
+} from "../../src/services/inscripcionService.js";
 import { esErrorTurno } from "../../src/entities/turnoErrors.js";
 
 // 3 de noviembre de 2026, 12:00 en Chile.
@@ -151,3 +155,72 @@ test("un turno que empieza justo cuando termina otro no se solapa", async () => 
 
   assert.equal(inscripcion.id, 99);
 });
+
+// Dependencias de prueba para las consultas (RF15).
+function dependenciasDeConsulta({ inscripcion = null, historial = [] } = {}) {
+  const llamadas = { listados: [], historial: [] };
+
+  return {
+    llamadas,
+    dependencias: {
+      listarInscripcionesDeVoluntario: async (voluntarioId, estado) => {
+        llamadas.listados.push({ voluntarioId, estado });
+        return [{ id: 1 }];
+      },
+      buscarInscripcionPorId: async (id) => (inscripcion && inscripcion.id === id ? inscripcion : null),
+      listarHistorialDeInscripcion: async (id) => {
+        llamadas.historial.push(id);
+        return historial;
+      },
+    },
+  };
+}
+
+test("obtenerMisInscripciones consulta solo las del voluntario de la sesion", async () => {
+  const { dependencias, llamadas } = dependenciasDeConsulta();
+
+  const todas = await obtenerMisInscripciones({}, VOLUNTARIO, dependencias);
+  await obtenerMisInscripciones({ estado: "ACTIVA" }, VOLUNTARIO, dependencias);
+
+  assert.deepEqual(todas, [{ id: 1 }]);
+  assert.deepEqual(llamadas.listados, [
+    { voluntarioId: 4, estado: undefined },
+    { voluntarioId: 4, estado: "ACTIVA" },
+  ]);
+});
+
+test("obtenerMisInscripciones exige una cuenta vinculada a un voluntario", async () => {
+  const { dependencias } = dependenciasDeConsulta();
+
+  await assert.rejects(
+    obtenerMisInscripciones({}, { ...VOLUNTARIO, voluntarioId: undefined }, dependencias),
+    (error) => error.codigo === "VOLUNTARIO_NO_VINCULADO",
+  );
+});
+
+test("el historial devuelve la inscripcion propia con sus operaciones", async () => {
+  const inscripcion = { id: 9, voluntarioId: 4, estado: "ACTIVA" };
+  const historial = [{ id: 1, accion: "INSCRIPCION" }];
+  const { dependencias, llamadas } = dependenciasDeConsulta({ inscripcion, historial });
+
+  const resultado = await obtenerHistorialDeInscripcion(9, VOLUNTARIO, dependencias);
+
+  assert.deepEqual(resultado, { inscripcion, historial });
+  assert.deepEqual(llamadas.historial, [9]);
+});
+
+test("el historial de una inscripcion inexistente o ajena responde 404 sin revelar cual", async () => {
+  const ajena = { id: 9, voluntarioId: 77, estado: "ACTIVA" };
+
+  for (const opciones of [{}, { inscripcion: ajena }]) {
+    const { dependencias, llamadas } = dependenciasDeConsulta(opciones);
+
+    await assert.rejects(obtenerHistorialDeInscripcion(9, VOLUNTARIO, dependencias), (error) => {
+      assert.equal(error.codigo, "INSCRIPCION_INEXISTENTE");
+      assert.equal(error.estadoHttp, 404);
+      return true;
+    });
+    assert.equal(llamadas.historial.length, 0);
+  }
+});
+
