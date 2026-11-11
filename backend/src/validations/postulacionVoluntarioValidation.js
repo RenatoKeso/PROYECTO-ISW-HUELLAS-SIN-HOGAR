@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { rutSchema, telefonoSchema } from "./adopcionValidation.js";
+import { telefonoSchema } from "./adopcionValidation.js";
 
 export const DIA_SEMANA_VALUES = [
   "LUNES",
@@ -33,7 +33,6 @@ export const postulacionVoluntarioSchema = z
       .trim()
       .min(1, "El nombre es obligatorio")
       .max(255, "El nombre puede tener máximo 255 caracteres"),
-    rut: rutSchema,
     email: z
       .email("El correo no es válido")
       .max(255, "El correo puede tener máximo 255 caracteres")

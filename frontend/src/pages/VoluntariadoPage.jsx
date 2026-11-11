@@ -11,7 +11,6 @@ import "../styles/voluntariado.css";
 
 const POSTULACION_INICIAL = {
   nombre: "",
-  rut: "",
   email: "",
   telefono: "",
   diasDisponibles: [],
@@ -90,16 +89,6 @@ function VoluntariadoPage() {
             maxLength={255}
             onChange={(evento) => cambiar("nombre", evento.target.value)}
           />
-
-          <Campo
-            etiqueta="RUT"
-            nombre="rut"
-            valor={valores.rut}
-            error={errores.rut}
-            placeholder="12345678-9"
-            onChange={(evento) => cambiar("rut", evento.target.value)}
-          />
-
           <Campo
             etiqueta="Correo"
             nombre="email"

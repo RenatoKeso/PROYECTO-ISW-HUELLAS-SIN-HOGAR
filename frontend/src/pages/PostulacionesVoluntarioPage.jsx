@@ -82,7 +82,7 @@ function TarjetaPostulacion({ postulacion, alRevisar, alDeshacer }) {
         <div>
           <h3>{postulacion.nombre}</h3>
           <p className="texto-suave">
-            RUT {postulacion.rut} · {postulacion.email} · {postulacion.telefono}
+            {postulacion.email} · {postulacion.telefono}
           </p>
         </div>
         <span className={`estado-postulacion estado-${postulacion.estado.toLowerCase()}`}>

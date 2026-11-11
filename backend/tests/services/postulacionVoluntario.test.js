@@ -10,7 +10,6 @@ import {
 
 const DATOS = {
   nombre: "Camila Soto",
-  rut: "18765432-7",
   email: "camila.soto@gmail.com",
   telefono: "933322211",
   diasDisponibles: ["LUNES", "VIERNES"],
@@ -77,7 +76,7 @@ test("guarda la postulación cuando la persona no es voluntaria ni tiene otra en
 
   assert.equal(postulacion.estado, "EN_REVISION");
   assert.equal(guardado.postulaciones.length, 1);
-  assert.equal(guardado.postulaciones[0].rut, "18765432-7");
+  assert.equal(guardado.postulaciones[0].email, "camila.soto@gmail.com");
 });
 
 test("no deja postular si el correo ya es de un voluntario", async () => {
@@ -89,7 +88,7 @@ test("no deja postular si el correo ya es de un voluntario", async () => {
   assert.equal(guardado.postulaciones.length, 0);
 });
 
-test("no deja postular si ya fue aceptada antes con el mismo RUT", async () => {
+test("no deja postular si ya fue aceptada antes con el mismo correo", async () => {
   const { dependencias } = falsas({
     buscarPostulacionVigente: async () => ({ id: 1, estado: "ACEPTADA" }),
   });
