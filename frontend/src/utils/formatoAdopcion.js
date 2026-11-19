@@ -14,6 +14,25 @@ export const TIPOS_VIVIENDA = {
   OTRO: "Otro",
 };
 
+export const TENENCIAS_VIVIENDA = {
+  PROPIA: "Propia",
+  ARRENDADA: "Arrendada",
+  OTRA: "Otra",
+};
+
+// true -> "Sí", false -> "No". Las postulaciones antiguas no tienen el dato (null).
+export function formatearSiNo(valor) {
+  if (valor === true) return "Sí";
+  if (valor === false) return "No";
+  return null;
+}
+
+// formatearCantidad(1, "persona", "personas") -> "1 persona". Muestra tambien el 0.
+export function formatearCantidad(valor, singular, plural) {
+  if (valor === null || valor === undefined) return null;
+  return `${valor} ${valor === 1 ? singular : plural}`;
+}
+
 export const MOTIVOS_DEVOLUCION = {
   COMPORTAMIENTO: "Comportamiento",
   SALUD: "Salud",
