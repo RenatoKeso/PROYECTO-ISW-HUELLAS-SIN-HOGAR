@@ -8,7 +8,7 @@ export function crearApp({ registrarIngresoAnimal } = {}) {
   const app = express();
 
   app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:5173" }));
-  app.use(express.json());
+  app.use(express.json({ limit: "5mb" }));
 
   app.get("/health", (request, response) => {
     response.json({ status: "ok", message: "Backend funcionando" });

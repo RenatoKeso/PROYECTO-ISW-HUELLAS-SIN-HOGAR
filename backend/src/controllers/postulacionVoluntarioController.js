@@ -4,6 +4,7 @@ import {
   obtenerPostulacionesVoluntario,
   revisarPostulacionVoluntario,
   deshacerRevisionPostulacionVoluntario,
+  obtenerCurriculum,
 } from "../services/postulacionVoluntarioService.js";
 
 export async function postular(request, response) {
@@ -48,4 +49,12 @@ export async function deshacer(request, response) {
     mensaje: "Listo, la postulación volvió a En revisión",
     datos: { postulacion },
   });
+}
+
+export async function verCurriculum(request, response) {
+  const { curriculum, curriculumNombre } = await obtenerCurriculum(request.params.id);
+
+  response.setHeader("Content-Type", "application/pdf");
+  response.setHeader("Content-Disposition", `inline; filename="${curriculumNombre}"`);
+  return response.send(Buffer.from(curriculum));
 }

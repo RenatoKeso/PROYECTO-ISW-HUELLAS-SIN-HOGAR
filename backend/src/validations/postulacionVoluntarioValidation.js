@@ -59,11 +59,25 @@ export const postulacionVoluntarioSchema = z
       .min(1, "Escribe cuál es tu otra habilidad")
       .max(255, "La otra habilidad puede tener máximo 255 caracteres")
       .optional(),
+    curriculumNombre: z
+      .string()
+      .trim()
+      .max(255, "El nombre del archivo es muy largo")
+      .regex(/\.pdf$/i, "El currículum debe ser un archivo PDF")
+      .optional(),
+    curriculumBase64: z
+      .string()
+      .max(2800000, "El currículum puede pesar máximo 2 MB")
+      .optional(),
   })
   
   .refine((datos) => !datos.habilidades.includes("OTRA") || datos.otraHabilidad, {
     message: "Si eliges OTRA, escribe cuál es tu habilidad",
     path: ["otraHabilidad"],
+  })
+  .refine((datos) => Boolean(datos.curriculumNombre) === Boolean(datos.curriculumBase64), {
+    message: "Falta el archivo del currículum",
+    path: ["curriculumBase64"],
   });
 
 export const listarPostulacionesVoluntarioQuerySchema = z.strictObject({

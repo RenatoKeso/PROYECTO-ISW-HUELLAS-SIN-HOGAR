@@ -17,6 +17,8 @@ const POSTULACION_INICIAL = {
   motivacion: "",
   habilidades: [],
   otraHabilidad: "",
+  curriculumNombre: "",
+  curriculumBase64: "",
 };
 
 function Mensaje({ mensaje }) {
@@ -67,6 +69,36 @@ function VoluntariadoPage() {
   });
 
   const { valores, errores, cambiar } = formulario;
+
+  function elegirCurriculum(evento) {
+    const archivo = evento.target.files[0];
+
+    if (!archivo) {
+      cambiar("curriculumNombre", "");
+      cambiar("curriculumBase64", "");
+      return;
+    }
+
+    if (archivo.type !== "application/pdf") {
+      alert("El currículum debe ser un archivo PDF");
+      evento.target.value = "";
+      return;
+    }
+
+    if (archivo.size > 2 * 1024 * 1024) {
+      alert("El currículum puede pesar máximo 2 MB");
+      evento.target.value = "";
+      return;
+    }
+
+    const lector = new FileReader();
+    lector.onload = () => {
+      const base64 = lector.result.split(",")[1];
+      cambiar("curriculumNombre", archivo.name);
+      cambiar("curriculumBase64", base64);
+    };
+    lector.readAsDataURL(archivo);
+  }
 
   return (
     <section className="bloque voluntariado">
@@ -147,6 +179,14 @@ function VoluntariadoPage() {
             maxLength={1000}
             onChange={(evento) => cambiar("motivacion", evento.target.value)}
           />
+          <div className="campo campo-ancho">
+            <span>Currículum en PDF (opcional, máximo 2 MB)</span>
+            <label className="subir-cv">
+              <input type="file" accept="application/pdf" onChange={elegirCurriculum} hidden />
+              {valores.curriculumNombre ? `✅ ${valores.curriculumNombre}` : "Elegir archivo"}
+            </label>
+            {errores.curriculumBase64 && <span className="campo-error">{errores.curriculumBase64}</span>}
+          </div>
         </div>
 
         <button type="submit" className="boton">Enviar postulación</button>

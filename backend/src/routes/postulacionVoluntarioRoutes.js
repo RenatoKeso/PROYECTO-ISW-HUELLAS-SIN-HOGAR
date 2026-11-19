@@ -10,7 +10,7 @@ import {
   listarPostulacionesVoluntarioQuerySchema,
   revisarPostulacionVoluntarioSchema,
 } from "../validations/postulacionVoluntarioValidation.js";
-import { postular, listar, revisar, deshacer } from "../controllers/postulacionVoluntarioController.js";
+import { postular, listar, revisar, deshacer, verCurriculum } from "../controllers/postulacionVoluntarioController.js";
 
 export function crearPostulacionVoluntarioRouter({ autenticar = crearAutenticacion() } = {}) {
   const router = Router();
@@ -25,6 +25,13 @@ export function crearPostulacionVoluntarioRouter({ autenticar = crearAutenticaci
     ...soloEquipoVoluntariado,
     validarEsquema(listarPostulacionesVoluntarioQuerySchema, "query"),
     capturarErrores(listar),
+  );
+
+  router.get(
+    "/:id/curriculum",
+    ...soloEquipoVoluntariado,
+    validarEsquema(postulacionIdParamSchema, "params"),
+    capturarErrores(verCurriculum),
   );
 
   router.patch(

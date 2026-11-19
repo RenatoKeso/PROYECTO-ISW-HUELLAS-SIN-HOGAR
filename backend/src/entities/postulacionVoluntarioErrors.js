@@ -54,3 +54,19 @@ export function voluntarioConActividad() {
     409,
   );
 }
+
+export function curriculumNoEsPdf() {
+  return new PostulacionVoluntarioError(
+    "CURRICULUM_INVALIDO",
+    "El currículum debe ser un archivo PDF",
+    400,
+  );
+}
+
+export function curriculumNoEncontrado() {
+  return new PostulacionVoluntarioError(
+    "CURRICULUM_INEXISTENTE",
+    "Esta postulación no tiene currículum",
+    404,
+  );
+}

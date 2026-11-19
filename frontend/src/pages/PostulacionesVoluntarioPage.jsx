@@ -3,6 +3,7 @@ import {
   listarPostulacionesVoluntario,
   revisarPostulacionVoluntario,
   deshacerRevisionPostulacionVoluntario,
+  verCurriculumPostulacion,
 } from "../services/postulacionVoluntarioService.js";
 import {
   OPCIONES_DIAS,
@@ -109,6 +110,17 @@ function TarjetaPostulacion({ postulacion, alRevisar, alDeshacer }) {
       </div>
 
       <p className="motivacion">"{postulacion.motivacion}"</p>
+            {postulacion.curriculumNombre && (
+        <button
+          type="button"
+          className="boton boton-secundario"
+          onClick={() =>
+            verCurriculumPostulacion(postulacion.id).catch((errorCv) => setError(errorCv.message))
+          }
+        >
+          📄 Ver currículum
+        </button>
+      )}
       <p className="texto-suave">Postuló el {formatearFecha(postulacion.createdAt)}</p>
 
       {postulacion.estado === "EN_REVISION" ? (

@@ -44,6 +44,8 @@ export const postulacionVoluntarioFormSchema = z
       vacioAUndefined,
       z.string().trim().max(255, "La otra habilidad es demasiado larga").optional(),
     ),
+    curriculumNombre: z.preprocess(vacioAUndefined, z.string().optional()),
+    curriculumBase64: z.preprocess(vacioAUndefined, z.string().optional()),
   })
   .refine((datos) => !datos.habilidades.includes("OTRA") || datos.otraHabilidad, {
     message: "Si eliges Otra, escribe cuál es tu habilidad",

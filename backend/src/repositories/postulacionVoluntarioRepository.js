@@ -9,6 +9,7 @@ const CAMPOS_POSTULACION = {
   motivacion: true,
   habilidades: true,
   otraHabilidad: true,
+  curriculumNombre: true,
   estado: true,
   motivoRechazo: true,
   fechaRevision: true,
@@ -100,4 +101,11 @@ export async function volverARevision(id, estadoActual, cliente = prisma) {
 
 export async function eliminarVoluntario(id, cliente = prisma) {
   return cliente.voluntario.delete({ where: { id } });
+}
+
+export async function buscarCurriculum(id, cliente = prisma) {
+  return cliente.postulacionVoluntario.findUnique({
+    where: { id },
+    select: { curriculum: true, curriculumNombre: true },
+  });
 }
