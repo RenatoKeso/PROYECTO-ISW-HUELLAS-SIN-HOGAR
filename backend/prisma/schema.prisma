@@ -754,6 +754,8 @@ model PostulacionVoluntario {
   motivacion      String
   habilidades     HabilidadVoluntario[]
   otraHabilidad   String?
+  curriculum       Bytes?
+  curriculumNombre String?
   estado          EstadoPostulacionVoluntario @default(EN_REVISION)
 
   // Se llenan cuando la encargada revisa la postulacion.
