@@ -34,3 +34,49 @@ export function seSolapan(turnoA, turnoB) {
 export function turnoSolapadoCon(turno, otros) {
   return otros.find((otro) => seSolapan(turno, otro)) ?? null;
 }
+
+// Por que un voluntario no puede tomar un turno. Cada motivo tiene su error en
+// turnoErrors.js (errorDeDisponibilidad).
+export const MOTIVO_NO_DISPONIBLE = Object.freeze({
+  CANCELADO: "CANCELADO",
+  YA_COMENZO: "YA_COMENZO",
+  PLAZO_VENCIDO: "PLAZO_VENCIDO",
+  YA_INSCRITO: "YA_INSCRITO",
+  SIN_CUPOS: "SIN_CUPOS",
+  SOLAPE: "SOLAPE",
+});
+
+// Revisa si el voluntario puede tomar el turno, sin tocar la base de datos ni
+// tomar el cupo. `activas` son sus inscripciones activas, cada una con su turno.
+// Las reglas van en el mismo orden en que se revisan al inscribirse, asi el
+// calendario y la inscripcion responden siempre lo mismo.
+// Devuelve { disponible: true } o { disponible: false, motivo, turnoSolapado? }.
+export function evaluarDisponibilidad(turno, activas, ahora = new Date()) {
+  if (turno.estado === "CANCELADO") {
+    return { disponible: false, motivo: MOTIVO_NO_DISPONIBLE.CANCELADO };
+  }
+
+  if (turnoYaComenzo(turno, ahora)) {
+    return { disponible: false, motivo: MOTIVO_NO_DISPONIBLE.YA_COMENZO };
+  }
+
+  if (plazoVencido(turno, ahora)) {
+    return { disponible: false, motivo: MOTIVO_NO_DISPONIBLE.PLAZO_VENCIDO };
+  }
+
+  if (activas.some((inscripcion) => inscripcion.turnoId === turno.id)) {
+    return { disponible: false, motivo: MOTIVO_NO_DISPONIBLE.YA_INSCRITO };
+  }
+
+  if (!hayCupos(turno)) {
+    return { disponible: false, motivo: MOTIVO_NO_DISPONIBLE.SIN_CUPOS };
+  }
+
+  const turnoSolapado = turnoSolapadoCon(turno, activas.map((inscripcion) => inscripcion.turno));
+
+  if (turnoSolapado) {
+    return { disponible: false, motivo: MOTIVO_NO_DISPONIBLE.SOLAPE, turnoSolapado };
+  }
+
+  return { disponible: true };
+}

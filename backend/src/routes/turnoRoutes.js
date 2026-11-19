@@ -6,9 +6,16 @@ import { crearAutenticacion } from "../middlewares/autenticarUsuario.js";
 import { autorizarAccion } from "../middlewares/autorizarAccion.js";
 import {
   puedeConsultarTurnos,
+  puedeGestionarInscripciones,
   puedeGestionarTurnos,
 } from "../services/permisosUsuario.js";
-import { turnoCreateSchema } from "../validations/turnoValidation.js";
+import {
+  calendarioQuerySchema,
+  gestionQuerySchema,
+  turnoCancelacionSchema,
+  turnoCreateSchema,
+  turnoIdSchema,
+} from "../validations/turnoValidation.js";
 
 export function crearTurnoRouter({
   controlador = crearTurnoController(),
@@ -29,10 +36,39 @@ export function crearTurnoRouter({
     capturarErrores(controlador.publicarTurno),
   );
 
+  // ?semana=2026-11-16 opcional: la semana de su lunes, tambien semanas pasadas.
   router.get(
     "/gestion",
     autorizarAccion(puedeGestionarTurnos),
+    validarEsquema(gestionQuerySchema, "query"),
     capturarErrores(controlador.listarGestion),
+  );
+
+  // Cancelar un turno. Es PATCH y no DELETE: el turno no se borra, cambia de
+  // estado y conserva su historial (igual que una inscripcion cancelada).
+  router.patch(
+    "/:id/cancelacion",
+    autorizarAccion(puedeGestionarTurnos),
+    validarEsquema(turnoIdSchema, "params"),
+    validarEsquema(turnoCancelacionSchema),
+    capturarErrores(controlador.cancelar),
+  );
+
+  router.get(
+    "/:id/inscritos",
+    autorizarAccion(puedeGestionarTurnos),
+    validarEsquema(turnoIdSchema, "params"),
+    capturarErrores(controlador.verInscritos),
+  );
+
+  // Calendario semanal del voluntario: cada turno con su estado para el.
+  // GET /turnos/calendario?semana=2026-11-16 (la fecha del lunes).
+
+  router.get(
+    "/calendario",
+    autorizarAccion(puedeGestionarInscripciones),
+    validarEsquema(calendarioQuerySchema, "query"),
+    capturarErrores(controlador.verCalendario),
   );
 
   // Turnos que se pueden elegir: los ven quienes los publican y los voluntarios.
