@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Campo from "../components/ui/Campo.jsx";
 import { ApiError } from "../services/api.js";
-import { generarReporteDevoluciones, listarReportesDevoluciones } from "../services/reporteDevolucionService.js";
+import { generarReporteDevoluciones, listarReportesDevoluciones, descargarPdfReporte} from "../services/reporteDevolucionService.js";
 import { listarPostulacionesEntregadas, registrarDevolucion } from "../services/devolucionService.js";
 import { listarVoluntarios } from "../services/voluntariosService.js";
 import { puedeConsultarReportesDevolucion } from "../utils/permisosUsuario.js";
@@ -219,6 +219,7 @@ function ReporteDevolucionesPage({ usuario }) {
       repetidos: reporte.resultado.repetidos,
       mostrarNombres: true,
       pie: nombreVoluntario ? `Generado por ${nombreVoluntario}` : "",
+      reporteId: reporte.id,
     });
   }
 
@@ -579,6 +580,17 @@ function ReporteDevolucionesPage({ usuario }) {
               {ventana.animal && (
                 <button type="button" className="boton boton-secundario" onClick={() => setFichaAbierta(ventana.animal)}>
                   Ver ficha
+                </button>
+              )}
+              {ventana.reporteId && (
+                <button
+                  type="button"
+                  className="boton"
+                  onClick={() =>
+                    descargarPdfReporte(ventana.reporteId).catch(() => setMensaje("No se pudo descargar el PDF"))
+                  }
+                >
+                  Descargar PDF
                 </button>
               )}
               {ventana.pie && <p className="pie-ventana">{ventana.pie}</p>}
