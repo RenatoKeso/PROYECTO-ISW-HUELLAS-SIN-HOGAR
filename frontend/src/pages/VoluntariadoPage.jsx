@@ -179,12 +179,14 @@ function VoluntariadoPage() {
             maxLength={1000}
             onChange={(evento) => cambiar("motivacion", evento.target.value)}
           />
-          <label className="campo campo-ancho">
-          <span>Currículum en PDF (opcional, máximo 2 MB)</span>
-          <input type="file" accept="application/pdf" onChange={elegirCurriculum} />
-            {valores.curriculumNombre && <small>📄 {valores.curriculumNombre}</small>}
+          <div className="campo campo-ancho">
+            <span>Currículum en PDF (opcional, máximo 2 MB)</span>
+            <label className="subir-cv">
+              <input type="file" accept="application/pdf" onChange={elegirCurriculum} hidden />
+              {valores.curriculumNombre ? `✅ ${valores.curriculumNombre}` : "Elegir archivo"}
+            </label>
             {errores.curriculumBase64 && <span className="campo-error">{errores.curriculumBase64}</span>}
-          </label>
+          </div>
         </div>
 
         <button type="submit" className="boton">Enviar postulación</button>

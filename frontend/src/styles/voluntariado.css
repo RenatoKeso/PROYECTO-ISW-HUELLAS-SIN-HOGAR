@@ -583,3 +583,30 @@
 .voluntariado > .mensaje {
   margin-bottom: 1rem;
 }
+
+.voluntariado .subir-cv {
+  display: inline-block;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  background: var(--blanco-dev);
+  color: var(--cafe);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  box-shadow: 0 4px 12px rgba(85, 56, 32, 0.1);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.voluntariado .subir-cv:hover {
+  background: var(--rosado);
+}
+
+.voluntariado .subir-cv.elegido {
+  background: var(--verde);
+  color: white;
+}
