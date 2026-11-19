@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import {Routes,Route,Link,Navigate,matchPath,useLocation,} from "react-router-dom";
+import { useEffect, useState } from "react";
+import {Routes,Route,Link,NavLink,Navigate,matchPath,useLocation,} from "react-router-dom";
 import HomePage from "./pages/HomePage.jsx";
 import RegistroPage from "./pages/RegistroPage.jsx";
 import AlertasSanitariasPage from "./pages/AlertasSanitariasPage.jsx";
@@ -43,6 +43,12 @@ function App() {
   );
   const tituloPagina = coincidencia?.[1] ?? "Página no encontrada";
 
+  const [menuAbierto, setMenuAbierto] = useState(false);
+
+  useEffect(() => {
+    setMenuAbierto(false);
+  }, [pathname]);
+
   useEffect(() => {
     document.title = `${tituloPagina} | Huellas Sin Hogar`;
   }, [tituloPagina]);
@@ -81,196 +87,225 @@ function App() {
 
     return pagina;
   }
-
+  
   return (
     <div className="app">
       {!esLogin && (
         <header className="barra">
-          <Link to="/" className="marca">
-            Huellas Sin Hogar
-          </Link>
+          <div className="barra-izquierda">
+            <Link to="/" className="marca">
+              Huellas Sin Hogar
+            </Link>
+          </div>
 
-          <nav>
-            <Link to="/">Inicio</Link>
-            <Link to="/adopcion">Adopción</Link>
+          {usuario ? (
+            <div className="usuario-barra">
+              <span className="usuario-icono">
+                {usuario.nombre.charAt(0).toUpperCase()}
+              </span>
 
-            {usuario ? (
-              <>
-                {puedeGestionarFichas(usuario) && (
-                  <Link to="/registro">Registro</Link>
-                )}
+              <div className="usuario-datos">
+                <strong>{usuario.nombre}</strong>
+                <small>{NOMBRES_ROL[usuario.rol]}</small>
+              </div>
 
-                {puedeConsultarAlertas(usuario) && (
-                  <Link to="/salud/alertas">Alertas sanitarias</Link>
-                )}
-
-                {puedeConsultarRegistroMedico(usuario) && (
-                  <Link to="/salud/registros-medicos">
-                    Registro médico
-                  </Link>
-                )}
-
-                {(puedeConsultarReportesDevolucion(usuario) ||
-                  puedeRegistrarDevoluciones(usuario)) && (
-                  <Link to="/reportes/devoluciones">Devoluciones</Link>
-                )}
-
-                {puedeGestionarAdopciones(usuario) && (
-                  <Link to="/postulaciones">Postulaciones</Link>
-                )}
-
-                {puedeRevisarPostulacionesVoluntario(usuario) && (
-                  <Link to="/voluntariado/postulaciones">
-                    Postulaciones Voluntario
-                  </Link>
-                )}
-
-                {puedeConsultarTurnos(usuario) && (
-                  <Link to="/turnos">Turnos</Link>
-                )}
-
-                {puedeGestionarInscripciones(usuario) && (
-                  <Link to="/turnos/mis-inscripciones">Mis inscripciones</Link>
-                )}
-
-                <span>
-                  {usuario.nombre} · {NOMBRES_ROL[usuario.rol]}
-                </span>
-
-                <button
-                  type="button"
-                  className="boton"
-                  onClick={cerrarSesion}
-                  disabled={cerrandoSesion}
-                >
-                  {cerrandoSesion ? "Cerrando..." : "Cerrar sesión"}
-                </button>
-              </>
-            ) : (
+              <button
+                type="button"
+                className="boton-menu"
+                onClick={() => setMenuAbierto(!menuAbierto)}
+                aria-label="Abrir menú"
+              >
+                ☰
+              </button>
+            </div>
+          ) : (
+            <nav>
+              <Link to="/">Inicio</Link>
+              <Link to="/adopcion">Adopción</Link>
               <Link to="/login">Iniciar sesión</Link>
-            )}
-          </nav>
+            </nav>
+          )}
         </header>
       )}
 
-      <main className={esLogin ? "contenido contenido-login" : "contenido"}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
+      <div className="cuerpo">
+        {usuario && !esLogin && menuAbierto && (
+          <div className="fondo-menu" onClick={() => setMenuAbierto(false)} />
+        )}
 
-          <Route
-            path="/login"
-            element={
-              usuario ? (
-                <Navigate to="/" replace />
-              ) : (
-                <LoginPage
-                  onLogin={iniciarSesion}
-                  mensajeSesion={mensajeSesion}
-                />
-              )
-            }
-          />
+        {usuario && !esLogin && (
+          <aside className={menuAbierto ? "menu-lateral abierto" : "menu-lateral"}>
+            <nav>
+              <NavLink to="/" end>🏠 Inicio</NavLink>
+              <NavLink to="/adopcion" end>🐶 Adopción</NavLink>
 
-          <Route
-            path="/registro"
-            element={proteger(<RegistroPage />, puedeGestionarFichas)}
-          />
+              {puedeGestionarFichas(usuario) && (
+                <NavLink to="/registro">📝 Registro</NavLink>
+              )}
 
-          <Route
-            path="/salud/alertas"
-            element={proteger(
-              <AlertasSanitariasPage />,
-              puedeConsultarAlertas
-            )}
-          />
+              {puedeConsultarAlertas(usuario) && (
+                <NavLink to="/salud/alertas">🚨 Alertas sanitarias</NavLink>
+              )}
 
-          <Route
-            path="/salud/registros-medicos"
-            element={proteger(
-              <RegistroMedicoPage usuario={usuario} />,
-              puedeConsultarRegistroMedico
-            )}
-          />
+              {puedeConsultarRegistroMedico(usuario) && (
+                <NavLink to="/salud/registros-medicos">🩺 Registro médico</NavLink>
+              )}
 
-          <Route path="/adopcion" element={<AdopcionPage />} />
-          <Route
-            path="/adopcion/:animalId/postular"
-            element={<PostulacionPage />}
-          />
+              {(puedeConsultarReportesDevolucion(usuario) ||
+                puedeRegistrarDevoluciones(usuario)) && (
+                <NavLink to="/reportes/devoluciones">↩️ Devoluciones</NavLink>
+              )}
 
-          <Route path="/voluntariado" element={<VoluntariadoPage />} />
+              {puedeGestionarAdopciones(usuario) && (
+                <NavLink to="/postulaciones">📋 Postulaciones</NavLink>
+              )}
 
-          <Route
-            path="/voluntariado/postulaciones"
-            element={proteger(
-              <PostulacionesVoluntarioPage />,
-              puedeRevisarPostulacionesVoluntario
-            )}
-          />
+              {puedeRevisarPostulacionesVoluntario(usuario) && (
+                <NavLink to="/voluntariado/postulaciones">🙋 Postulaciones Voluntario</NavLink>
+              )}
 
-          <Route
-            path="/turnos"
-            element={proteger(
-              <TurnosPage usuario={usuario} />,
-              puedeConsultarTurnos
-            )}
-          />
+              {puedeConsultarTurnos(usuario) && (
+                <NavLink to="/turnos" end>📅 Turnos</NavLink>
+              )}
 
-          <Route
-            path="/turnos/mis-inscripciones"
-            element={proteger(
-              <MisInscripcionesPage />,
-              puedeGestionarInscripciones
-            )}
-          />
+              {puedeGestionarInscripciones(usuario) && (
+                <NavLink to="/turnos/mis-inscripciones">✅ Mis inscripciones</NavLink>
+              )}
 
-          <Route
-            path="/postulaciones"
-            element={proteger(
-              <PostulacionesPage />,
-              puedeGestionarAdopciones
-            )}
-          />
+              <button
+                type="button"
+                className="cerrar-lateral"
+                onClick={cerrarSesion}
+                disabled={cerrandoSesion}
+              >
+                🚪 {cerrandoSesion ? "Cerrando..." : "Cerrar sesión"}
+              </button>
+            </nav>
+          </aside>
+        )}
 
-          <Route
-            path="/postulaciones/:id"
-            element={proteger(
-              <PostulacionDetallePage />,
-              puedeGestionarAdopciones
-            )}
-          />
+        <div className="columna-contenido">
+          <main className={esLogin ? "contenido contenido-login" : "contenido"}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
 
-          <Route
-            path="/adopciones/publicar"
-            element={proteger(
-              <PublicarAnimalesPage />,
-              puedeGestionarAdopciones
-            )}
-          />
+              <Route
+                path="/login"
+                element={
+                  usuario ? (
+                    <Navigate to="/" replace />
+                  ) : (
+                    <LoginPage
+                      onLogin={iniciarSesion}
+                      mensajeSesion={mensajeSesion}
+                    />
+                  )
+                }
+              />
 
-          <Route
-            path="/reportes/devoluciones"
-            element={proteger(
-              <ReporteDevolucionesPage usuario={usuario} />,
-              (u) =>
-                puedeConsultarReportesDevolucion(u) ||
-                puedeRegistrarDevoluciones(u)
-            )}
-          />
+              <Route
+                path="/registro"
+                element={proteger(<RegistroPage />, puedeGestionarFichas)}
+              />
 
-          <Route path="*" element={<p>Esta página no existe.</p>} />
-        </Routes>
-      </main>
+              <Route
+                path="/salud/alertas"
+                element={proteger(
+                  <AlertasSanitariasPage />,
+                  puedeConsultarAlertas
+                )}
+              />
 
-      {!esLogin && (
-        <footer className="pie">
-          <p>
-            Proyecto de Ingeniería de Software - Universidad del Bío-Bío
-          </p>
-        </footer>
-      )}
+              <Route
+                path="/salud/registros-medicos"
+                element={proteger(
+                  <RegistroMedicoPage usuario={usuario} />,
+                  puedeConsultarRegistroMedico
+                )}
+              />
+
+              <Route path="/adopcion" element={<AdopcionPage />} />
+              <Route
+                path="/adopcion/:animalId/postular"
+                element={<PostulacionPage />}
+              />
+
+              <Route path="/voluntariado" element={<VoluntariadoPage />} />
+
+              <Route
+                path="/voluntariado/postulaciones"
+                element={proteger(
+                  <PostulacionesVoluntarioPage />,
+                  puedeRevisarPostulacionesVoluntario
+                )}
+              />
+
+              <Route
+                path="/turnos"
+                element={proteger(
+                  <TurnosPage usuario={usuario} />,
+                  puedeConsultarTurnos
+                )}
+              />
+
+              <Route
+                path="/turnos/mis-inscripciones"
+                element={proteger(
+                  <MisInscripcionesPage />,
+                  puedeGestionarInscripciones
+                )}
+              />
+
+              <Route
+                path="/postulaciones"
+                element={proteger(
+                  <PostulacionesPage />,
+                  puedeGestionarAdopciones
+                )}
+              />
+
+              <Route
+                path="/postulaciones/:id"
+                element={proteger(
+                  <PostulacionDetallePage />,
+                  puedeGestionarAdopciones
+                )}
+              />
+
+              <Route
+                path="/adopciones/publicar"
+                element={proteger(
+                  <PublicarAnimalesPage />,
+                  puedeGestionarAdopciones
+                )}
+              />
+
+              <Route
+                path="/reportes/devoluciones"
+                element={proteger(
+                  <ReporteDevolucionesPage usuario={usuario} />,
+                  (u) =>
+                    puedeConsultarReportesDevolucion(u) ||
+                    puedeRegistrarDevoluciones(u)
+                )}
+              />
+
+              <Route path="*" element={<p>Esta página no existe.</p>} />
+            </Routes>
+          </main>
+
+          {!esLogin && (
+            <footer className="pie">
+              <p>
+                Proyecto de Ingeniería de Software - Universidad del Bío-Bío
+              </p>
+            </footer>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
 export default App;
+   
