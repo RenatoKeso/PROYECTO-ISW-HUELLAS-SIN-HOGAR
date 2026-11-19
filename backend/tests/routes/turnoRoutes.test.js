@@ -7,7 +7,11 @@ import { crearTurnoRouter } from "../../src/routes/turnoRoutes.js";
 import { crearRouter } from "../../src/routes/index.js";
 import { crearTurnoController } from "../../src/controllers/turnoController.js";
 import { AuthError } from "../../src/entities/authErrors.js";
-import { fechasTurnoInvalidas } from "../../src/entities/turnoErrors.js";
+import {
+  fechasTurnoInvalidas,
+  turnoInexistente,
+  turnoNoCancelable,
+} from "../../src/entities/turnoErrors.js";
 import {
   manejadorErrores,
   manejarRutaNoEncontrada,
@@ -84,7 +88,7 @@ function controladorDePrueba() {
     },
     obtenerGestion: async () => {
       llamadas.gestion += 1;
-      return [TURNO];
+      return { semana: null, turnos: [TURNO] };
     },
     obtenerDisponibles: async () => {
       llamadas.disponibles += 1;
@@ -280,4 +284,233 @@ test("el router principal monta /api/turnos con sesion y permisos", async () => 
   } finally {
     servidor.close();
   }
+});
+
+// GET /calendario
+
+const CALENDARIO = { semana: { desde: "2026-11-16", hasta: "2026-11-22" }, turnos: [TURNO] };
+
+function controladorDeCalendario() {
+  const llamadas = [];
+  const controlador = crearTurnoController({
+    obtenerCalendario: async (consulta, usuario) => {
+      llamadas.push({ consulta, usuario });
+      return CALENDARIO;
+    },
+  });
+
+  return { controlador, llamadas };
+}
+
+test("el calendario exige sesion", async () => {
+  const { controlador, llamadas } = controladorDeCalendario();
+
+  await conServidor(controlador, async (url) => {
+    const respuesta = await pedir(`${url}/calendario?semana=2026-11-16`);
+    assert.equal(respuesta.status, 401);
+  });
+
+  assert.equal(llamadas.length, 0);
+});
+
+test("el calendario es solo para voluntarios", async () => {
+  const { controlador } = controladorDeCalendario();
+
+  await conServidor(controlador, async (url) => {
+    for (const rol of ROLES_QUE_SOLO_CONSULTAN) {
+      const respuesta = await pedir(`${url}/calendario?semana=2026-11-16`, { rol });
+      assert.equal(respuesta.status, 200, rol);
+    }
+
+    for (const rol of [...ROLES_QUE_GESTIONAN, ...ROLES_SIN_ACCESO]) {
+      const respuesta = await pedir(`${url}/calendario?semana=2026-11-16`, { rol });
+      assert.equal(respuesta.status, 403, rol);
+    }
+  });
+});
+
+test("el calendario responde la semana y pasa la consulta y la cuenta al servicio", async () => {
+  const { controlador, llamadas } = controladorDeCalendario();
+
+  await conServidor(controlador, async (url) => {
+    const respuesta = await pedir(`${url}/calendario?semana=2026-11-16`, { rol: "VOLUNTARIO" });
+    const cuerpo = await respuesta.json();
+
+    assert.equal(respuesta.status, 200);
+    assert.equal(cuerpo.message, "Calendario obtenido correctamente");
+    assert.deepEqual(cuerpo.semana, CALENDARIO.semana);
+    assert.deepEqual(cuerpo.turnos, [TURNO]);
+  });
+
+  assert.deepEqual(llamadas[0].consulta, { semana: "2026-11-16" });
+  assert.equal(llamadas[0].usuario.id, 5);
+});
+
+test("el calendario responde 400 si la semana falta, no es lunes o trae campos extra", async () => {
+  const { controlador, llamadas } = controladorDeCalendario();
+
+  await conServidor(controlador, async (url) => {
+    for (const consulta of ["", "?semana=2026-11-17", "?semana=16-11-2026", "?semana=2026-11-16&voluntarioId=3"]) {
+      const respuesta = await pedir(`${url}/calendario${consulta}`, { rol: "VOLUNTARIO" });
+      assert.equal(respuesta.status, 400, consulta);
+      assert.equal((await respuesta.json()).code, "DATOS_INVALIDOS", consulta);
+    }
+  });
+
+  assert.equal(llamadas.length, 0, "no debe llegar al servicio");
+});
+
+// GET /gestion?semana= y GET /:id/inscritos
+
+test("la gestion con semana responde la semana y pasa la consulta al servicio", async () => {
+  const consultas = [];
+  const semana = { desde: "2026-11-09", hasta: "2026-11-15" };
+  const controlador = crearTurnoController({
+    obtenerGestion: async (consulta) => {
+      consultas.push(consulta);
+      return { semana, turnos: [TURNO] };
+    },
+  });
+
+  await conServidor(controlador, async (url) => {
+    const respuesta = await pedir(`${url}/gestion?semana=2026-11-09`, { rol: "ENCARGADA_VOLUNTARIADO" });
+    const cuerpo = await respuesta.json();
+
+    assert.equal(respuesta.status, 200);
+    assert.deepEqual(cuerpo.semana, semana);
+    assert.deepEqual(cuerpo.turnos, [TURNO]);
+
+    const martes = await pedir(`${url}/gestion?semana=2026-11-10`, { rol: "DIRECTORA" });
+    assert.equal(martes.status, 400);
+  });
+
+  assert.deepEqual(consultas, [{ semana: "2026-11-09" }]);
+});
+
+test("solo la directora y la encargada de voluntariado ven los inscritos de un turno", async () => {
+  const pedidos = [];
+  const controlador = crearTurnoController({
+    obtenerInscritos: async (parametros) => {
+      pedidos.push(parametros);
+      return { turno: TURNO, inscripciones: [] };
+    },
+  });
+
+  await conServidor(controlador, async (url) => {
+    assert.equal((await pedir(`${url}/1/inscritos`)).status, 401);
+
+    for (const rol of ROLES_QUE_GESTIONAN) {
+      const respuesta = await pedir(`${url}/1/inscritos`, { rol });
+      const cuerpo = await respuesta.json();
+
+      assert.equal(respuesta.status, 200, rol);
+      assert.equal(cuerpo.message, "Inscritos obtenidos correctamente");
+      assert.deepEqual(cuerpo.turno, TURNO);
+      assert.deepEqual(cuerpo.inscripciones, []);
+    }
+
+    for (const rol of [...ROLES_QUE_SOLO_CONSULTAN, ...ROLES_SIN_ACCESO]) {
+      assert.equal((await pedir(`${url}/1/inscritos`, { rol })).status, 403, rol);
+    }
+
+    assert.equal((await pedir(`${url}/abc/inscritos`, { rol: "DIRECTORA" })).status, 400);
+  });
+
+  assert.deepEqual(pedidos[0], { id: 1 }, "el id llega convertido a numero");
+});
+
+test("ver inscritos de un turno que no existe responde 404", async () => {
+  const controlador = crearTurnoController({
+    obtenerInscritos: async ({ id }) => {
+      throw turnoInexistente(id);
+    },
+  });
+
+  await conServidor(controlador, async (url) => {
+    const respuesta = await pedir(`${url}/99/inscritos`, { rol: "DIRECTORA" });
+
+    assert.equal(respuesta.status, 404);
+    assert.equal((await respuesta.json()).code, "TURNO_INEXISTENTE");
+  });
+});
+
+// PATCH /:id/cancelacion
+
+function controladorDeCancelacion() {
+  const llamadas = [];
+  const controlador = crearTurnoController({
+    cancelarTurnoServicio: async (parametros, cuerpo, usuario) => {
+      llamadas.push({ parametros, cuerpo, usuario });
+      return { turno: { ...TURNO, estado: "CANCELADO" }, inscripciones: [{ id: 1 }, { id: 2 }] };
+    },
+  });
+
+  return { controlador, llamadas };
+}
+
+test("solo la directora y la encargada de voluntariado cancelan un turno", async () => {
+  const { controlador, llamadas } = controladorDeCancelacion();
+  const cuerpo = { motivo: "Lluvia" };
+
+  await conServidor(controlador, async (url) => {
+    assert.equal((await pedir(`${url}/1/cancelacion`, { metodo: "PATCH", cuerpo })).status, 401);
+
+    for (const rol of [...ROLES_QUE_SOLO_CONSULTAN, ...ROLES_SIN_ACCESO]) {
+      assert.equal((await pedir(`${url}/1/cancelacion`, { metodo: "PATCH", rol, cuerpo })).status, 403, rol);
+    }
+
+    for (const rol of ROLES_QUE_GESTIONAN) {
+      const respuesta = await pedir(`${url}/1/cancelacion`, { metodo: "PATCH", rol, cuerpo });
+      const datos = await respuesta.json();
+
+      assert.equal(respuesta.status, 200, rol);
+      assert.equal(datos.message, "Turno cancelado correctamente");
+      assert.equal(datos.turno.estado, "CANCELADO");
+      assert.equal(datos.inscripcionesCanceladas, 2);
+    }
+  });
+
+  assert.equal(llamadas.length, ROLES_QUE_GESTIONAN.length);
+  assert.deepEqual(llamadas[0].parametros, { id: 1 });
+  assert.deepEqual(llamadas[0].cuerpo, { motivo: "Lluvia" });
+  assert.equal(llamadas[0].usuario.id, 5);
+});
+
+test("cancelar un turno responde 400 sin motivo o con un id invalido", async () => {
+  const { controlador, llamadas } = controladorDeCancelacion();
+
+  await conServidor(controlador, async (url) => {
+    for (const [ruta, cuerpo] of [
+      ["/1/cancelacion", {}],
+      ["/1/cancelacion", { motivo: "  " }],
+      ["/1/cancelacion", { motivo: "Lluvia", estado: "PUBLICADO" }],
+      ["/abc/cancelacion", { motivo: "Lluvia" }],
+    ]) {
+      const respuesta = await pedir(`${url}${ruta}`, { metodo: "PATCH", rol: "DIRECTORA", cuerpo });
+      assert.equal(respuesta.status, 400, `${ruta} ${JSON.stringify(cuerpo)}`);
+    }
+  });
+
+  assert.equal(llamadas.length, 0, "no debe llegar al servicio");
+});
+
+test("cancelar un turno que no se puede cancelar responde 409 con su motivo", async () => {
+  const controlador = crearTurnoController({
+    cancelarTurnoServicio: async () => {
+      throw turnoNoCancelable("Este turno ya comenzo y no se puede cancelar");
+    },
+  });
+
+  await conServidor(controlador, async (url) => {
+    const respuesta = await pedir(`${url}/1/cancelacion`, {
+      metodo: "PATCH",
+      rol: "DIRECTORA",
+      cuerpo: { motivo: "Lluvia" },
+    });
+    const datos = await respuesta.json();
+
+    assert.equal(respuesta.status, 409);
+    assert.equal(datos.code, "TURNO_NO_CANCELABLE");
+    assert.equal(datos.message, "Este turno ya comenzo y no se puede cancelar");
+  });
 });
