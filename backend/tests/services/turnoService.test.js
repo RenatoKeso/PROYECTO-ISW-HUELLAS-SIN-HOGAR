@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  cancelarTurno,
   obtenerTurnosDisponibles,
   obtenerInscritosDeTurno,
   obtenerTurnosGestion,
@@ -318,4 +319,125 @@ test("obtenerInscritosDeTurno responde turno inexistente si no existe", async ()
     ),
     (error) => esErrorTurno(error) && error.codigo === "TURNO_INEXISTENTE" && error.estadoHttp === 404,
   );
+});
+
+// cancelarTurno
+
+const QUIEN_CANCELA = { id: 2, rol: "ENCARGADA_VOLUNTARIADO" };
+
+function turnoPorCancelar(extra = {}) {
+  return {
+    id: 8,
+    titulo: "Jornada de adopcion",
+    inicio: new Date("2026-11-10T12:00:00.000Z"),
+    termino: new Date("2026-11-10T15:00:00.000Z"),
+    fechaLimiteInscripcion: new Date("2026-11-10T02:59:59.999Z"),
+    cupoMaximo: 5,
+    cuposDisponibles: 3,
+    estado: "PUBLICADO",
+    ...extra,
+  };
+}
+
+function dependenciasDeCancelacion({ turno = turnoPorCancelar(), cancela = true } = {}) {
+  const pasos = [];
+  const activas = [
+    { id: 21, voluntario: { id: 3, nombre: "Camila Rojas", email: "camila@correo.cl" } },
+    { id: 22, voluntario: { id: 4, nombre: "Diego Soto", email: "diego@correo.cl" } },
+  ];
+  let cancelado = false;
+
+  return {
+    pasos,
+    activas,
+    enTransaccion: async (fn) => {
+      pasos.push("transaccion");
+      return fn("tx");
+    },
+    buscarTurnoPorId: async (id, tx) => {
+      pasos.push(tx ? "buscar-en-tx" : "buscar");
+      if (!turno) return null;
+      return cancelado
+        ? { ...turno, estado: "CANCELADO", motivoCancelacion: "Lluvia", canceladoEn: AHORA }
+        : turno;
+    },
+    cancelarTurnoEnBase: async (id, datos, tx) => {
+      pasos.push(["cancelar-turno", id, datos, tx]);
+      cancelado = cancela;
+      return cancela;
+    },
+    listarInscripcionesActivasDeTurno: async (id, tx) => {
+      pasos.push(["listar-activas", id, tx]);
+      return activas;
+    },
+    cancelarInscripcionesDeTurno: async (id, fecha, tx) => {
+      pasos.push(["cancelar-inscripciones", id, fecha, tx]);
+      return activas.length;
+    },
+    registrarHistoriales: async (filas, tx) => {
+      pasos.push(["historial", filas, tx]);
+      return filas.length;
+    },
+  };
+}
+
+test("cancelarTurno cancela el turno, sus inscripciones y registra el historial en una transaccion", async () => {
+  const dependencias = dependenciasDeCancelacion();
+
+  const resultado = await cancelarTurno({ id: 8 }, { motivo: "Lluvia" }, QUIEN_CANCELA, dependencias, AHORA);
+
+  const [, transaccion, cancelar, listar, inscripciones, historial] = dependencias.pasos;
+  assert.equal(transaccion, "transaccion");
+  assert.deepEqual(cancelar, ["cancelar-turno", 8, { motivo: "Lluvia", canceladoPorId: 2, canceladoEn: AHORA }, "tx"]);
+  assert.deepEqual(listar, ["listar-activas", 8, "tx"]);
+  assert.deepEqual(inscripciones, ["cancelar-inscripciones", 8, AHORA, "tx"]);
+  assert.equal(historial[2], "tx");
+  assert.deepEqual(historial[1], [
+    { inscripcionId: 21, accion: "CANCELACION", turnoId: 8, detalle: "Turno cancelado por el refugio: Lluvia", realizadoPorId: 2 },
+    { inscripcionId: 22, accion: "CANCELACION", turnoId: 8, detalle: "Turno cancelado por el refugio: Lluvia", realizadoPorId: 2 },
+  ]);
+
+  assert.equal(resultado.turno.estado, "CANCELADO");
+  assert.equal(resultado.turno.motivoCancelacion, "Lluvia");
+  assert.equal(resultado.turno.inscripcionAbierta, false);
+  assert.deepEqual(resultado.inscripciones, dependencias.activas);
+});
+
+test("cancelarTurno responde turno inexistente si no existe", async () => {
+  const dependencias = dependenciasDeCancelacion({ turno: null });
+
+  await assert.rejects(
+    cancelarTurno({ id: 99 }, { motivo: "Lluvia" }, QUIEN_CANCELA, dependencias, AHORA),
+    (error) => esErrorTurno(error) && error.codigo === "TURNO_INEXISTENTE",
+  );
+  assert.ok(!dependencias.pasos.includes("transaccion"));
+});
+
+test("cancelarTurno no cancela un turno que ya estaba cancelado o que ya comenzo", async () => {
+  const casos = [
+    [turnoPorCancelar({ estado: "CANCELADO" }), "Este turno ya estaba cancelado"],
+    [turnoPorCancelar({ inicio: new Date("2026-11-03T15:00:00.000Z") }), "Este turno ya comenzo y no se puede cancelar"],
+  ];
+
+  for (const [turno, mensaje] of casos) {
+    const dependencias = dependenciasDeCancelacion({ turno });
+
+    await assert.rejects(
+      cancelarTurno({ id: 8 }, { motivo: "Lluvia" }, QUIEN_CANCELA, dependencias, AHORA),
+      (error) => error.codigo === "TURNO_NO_CANCELABLE" && error.estadoHttp === 409 && error.message === mensaje,
+    );
+    assert.ok(!dependencias.pasos.includes("transaccion"), mensaje);
+  }
+});
+
+test("si el turno cambio mientras se cancelaba, no toca las inscripciones", async () => {
+  const dependencias = dependenciasDeCancelacion({ cancela: false });
+
+  await assert.rejects(
+    cancelarTurno({ id: 8 }, { motivo: "Lluvia" }, QUIEN_CANCELA, dependencias, AHORA),
+    { codigo: "TURNO_NO_CANCELABLE", message: "El turno cambio mientras lo cancelabas, vuelve a cargarlo" },
+  );
+  const nombres = dependencias.pasos.map((paso) => (Array.isArray(paso) ? paso[0] : paso));
+  assert.ok(!nombres.includes("cancelar-inscripciones"));
+  assert.ok(!nombres.includes("historial"));
 });

@@ -1,5 +1,6 @@
 import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
 import {
+  cancelarTurno,
   obtenerInscritosDeTurno,
   obtenerTurnosDisponibles,
   obtenerTurnosGestion,
@@ -13,6 +14,7 @@ export function crearTurnoController({
   obtenerDisponibles = obtenerTurnosDisponibles,
   obtenerCalendario = obtenerCalendarioVoluntario,
   obtenerInscritos = obtenerInscritosDeTurno,
+  cancelarTurnoServicio = cancelarTurno,
 } = {}) {
   return {
     async publicarTurno(request, response) {
@@ -31,6 +33,19 @@ export function crearTurnoController({
       return enviarRespuestaExitosa(response, {
         mensaje: "Turnos obtenidos correctamente",
         datos: semana ? { semana, turnos } : { turnos },
+      });
+    },
+
+    async cancelar(request, response) {
+      const { turno, inscripciones } = await cancelarTurnoServicio(
+        request.params,
+        request.body,
+        request.usuario,
+      );
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: "Turno cancelado correctamente",
+        datos: { turno, inscripcionesCanceladas: inscripciones.length },
       });
     },
 

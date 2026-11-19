@@ -4,6 +4,7 @@ import {
   MENSAJE_TITULO,
   calendarioQuerySchema,
   gestionQuerySchema,
+  turnoCancelacionSchema,
   turnoCreateSchema,
   turnoIdSchema,
 } from "../../src/validations/turnoValidation.js";
@@ -165,4 +166,16 @@ test("el id del turno se convierte a numero y debe ser un entero positivo", () =
   for (const id of ["0", "-3", "2.5", "abc"]) {
     assert.equal(turnoIdSchema.safeParse({ id }).success, false, id);
   }
+});
+
+test("cancelar un turno exige un motivo de hasta 500 caracteres", () => {
+  assert.deepEqual(turnoCancelacionSchema.parse({ motivo: "  Lluvia  " }), { motivo: "Lluvia" });
+
+  const vacio = turnoCancelacionSchema.safeParse({ motivo: "   " });
+  assert.equal(vacio.success, false);
+  assert.equal(vacio.error.issues[0].message, "El motivo es obligatorio");
+
+  assert.equal(turnoCancelacionSchema.safeParse({}).success, false);
+  assert.equal(turnoCancelacionSchema.safeParse({ motivo: "a".repeat(501) }).success, false);
+  assert.equal(turnoCancelacionSchema.safeParse({ motivo: "Lluvia", estado: "PUBLICADO" }).success, false);
 });

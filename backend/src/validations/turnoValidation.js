@@ -77,7 +77,12 @@ export const gestionQuerySchema = z.strictObject({
   semana: semanaSchema.optional(),
 });
 
-// GET /turnos/:id/inscritos
+// PATCH /turnos/:id/cancelacion: el motivo se les muestra a los voluntarios.
+export const turnoCancelacionSchema = z.strictObject({
+  motivo: textoObligatorio("El motivo", 500),
+});
+
+// GET /turnos/:id/inscritos y PATCH /turnos/:id/cancelacion
 export const turnoIdSchema = z.strictObject({
   id: z.coerce
     .number({ message: "El id del turno debe ser un número" })

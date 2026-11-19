@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buscarTurnoPorId,
+  cancelarTurno,
   crearTurno,
   listarTurnosEntre,
   listarTurnosParaGestion,
@@ -26,6 +27,10 @@ function clienteDePrueba(respuesta = []) {
         },
         findMany: async (argumentos) => {
           consultas.push(["findMany", argumentos]);
+          return respuesta;
+        },
+        updateMany: async (argumentos) => {
+          consultas.push(["updateMany", argumentos]);
           return respuesta;
         },
       },
@@ -93,4 +98,28 @@ test("listarTurnosEntre trae los turnos que empiezan en el rango, de cualquier e
   assert.deepEqual(argumentos.where, { inicio: { gte: inicio, lte: fin } });
   assert.deepEqual(argumentos.orderBy, { inicio: "asc" });
   assert.equal(argumentos.select.titulo, true);
+});
+
+test("cancelarTurno solo cancela si sigue publicado y no ha comenzado", async () => {
+  const { cliente, consultas } = clienteDePrueba({ count: 1 });
+  const canceladoEn = new Date("2026-11-18T18:00:00.000Z");
+
+  const resultado = await cancelarTurno(8, { motivo: "Lluvia", canceladoPorId: 2, canceladoEn }, cliente);
+
+  assert.equal(resultado, true);
+  const [[metodo, argumentos]] = consultas;
+  assert.equal(metodo, "updateMany");
+  assert.deepEqual(argumentos.where, { id: 8, estado: "PUBLICADO", inicio: { gt: canceladoEn } });
+  assert.deepEqual(argumentos.data, {
+    estado: "CANCELADO",
+    motivoCancelacion: "Lluvia",
+    canceladoPorId: 2,
+    canceladoEn,
+  });
+});
+
+test("cancelarTurno devuelve false si el turno ya no se podia cancelar", async () => {
+  const { cliente } = clienteDePrueba({ count: 0 });
+
+  assert.equal(await cancelarTurno(8, { motivo: "Lluvia", canceladoPorId: 2, canceladoEn: new Date() }, cliente), false);
 });

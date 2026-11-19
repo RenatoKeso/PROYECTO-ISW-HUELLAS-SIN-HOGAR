@@ -12,6 +12,7 @@ import {
 import {
   calendarioQuerySchema,
   gestionQuerySchema,
+  turnoCancelacionSchema,
   turnoCreateSchema,
   turnoIdSchema,
 } from "../validations/turnoValidation.js";
@@ -41,6 +42,16 @@ export function crearTurnoRouter({
     autorizarAccion(puedeGestionarTurnos),
     validarEsquema(gestionQuerySchema, "query"),
     capturarErrores(controlador.listarGestion),
+  );
+
+  // Cancelar un turno. Es PATCH y no DELETE: el turno no se borra, cambia de
+  // estado y conserva su historial (igual que una inscripcion cancelada).
+  router.patch(
+    "/:id/cancelacion",
+    autorizarAccion(puedeGestionarTurnos),
+    validarEsquema(turnoIdSchema, "params"),
+    validarEsquema(turnoCancelacionSchema),
+    capturarErrores(controlador.cancelar),
   );
 
   router.get(

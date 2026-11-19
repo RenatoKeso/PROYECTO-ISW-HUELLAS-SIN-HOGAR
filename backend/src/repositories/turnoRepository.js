@@ -12,6 +12,8 @@ export const CAMPOS_TURNO = {
   cuposDisponibles: true,
   estado: true,
   publicadoPorId: true,
+  motivoCancelacion: true,
+  canceladoEn: true,
 };
 
 export async function crearTurno(data, cliente = prisma) {
@@ -43,6 +45,18 @@ export async function listarTurnosEntre(inicio, fin, cliente = prisma) {
     select: CAMPOS_TURNO,
     orderBy: { inicio: "asc" },
   });
+}
+
+// Cancela el turno solo si sigue publicado y no ha comenzado. La condicion va en
+// la misma consulta (como reservarCupo): si cambio entre la lectura y este punto,
+// no toca nada. Devuelve true si lo cancelo.
+export async function cancelarTurno(id, { motivo, canceladoPorId, canceladoEn }, cliente = prisma) {
+  const { count } = await cliente.turno.updateMany({
+    where: { id, estado: "PUBLICADO", inicio: { gt: canceladoEn } },
+    data: { estado: "CANCELADO", motivoCancelacion: motivo, canceladoPorId, canceladoEn },
+  });
+
+  return count === 1;
 }
 
 export async function buscarTurnoPorId(id, cliente = prisma) {

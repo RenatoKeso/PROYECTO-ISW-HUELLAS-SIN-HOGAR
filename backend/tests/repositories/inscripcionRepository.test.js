@@ -8,9 +8,12 @@ import {
   liberarCupo,
   listarHistorialDeInscripcion,
   listarInscripcionesActivasDeVoluntario,
+  cancelarInscripcionesDeTurno,
+  listarInscripcionesActivasDeTurno,
   listarInscripcionesDeTurno,
   listarInscripcionesDeVoluntario,
   registrarHistorial,
+  registrarHistoriales,
   reservarCupo,
 } from "../../src/repositories/inscripcionRepository.js";
 
@@ -34,9 +37,11 @@ function clienteDePrueba(respuesta) {
         findUnique: registrar("inscripcion.findUnique"),
         create: registrar("inscripcion.create"),
         update: registrar("inscripcion.update"),
+        updateMany: registrar("inscripcion.updateMany"),
       },
       historialInscripcion: {
         create: registrar("historial.create"),
+        createMany: registrar("historial.createMany"),
         findMany: registrar("historial.findMany"),
       },
     },
@@ -172,4 +177,38 @@ test("listarInscripcionesDeTurno trae todas las del turno con el contacto del vo
   assert.deepEqual(argumentos.select.voluntario, {
     select: { id: true, nombre: true, email: true, telefono: true },
   });
+});
+
+test("listarInscripcionesActivasDeTurno trae solo las activas con el contacto del voluntario", async () => {
+  const { cliente, consultas } = clienteDePrueba([]);
+
+  await listarInscripcionesActivasDeTurno(6, cliente);
+
+  const [[metodo, argumentos]] = consultas;
+  assert.equal(metodo, "inscripcion.findMany");
+  assert.deepEqual(argumentos.where, { turnoId: 6, estado: "ACTIVA" });
+  assert.deepEqual(argumentos.select.voluntario, { select: { id: true, nombre: true, email: true } });
+});
+
+test("cancelarInscripcionesDeTurno cancela solo las activas del turno", async () => {
+  const { cliente, consultas } = clienteDePrueba({ count: 2 });
+  const fecha = new Date("2026-11-18T18:00:00.000Z");
+
+  assert.equal(await cancelarInscripcionesDeTurno(6, fecha, cliente), 2);
+  const [[metodo, argumentos]] = consultas;
+  assert.equal(metodo, "inscripcion.updateMany");
+  assert.deepEqual(argumentos.where, { turnoId: 6, estado: "ACTIVA" });
+  assert.deepEqual(argumentos.data, { estado: "CANCELADA", canceladaEn: fecha });
+});
+
+test("registrarHistoriales guarda todas las filas juntas y no consulta si no hay filas", async () => {
+  const conFilas = clienteDePrueba({ count: 2 });
+  const filas = [{ inscripcionId: 1 }, { inscripcionId: 2 }];
+
+  assert.equal(await registrarHistoriales(filas, conFilas.cliente), 2);
+  assert.deepEqual(conFilas.consultas, [["historial.createMany", { data: filas }]]);
+
+  const sinFilas = clienteDePrueba({ count: 0 });
+  assert.equal(await registrarHistoriales([], sinFilas.cliente), 0);
+  assert.equal(sinFilas.consultas.length, 0);
 });
