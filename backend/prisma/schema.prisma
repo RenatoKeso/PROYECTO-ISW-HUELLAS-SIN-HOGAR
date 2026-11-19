@@ -322,7 +322,7 @@ model Turno {
   motivoCancelacion      String?
   canceladoEn            DateTime?
   canceladoPorId         Int?
-  canceladoPor           Usuario?    @relation("TurnosCancelados", fields: [canceladoPorId], references: [id])        
+  canceladoPor           Usuario?    @relation("TurnosCancelados", fields: [canceladoPorId], references: [id])
   createdAt              DateTime    @default(now())
   updatedAt              DateTime    @updatedAt
 
@@ -395,7 +395,7 @@ model Usuario {
   voluntario   Voluntario? @relation(fields: [voluntarioId], references: [id], onDelete: Restrict)
 
   turnosPublicados       Turno[]                @relation("TurnosPublicados")
-  TurnosCancelados       Turno[]                @relation("TurnosCancelados")
+  turnosCancelados       Turno[]                @relation("TurnosCancelados")
   historialInscripciones HistorialInscripcion[] @relation("HistorialInscripcionesRealizadas")
 
   revisionesInicialesCreadas       RevisionInicial[]           @relation("RevisionInicialCreatedBy")
