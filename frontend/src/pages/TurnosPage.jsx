@@ -1,236 +1,272 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import Campo from "../components/ui/Campo.jsx";
 import Mensaje from "../components/ui/Mensaje.jsx";
-import TarjetaTurno from "../components/turnos/TarjetaTurno.jsx";
-import { useFormulario } from "../hooks/useFormulario.js";
-import { listarTurnosDisponibles, listarTurnosGestion, publicarTurno } from "../services/turnosService.js";
-import { inscribirseEnTurno, listarMisInscripciones } from "../services/inscripcionesService.js";
-import { turnoFormSchema, CUPO_MAXIMO_TURNO } from "../validations/turnoValidation.js";
-import { puedeGestionarInscripciones, puedeGestionarTurnos } from "../utils/permisosUsuario.js";
+import CalendarioSemanal from "../components/turnos/CalendarioSemanal.jsx";
+import FormularioTurno from "../components/turnos/FormularioTurno.jsx";
+import PanelTurno from "../components/turnos/PanelTurno.jsx";
+import { cancelarTurno, listarTurnosGestion, obtenerCalendario } from "../services/turnosService.js";
+import {
+  cancelarInscripcion,
+  inscribirseEnTurno,
+  modificarInscripcion,
+} from "../services/inscripcionesService.js";
+import {
+  aEventos,
+  aplicarFiltro,
+  filtrosConCuenta,
+  hoyEnChile,
+  leyendaDe,
+  lunesDe,
+  rangoDeHoras,
+  sumarDias,
+  tituloSemana,
+} from "../utils/calendarioTurnos.js";
+import { puedeGestionarTurnos } from "../utils/permisosUsuario.js";
 import "../styles/voluntariado.css";
+import "../styles/calendarioTurnos.css";
 
-const TURNO_INICIAL = {
-  titulo: "",
-  descripcion: "",
-  fecha: "",
-  horaInicio: "",
-  horaTermino: "",
-  fechaLimiteInscripcion: "",
-  cupoMaximo: "",
-};
-
-// Formulario de la encargada para publicar un turno.
-function FormularioTurno({ alPublicar }) {
-  const formulario = useFormulario({
-    iniciales: TURNO_INICIAL,
-    esquema: turnoFormSchema,
-    enviar: async (datos) => {
-      const respuesta = await publicarTurno(datos);
-      alPublicar();
-      return respuesta;
-    },
-    mensajeExito: "Turno publicado. Los voluntarios ya pueden inscribirse.",
-  });
-
-  const { valores, errores, cambiar } = formulario;
-
-  return (
-    <form className="formulario" onSubmit={formulario.enviarFormulario} noValidate>
-      <h2>Publicar un turno</h2>
-
-      <div className="formulario-campos">
-        <Campo
-          etiqueta="Título"
-          nombre="titulo"
-          ancho
-          valor={valores.titulo}
-          error={errores.titulo}
-          maxLength={120}
-          placeholder="Ej: Paseo de perros"
-          onChange={(evento) => cambiar("titulo", evento.target.value)}
-        />
-
-        <Campo
-          etiqueta="Fecha del turno"
-          nombre="fecha"
-          type="date"
-          valor={valores.fecha}
-          error={errores.fecha}
-          onChange={(evento) => cambiar("fecha", evento.target.value)}
-        />
-
-        <Campo
-          etiqueta="Cupo máximo"
-          nombre="cupoMaximo"
-          type="number"
-          min={1}
-          max={CUPO_MAXIMO_TURNO}
-          valor={valores.cupoMaximo}
-          error={errores.cupoMaximo}
-          onChange={(evento) => cambiar("cupoMaximo", evento.target.value)}
-        />
-
-        <Campo
-          etiqueta="Hora de inicio"
-          nombre="horaInicio"
-          type="time"
-          valor={valores.horaInicio}
-          error={errores.horaInicio}
-          onChange={(evento) => cambiar("horaInicio", evento.target.value)}
-        />
-
-        <Campo
-          etiqueta="Hora de término"
-          nombre="horaTermino"
-          type="time"
-          valor={valores.horaTermino}
-          error={errores.horaTermino}
-          onChange={(evento) => cambiar("horaTermino", evento.target.value)}
-        />
-
-        <Campo
-          etiqueta="Inscripciones hasta el"
-          nombre="fechaLimiteInscripcion"
-          type="date"
-          valor={valores.fechaLimiteInscripcion}
-          error={errores.fechaLimiteInscripcion}
-          onChange={(evento) => cambiar("fechaLimiteInscripcion", evento.target.value)}
-        />
-
-        <Campo
-          etiqueta="Descripción (opcional)"
-          nombre="descripcion"
-          control="textarea"
-          ancho
-          valor={valores.descripcion}
-          error={errores.descripcion}
-          maxLength={1000}
-          placeholder="Qué se hará en el turno, qué llevar, dónde llegar..."
-          onChange={(evento) => cambiar("descripcion", evento.target.value)}
-        />
-      </div>
-
-      <button type="submit" className="boton">Publicar turno</button>
-      <Mensaje mensaje={formulario.mensaje} />
-    </form>
-  );
+// El panel se reinicia (cierra confirmaciones abiertas) cuando cambia el turno
+// elegido o su estado, por ejemplo despues de inscribirse o cancelar.
+function clavePanel(turno) {
+  if (!turno) return "ninguno";
+  return [turno.id, turno.estado, turno.disponibilidad?.estado, turno.miInscripcion?.estado].join("-");
 }
 
+// /turnos: la encargada y el voluntario ven la misma grilla semanal.
+// - Encargada (y directora): turnos de cualquier semana con sus cupos, agrega
+//   turnos nuevos, ve los inscritos y cancela turnos.
+// - Voluntario: cada turno con su estado para el, filtros, y se inscribe, cambia
+//   o cancela desde el panel de la derecha.
 function TurnosPage({ usuario }) {
   const gestiona = puedeGestionarTurnos(usuario);
-  const seInscribe = puedeGestionarInscripciones(usuario);
 
+  const [semana, setSemana] = useState(() => lunesDe(hoyEnChile()));
   const [turnos, setTurnos] = useState([]);
-  const [turnosInscritos, setTurnosInscritos] = useState(new Set());
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState(null);
-  const [inscribiendo, setInscribiendo] = useState(null);
+  const [filtro, setFiltro] = useState("todos");
+  const [elegidoId, setElegidoId] = useState(null);
+  const [cambiandoDesde, setCambiandoDesde] = useState(null);
+  const [formularioAbierto, setFormularioAbierto] = useState(false);
   const [recargar, setRecargar] = useState(0);
 
+  // Una peticion por semana: la encargada pide su vista de gestion y el
+  // voluntario su calendario, que ya trae el estado de cada turno para el.
   useEffect(() => {
     let vigente = true;
+    const pedir = gestiona ? listarTurnosGestion(semana) : obtenerCalendario(semana);
 
-    const cargarTurnos = gestiona ? listarTurnosGestion() : listarTurnosDisponibles();
-    const cargarMias = seInscribe ? listarMisInscripciones("ACTIVA") : Promise.resolve(null);
-
-    Promise.all([cargarTurnos, cargarMias])
-      .then(([respuestaTurnos, respuestaMias]) => {
-        if (!vigente) return;
-        setTurnos(respuestaTurnos.turnos);
-        setTurnosInscritos(
-          new Set((respuestaMias?.inscripciones ?? []).map((inscripcion) => inscripcion.turnoId)),
-        );
-      })
+    pedir
+      .then((respuesta) => vigente && setTurnos(respuesta.turnos))
       .catch((errorCarga) => vigente && setError(errorCarga.message))
       .finally(() => vigente && setCargando(false));
 
     return () => {
       vigente = false;
     };
-  }, [gestiona, seInscribe, recargar]);
+  }, [gestiona, semana, recargar]);
+
+  // La ventana del formulario se cierra con Escape.
+  useEffect(() => {
+    if (!formularioAbierto) return undefined;
+
+    function alPresionar(evento) {
+      if (evento.key === "Escape") setFormularioAbierto(false);
+    }
+
+    window.addEventListener("keydown", alPresionar);
+    return () => window.removeEventListener("keydown", alPresionar);
+  }, [formularioAbierto]);
+
+  // Los filtros solo deciden que se muestra: la semana ya esta cargada.
+  const visibles = aplicarFiltro(turnos, gestiona, filtro);
+  const eventos = aEventos(visibles, gestiona, elegidoId);
+  const horas = rangoDeHoras(turnos);
+  const filtros = filtrosConCuenta(turnos, gestiona);
+  const elegido = turnos.find((turno) => turno.id === elegidoId) ?? null;
+
+  function irASemana(nueva) {
+    setCargando(true);
+    setError("");
+    setElegidoId(null);
+    setSemana(nueva);
+  }
 
   function refrescar() {
     setRecargar((valor) => valor + 1);
   }
 
-  async function inscribirse(turno) {
-    setInscribiendo(turno.id);
-    setMensaje(null);
-
-    try {
-      const respuesta = await inscribirseEnTurno(turno.id);
-      setMensaje({ tipo: "exito", texto: `${respuesta.message}: ${turno.titulo}.` });
-      refrescar();
-    } catch (errorInscripcion) {
-      setMensaje({ tipo: "error", texto: errorInscripcion.message });
-    } finally {
-      setInscribiendo(null);
-    }
+  function avisar(texto) {
+    setMensaje({ tipo: "exito", texto });
   }
 
-  function accionesDe(turno) {
-    if (!seInscribe) return null;
+  async function inscribirse(turno) {
+    const respuesta = await inscribirseEnTurno(turno.id);
+    avisar(`${respuesta.message}: ${turno.titulo}.`);
+    refrescar();
+  }
 
-    if (turnosInscritos.has(turno.id)) {
-      return (
-        <>
-          <span className="texto-suave">Ya estás inscrito en este turno.</span>
-          <Link to="/turnos/mis-inscripciones" className="boton-mini">Ver mis inscripciones</Link>
-        </>
-      );
+  function empezarCambio(turno) {
+    setMensaje(null);
+    setCambiandoDesde(turno);
+    setFiltro("disponibles");
+  }
+
+  function cancelarCambio() {
+    setCambiandoDesde(null);
+    setFiltro("todos");
+  }
+
+  async function confirmarCambio(turnoNuevo) {
+    const respuesta = await modificarInscripcion(cambiandoDesde.miInscripcion.id, turnoNuevo.id);
+    setCambiandoDesde(null);
+    setFiltro("todos");
+    avisar(`${respuesta.message}: ahora estás en ${turnoNuevo.titulo}.`);
+    refrescar();
+  }
+
+  async function cancelarMiInscripcion(turno) {
+    const respuesta = await cancelarInscripcion(turno.miInscripcion.id);
+    avisar(`${respuesta.message}. Se liberó tu cupo en ${turno.titulo}.`);
+    refrescar();
+  }
+
+  async function cancelarElTurno(turno, motivo) {
+    const respuesta = await cancelarTurno(turno.id, motivo);
+    const cantidad = respuesta.inscripcionesCanceladas;
+    avisar(
+      `Turno cancelado: ${turno.titulo}. ` +
+        (cantidad === 1 ? "Se canceló 1 inscripción." : `Se cancelaron ${cantidad} inscripciones.`),
+    );
+    refrescar();
+  }
+
+  // Al publicar, se cierra la ventana y el calendario va a la semana del turno nuevo.
+  function alPublicar(respuesta) {
+    setFormularioAbierto(false);
+    avisar("Turno publicado. Los voluntarios ya pueden inscribirse.");
+
+    const semanaDelTurno = lunesDe(hoyEnChile(new Date(respuesta.turno.inicio)));
+
+    if (semanaDelTurno === semana) {
+      refrescar();
+    } else {
+      irASemana(semanaDelTurno);
     }
 
-    return (
-      <button
-        type="button"
-        className="boton"
-        disabled={!turno.inscripcionAbierta || inscribiendo === turno.id}
-        onClick={() => inscribirse(turno)}
-      >
-        {inscribiendo === turno.id ? "Inscribiendo..." : "Inscribirme"}
-      </button>
-    );
+    setElegidoId(respuesta.turno.id);
   }
 
   return (
-    <section className="bloque voluntariado">
-      <h2>Turnos de voluntariado</h2>
-      <p className="texto-suave">
-        {gestiona
-          ? "Publica los turnos del refugio y revisa cuántos voluntarios hay inscritos en cada uno."
-          : "Elige un turno con cupos e inscríbete. Puedes cambiarlo o cancelarlo desde tus inscripciones."}
-      </p>
+    <section className="bloque voluntariado turnos-calendario">
+      <div className="turnos-encabezado">
+        <div>
+          <h2>Turnos de voluntariado</h2>
+          <p className="texto-suave">
+            {gestiona
+              ? "Revisa la semana, cuántos voluntarios hay en cada turno y agrega turnos nuevos."
+              : "Elige un turno disponible e inscríbete. Puedes cambiarlo o cancelarlo mientras no haya comenzado."}
+          </p>
+        </div>
 
-      {gestiona && <FormularioTurno alPublicar={refrescar} />}
-
-      {seInscribe && (
-        <p>
-          <Link to="/turnos/mis-inscripciones" className="volver-link">Mis inscripciones →</Link>
-        </p>
-      )}
+        {gestiona && (
+          <button type="button" className="boton" onClick={() => setFormularioAbierto(true)}>
+            + Agregar un nuevo turno
+          </button>
+        )}
+      </div>
 
       <Mensaje mensaje={mensaje} />
       {error && <p className="mensaje mensaje-error">{error}</p>}
 
-      {cargando ? (
-        <p>Cargando turnos...</p>
-      ) : turnos.length === 0 ? (
-        <div className="sin-postulaciones">
-          <span aria-hidden="true">🐾</span>
-          <h3>No hay turnos publicados</h3>
-          <p>
-            {gestiona
-              ? "Publica el primer turno con el formulario de arriba."
-              : "Cuando la encargada publique un turno, aparecerá aquí."}
-          </p>
+      {cambiandoDesde && (
+        <div className="aviso-cambio-turno" role="status">
+          <span>
+            Cambiando <strong>{cambiandoDesde.titulo}</strong>: elige un turno azul en el calendario.
+          </span>
+          <button type="button" className="boton-mini" onClick={cancelarCambio}>
+            Cancelar el cambio
+          </button>
         </div>
-      ) : (
-        <div className="lista-postulaciones">
-          {turnos.map((turno) => (
-            <TarjetaTurno key={turno.id} turno={turno} acciones={accionesDe(turno)} />
+      )}
+
+      <div className="turnos-barra">
+        <div className="pestanas-voluntariado" role="group" aria-label="Filtrar turnos">
+          {filtros.map((opcion) => (
+            <button
+              key={opcion.valor}
+              type="button"
+              className={filtro === opcion.valor ? "pestana-voluntariado activa" : "pestana-voluntariado"}
+              aria-pressed={filtro === opcion.valor}
+              onClick={() => setFiltro(opcion.valor)}
+            >
+              {opcion.texto} <span className="cuenta-filtro">{opcion.cuenta}</span>
+            </button>
           ))}
+        </div>
+
+        <div className="navegacion-semana">
+          <button type="button" className="flecha-semana" aria-label="Semana anterior" onClick={() => irASemana(sumarDias(semana, -7))}>
+            ‹
+          </button>
+          <span className="titulo-semana">{tituloSemana(semana)}</span>
+          <button type="button" className="flecha-semana" aria-label="Semana siguiente" onClick={() => irASemana(sumarDias(semana, 7))}>
+            ›
+          </button>
+          <button type="button" className="boton-mini" onClick={() => irASemana(lunesDe(hoyEnChile()))}>
+            Hoy
+          </button>
+        </div>
+      </div>
+
+      <ul className="leyenda-turnos" aria-label="Colores del calendario">
+        {leyendaDe(gestiona).map((item) => (
+          <li key={item.estado}>
+            <span className={`punto-leyenda estado-turno-${item.estado}`} aria-hidden="true" />
+            {item.texto}
+          </li>
+        ))}
+      </ul>
+
+      <div className="turnos-cuerpo">
+        <div className="turnos-grilla">
+          {cargando && <p className="texto-suave">Cargando turnos...</p>}
+          {!cargando && turnos.length === 0 && (
+            <p className="texto-suave">No hay turnos publicados esta semana.</p>
+          )}
+          <CalendarioSemanal semana={semana} eventos={eventos} horas={horas} onElegir={setElegidoId} />
+        </div>
+
+        <PanelTurno
+          key={clavePanel(elegido)}
+          turno={elegido}
+          gestiona={gestiona}
+          cambiandoDesde={cambiandoDesde}
+          onInscribirse={inscribirse}
+          onEmpezarCambio={empezarCambio}
+          onConfirmarCambio={confirmarCambio}
+          onCancelarInscripcion={cancelarMiInscripcion}
+          onCancelarTurno={cancelarElTurno}
+        />
+      </div>
+
+      {formularioAbierto && (
+        <div className="ventana-fondo" onClick={() => setFormularioAbierto(false)}>
+          <div
+            className="ventana-turno"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-ventana-turno"
+            onClick={(evento) => evento.stopPropagation()}
+          >
+            <div className="ventana-encabezado">
+              <h2 id="titulo-ventana-turno">Agregar un nuevo turno</h2>
+              <button type="button" className="flecha-semana" aria-label="Cerrar" onClick={() => setFormularioAbierto(false)}>
+                ×
+              </button>
+            </div>
+            <FormularioTurno alPublicar={alPublicar} />
+          </div>
         </div>
       )}
     </section>
