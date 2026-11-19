@@ -24,7 +24,6 @@ async function enviarCorreo({ para, asunto, html }) {
   });
 }
 
-// Arma el correo según si la postulación fue aceptada o rechazada
 export async function enviarCorreoRevision(postulacion) {
   if (postulacion.estado === "ACEPTADA") {
     return enviarCorreo({

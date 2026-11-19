@@ -1,4 +1,5 @@
 import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
+import { enviarCorreoRevision } from "../services/correoService.js";
 import {
   postularComoVoluntario,
   obtenerPostulacionesVoluntario,
@@ -33,6 +34,10 @@ export async function revisar(request, response) {
     motivoRechazo: request.body.motivoRechazo,
     revisadaPorId: request.usuario.id,
   });
+    
+  enviarCorreoRevision(postulacion).catch((error) =>
+    console.error("No se pudo enviar el correo:", error.message),
+  );
 
   const mensaje =
     postulacion.estado === "ACEPTADA"
