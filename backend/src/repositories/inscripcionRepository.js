@@ -54,6 +54,22 @@ export async function registrarHistorial(data, cliente = prisma) {
   return cliente.historialInscripcion.create({ data });
 }
 
+// Todas las inscripciones de un turno, activas y canceladas, con los datos de
+// contacto del voluntario. Las mas antiguas primero (orden de llegada).
+export async function listarInscripcionesDeTurno(turnoId, cliente = prisma) {
+  return cliente.inscripcionTurno.findMany({
+    where: { turnoId },
+    select: {
+      id: true,
+      estado: true,
+      createdAt: true,
+      canceladaEn: true,
+      voluntario: { select: { id: true, nombre: true, email: true, telefono: true } },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
 // Inscripciones del voluntario, opcionalmente filtradas por estado, con su turno.
 // Las mas recientes primero.
 export async function listarInscripcionesDeVoluntario(voluntarioId, estado, cliente = prisma) {

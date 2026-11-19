@@ -62,9 +62,25 @@ function esLunes(fecha) {
   return new Date(`${fecha}T12:00:00.000Z`).getUTCDay() === 1;
 }
 
-// GET /turnos/calendario?semana=2026-11-16: la semana se pide por su lunes.
+// Una semana se pide por la fecha de su lunes: ?semana=2026-11-16.
+const semanaSchema = fechaSchema("La semana").refine(esLunes, {
+  message: "La semana se indica con la fecha de su lunes",
+});
+
+// GET /turnos/calendario?semana=2026-11-16 (voluntario).
 export const calendarioQuerySchema = z.strictObject({
-  semana: fechaSchema("La semana").refine(esLunes, {
-    message: "La semana se indica con la fecha de su lunes",
-  }),
+  semana: semanaSchema,
+});
+
+// GET /turnos/gestion?semana=2026-11-16 (encargada). Sin semana entrega todos.
+export const gestionQuerySchema = z.strictObject({
+  semana: semanaSchema.optional(),
+});
+
+// GET /turnos/:id/inscritos
+export const turnoIdSchema = z.strictObject({
+  id: z.coerce
+    .number({ message: "El id del turno debe ser un número" })
+    .int("El id del turno debe ser un número entero")
+    .positive("El id del turno debe ser un número positivo"),
 });

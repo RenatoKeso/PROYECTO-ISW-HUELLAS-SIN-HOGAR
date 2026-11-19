@@ -8,6 +8,7 @@ import {
   liberarCupo,
   listarHistorialDeInscripcion,
   listarInscripcionesActivasDeVoluntario,
+  listarInscripcionesDeTurno,
   listarInscripcionesDeVoluntario,
   registrarHistorial,
   reservarCupo,
@@ -159,3 +160,16 @@ test("cambiarTurnoDeInscripcion mueve la misma inscripcion al turno nuevo", asyn
   assert.equal(argumentos.select.turno.select.inicio, true);
 });
 
+test("listarInscripcionesDeTurno trae todas las del turno con el contacto del voluntario", async () => {
+  const { cliente, consultas } = clienteDePrueba([]);
+
+  await listarInscripcionesDeTurno(6, cliente);
+
+  const [[metodo, argumentos]] = consultas;
+  assert.equal(metodo, "inscripcion.findMany");
+  assert.deepEqual(argumentos.where, { turnoId: 6 });
+  assert.deepEqual(argumentos.orderBy, { createdAt: "asc" });
+  assert.deepEqual(argumentos.select.voluntario, {
+    select: { id: true, nombre: true, email: true, telefono: true },
+  });
+});

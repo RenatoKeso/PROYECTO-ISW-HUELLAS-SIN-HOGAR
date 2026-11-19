@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   buscarTurnoPorId,
   crearTurno,
+  listarTurnosEntre,
   listarTurnosParaGestion,
   listarTurnosPublicados,
 } from "../../src/repositories/turnoRepository.js";
@@ -78,4 +79,18 @@ test("buscarTurnoPorId busca por id y devuelve los campos del turno", async () =
   assert.equal(metodo, "findUnique");
   assert.deepEqual(argumentos.where, { id: 4 });
   assert.equal(argumentos.select.cuposDisponibles, true);
+});
+
+test("listarTurnosEntre trae los turnos que empiezan en el rango, de cualquier estado", async () => {
+  const { cliente, consultas } = clienteDePrueba([]);
+  const inicio = new Date("2026-11-16T03:00:00.000Z");
+  const fin = new Date("2026-11-23T02:59:59.999Z");
+
+  await listarTurnosEntre(inicio, fin, cliente);
+
+  const [[metodo, argumentos]] = consultas;
+  assert.equal(metodo, "findMany");
+  assert.deepEqual(argumentos.where, { inicio: { gte: inicio, lte: fin } });
+  assert.deepEqual(argumentos.orderBy, { inicio: "asc" });
+  assert.equal(argumentos.select.titulo, true);
 });

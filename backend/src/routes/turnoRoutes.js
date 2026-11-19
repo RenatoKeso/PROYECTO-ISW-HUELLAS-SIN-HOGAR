@@ -9,7 +9,12 @@ import {
   puedeGestionarInscripciones,
   puedeGestionarTurnos,
 } from "../services/permisosUsuario.js";
-import { calendarioQuerySchema, turnoCreateSchema } from "../validations/turnoValidation.js";
+import {
+  calendarioQuerySchema,
+  gestionQuerySchema,
+  turnoCreateSchema,
+  turnoIdSchema,
+} from "../validations/turnoValidation.js";
 
 export function crearTurnoRouter({
   controlador = crearTurnoController(),
@@ -30,10 +35,19 @@ export function crearTurnoRouter({
     capturarErrores(controlador.publicarTurno),
   );
 
+  // ?semana=2026-11-16 opcional: la semana de su lunes, tambien semanas pasadas.
   router.get(
     "/gestion",
     autorizarAccion(puedeGestionarTurnos),
+    validarEsquema(gestionQuerySchema, "query"),
     capturarErrores(controlador.listarGestion),
+  );
+
+  router.get(
+    "/:id/inscritos",
+    autorizarAccion(puedeGestionarTurnos),
+    validarEsquema(turnoIdSchema, "params"),
+    capturarErrores(controlador.verInscritos),
   );
 
   // Calendario semanal del voluntario: cada turno con su estado para el.

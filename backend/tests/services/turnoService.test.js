@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   obtenerTurnosDisponibles,
+  obtenerInscritosDeTurno,
   obtenerTurnosGestion,
   publicarTurno,
 } from "../../src/services/turnoService.js";
@@ -186,11 +187,13 @@ test("obtenerTurnosGestion marca si cada turno admite inscripciones", async () =
     { ...base, id: 6, cuposDisponibles: 2 },
   ];
 
-  const resultado = await obtenerTurnosGestion(
+  const { semana, turnos: resultado } = await obtenerTurnosGestion(
+    {},
     { listarTurnosParaGestion: async () => turnos },
     AHORA,
   );
 
+  assert.equal(semana, null);
   assert.deepEqual(
     resultado.map((turno) => [turno.id, turno.inscripcionAbierta]),
     [[1, true], [2, false], [3, false], [4, false], [5, false], [6, true]],
@@ -198,6 +201,10 @@ test("obtenerTurnosGestion marca si cada turno admite inscripciones", async () =
   assert.deepEqual(
     resultado.map((turno) => turno.inscritos),
     [0, 5, 0, 0, 0, 3],
+  );
+  assert.deepEqual(
+    resultado.map((turno) => turno.yaComenzo),
+    [false, false, false, true, false, false],
   );
 });
 
@@ -231,4 +238,84 @@ test("obtenerTurnosDisponibles pide los turnos desde el instante actual", async 
   assert.equal(resultado.length, 1);
   assert.equal(resultado[0].inscritos, 3);
   assert.equal(resultado[0].inscripcionAbierta, true);
+});
+
+test("obtenerTurnosGestion con semana pide solo esa semana en hora de Chile", async () => {
+  const pedidos = [];
+  const turno = {
+    id: 9,
+    titulo: "Turno",
+    inicio: new Date("2026-10-27T12:00:00.000Z"),
+    termino: new Date("2026-10-27T14:00:00.000Z"),
+    fechaLimiteInscripcion: new Date("2026-10-27T02:59:59.999Z"),
+    cupoMaximo: 4,
+    cuposDisponibles: 1,
+    estado: "PUBLICADO",
+  };
+
+  const resultado = await obtenerTurnosGestion(
+    { semana: "2026-10-26" },
+    {
+      listarTurnosEntre: async (inicio, fin) => {
+        pedidos.push([inicio.toISOString(), fin.toISOString()]);
+        return [turno];
+      },
+      listarTurnosParaGestion: async () => assert.fail("no debe pedir todos los turnos"),
+    },
+    AHORA,
+  );
+
+  assert.deepEqual(pedidos, [["2026-10-26T03:00:00.000Z", "2026-11-02T02:59:59.999Z"]]);
+  assert.deepEqual(resultado.semana, { desde: "2026-10-26", hasta: "2026-11-01" });
+  assert.equal(resultado.turnos[0].yaComenzo, true, "una semana pasada sirve de historial");
+  assert.equal(resultado.turnos[0].inscritos, 3);
+});
+
+test("obtenerInscritosDeTurno entrega el turno y sus inscripciones", async () => {
+  const turno = {
+    id: 4,
+    titulo: "Paseo de perros",
+    inicio: new Date("2026-11-10T12:00:00.000Z"),
+    termino: new Date("2026-11-10T14:00:00.000Z"),
+    fechaLimiteInscripcion: new Date("2026-11-10T02:59:59.999Z"),
+    cupoMaximo: 5,
+    cuposDisponibles: 4,
+    estado: "PUBLICADO",
+  };
+  const inscripciones = [
+    { id: 1, estado: "ACTIVA", voluntario: { id: 3, nombre: "Camila Rojas" } },
+    { id: 2, estado: "CANCELADA", voluntario: { id: 8, nombre: "Diego Soto" } },
+  ];
+  const pedidos = [];
+
+  const resultado = await obtenerInscritosDeTurno(
+    { id: 4 },
+    {
+      buscarTurnoPorId: async (id) => (id === 4 ? turno : null),
+      listarInscripcionesDeTurno: async (id) => {
+        pedidos.push(id);
+        return inscripciones;
+      },
+    },
+    AHORA,
+  );
+
+  assert.equal(resultado.turno.id, 4);
+  assert.equal(resultado.turno.inscritos, 1);
+  assert.deepEqual(resultado.inscripciones, inscripciones);
+  assert.deepEqual(pedidos, [4]);
+});
+
+test("obtenerInscritosDeTurno responde turno inexistente si no existe", async () => {
+  await assert.rejects(
+    obtenerInscritosDeTurno(
+      { id: 99 },
+      {
+        buscarTurnoPorId: async () => null,
+        listarInscripcionesDeTurno: async () => assert.fail("no debe buscar inscripciones"),
+      },
+      AHORA,
+    ),
+    (error) => esErrorTurno(error) && error.codigo === "TURNO_INEXISTENTE" && error.estadoHttp === 404,
+  );
 });

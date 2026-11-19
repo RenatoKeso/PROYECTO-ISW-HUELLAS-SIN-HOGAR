@@ -3,7 +3,9 @@ import test from "node:test";
 import {
   MENSAJE_TITULO,
   calendarioQuerySchema,
+  gestionQuerySchema,
   turnoCreateSchema,
+  turnoIdSchema,
 } from "../../src/validations/turnoValidation.js";
 
 const datosValidos = {
@@ -148,4 +150,19 @@ test("el calendario rechaza una semana vacia, mal escrita o con campos extra", (
   assert.equal(calendarioQuerySchema.safeParse({ semana: "16-11-2026" }).success, false);
   assert.equal(calendarioQuerySchema.safeParse({ semana: "2026-02-30" }).success, false);
   assert.equal(calendarioQuerySchema.safeParse({ semana: "2026-11-16", voluntarioId: "3" }).success, false);
+});
+
+test("la gestion acepta una semana opcional, que tambien debe ser lunes", () => {
+  assert.deepEqual(gestionQuerySchema.parse({}), {});
+  assert.deepEqual(gestionQuerySchema.parse({ semana: "2026-11-09" }), { semana: "2026-11-09" });
+  assert.equal(gestionQuerySchema.safeParse({ semana: "2026-11-10" }).success, false);
+  assert.equal(gestionQuerySchema.safeParse({ estado: "CANCELADO" }).success, false);
+});
+
+test("el id del turno se convierte a numero y debe ser un entero positivo", () => {
+  assert.deepEqual(turnoIdSchema.parse({ id: "12" }), { id: 12 });
+
+  for (const id of ["0", "-3", "2.5", "abc"]) {
+    assert.equal(turnoIdSchema.safeParse({ id }).success, false, id);
+  }
 });

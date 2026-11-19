@@ -7,7 +7,7 @@ import { crearTurnoRouter } from "../../src/routes/turnoRoutes.js";
 import { crearRouter } from "../../src/routes/index.js";
 import { crearTurnoController } from "../../src/controllers/turnoController.js";
 import { AuthError } from "../../src/entities/authErrors.js";
-import { fechasTurnoInvalidas } from "../../src/entities/turnoErrors.js";
+import { fechasTurnoInvalidas, turnoInexistente } from "../../src/entities/turnoErrors.js";
 import {
   manejadorErrores,
   manejarRutaNoEncontrada,
@@ -84,7 +84,7 @@ function controladorDePrueba() {
     },
     obtenerGestion: async () => {
       llamadas.gestion += 1;
-      return [TURNO];
+      return { semana: null, turnos: [TURNO] };
     },
     obtenerDisponibles: async () => {
       llamadas.disponibles += 1;
@@ -354,4 +354,78 @@ test("el calendario responde 400 si la semana falta, no es lunes o trae campos e
   });
 
   assert.equal(llamadas.length, 0, "no debe llegar al servicio");
+});
+
+// GET /gestion?semana= y GET /:id/inscritos
+
+test("la gestion con semana responde la semana y pasa la consulta al servicio", async () => {
+  const consultas = [];
+  const semana = { desde: "2026-11-09", hasta: "2026-11-15" };
+  const controlador = crearTurnoController({
+    obtenerGestion: async (consulta) => {
+      consultas.push(consulta);
+      return { semana, turnos: [TURNO] };
+    },
+  });
+
+  await conServidor(controlador, async (url) => {
+    const respuesta = await pedir(`${url}/gestion?semana=2026-11-09`, { rol: "ENCARGADA_VOLUNTARIADO" });
+    const cuerpo = await respuesta.json();
+
+    assert.equal(respuesta.status, 200);
+    assert.deepEqual(cuerpo.semana, semana);
+    assert.deepEqual(cuerpo.turnos, [TURNO]);
+
+    const martes = await pedir(`${url}/gestion?semana=2026-11-10`, { rol: "DIRECTORA" });
+    assert.equal(martes.status, 400);
+  });
+
+  assert.deepEqual(consultas, [{ semana: "2026-11-09" }]);
+});
+
+test("solo la directora y la encargada de voluntariado ven los inscritos de un turno", async () => {
+  const pedidos = [];
+  const controlador = crearTurnoController({
+    obtenerInscritos: async (parametros) => {
+      pedidos.push(parametros);
+      return { turno: TURNO, inscripciones: [] };
+    },
+  });
+
+  await conServidor(controlador, async (url) => {
+    assert.equal((await pedir(`${url}/1/inscritos`)).status, 401);
+
+    for (const rol of ROLES_QUE_GESTIONAN) {
+      const respuesta = await pedir(`${url}/1/inscritos`, { rol });
+      const cuerpo = await respuesta.json();
+
+      assert.equal(respuesta.status, 200, rol);
+      assert.equal(cuerpo.message, "Inscritos obtenidos correctamente");
+      assert.deepEqual(cuerpo.turno, TURNO);
+      assert.deepEqual(cuerpo.inscripciones, []);
+    }
+
+    for (const rol of [...ROLES_QUE_SOLO_CONSULTAN, ...ROLES_SIN_ACCESO]) {
+      assert.equal((await pedir(`${url}/1/inscritos`, { rol })).status, 403, rol);
+    }
+
+    assert.equal((await pedir(`${url}/abc/inscritos`, { rol: "DIRECTORA" })).status, 400);
+  });
+
+  assert.deepEqual(pedidos[0], { id: 1 }, "el id llega convertido a numero");
+});
+
+test("ver inscritos de un turno que no existe responde 404", async () => {
+  const controlador = crearTurnoController({
+    obtenerInscritos: async ({ id }) => {
+      throw turnoInexistente(id);
+    },
+  });
+
+  await conServidor(controlador, async (url) => {
+    const respuesta = await pedir(`${url}/99/inscritos`, { rol: "DIRECTORA" });
+
+    assert.equal(respuesta.status, 404);
+    assert.equal((await respuesta.json()).code, "TURNO_INEXISTENTE");
+  });
 });
