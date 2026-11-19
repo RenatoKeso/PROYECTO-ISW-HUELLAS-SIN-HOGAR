@@ -7,6 +7,10 @@ function mensajeDeError(error) {
   return "No se pudo contactar con el servidor, intenta de nuevo";
 }
 
+function resolverIniciales(iniciales) {
+  return typeof iniciales === "function" ? iniciales() : iniciales;
+}
+
 export function useFormulario({
   iniciales = {},
   esquema,
@@ -14,7 +18,7 @@ export function useFormulario({
   mensajeExito,
   confirmar,
 }) {
-  const [valores, setValores] = useState(iniciales);
+  const [valores, setValores] = useState(() => resolverIniciales(iniciales));
   const [errores, setErrores] = useState({});
   const [mensaje, setMensaje] = useState(null);
 
@@ -53,7 +57,7 @@ export function useFormulario({
             ? mensajeExito(respuesta)
             : (mensajeExito ?? respuesta.message),
       });
-      setValores(iniciales);
+      setValores(resolverIniciales(iniciales));
     } catch (error) {
       setErrores(erroresDeApi(error));
       setMensaje({ tipo: "error", texto: mensajeDeError(error) });

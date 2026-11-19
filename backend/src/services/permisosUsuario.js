@@ -124,9 +124,11 @@ export function puedeRegistrarDevoluciones(usuario) {
   ]);
 }
 
-// r3: la revision inicial la registra el voluntario de confianza o la veterinaria.
+// r3: la revision inicial la registra cualquier voluntario (VOLUNTARIO o
+// VOLUNTARIO_CONFIANZA) o la veterinaria.
 export function puedeRegistrarRevisionInicial(usuario) {
   return tieneRol(usuario, [
+    "VOLUNTARIO",
     "VOLUNTARIO_CONFIANZA",
     "VETERINARIA",
   ]);
@@ -137,9 +139,11 @@ export function puedeRealizarRevisionFinal(usuario) {
   return tieneRol(usuario, ["VETERINARIA"]);
 }
 
-// r5: la correccion de la revision inicial la hace el voluntario de confianza o la veterinaria.
+// r5: la correccion de la revision inicial la hace cualquier voluntario
+// (VOLUNTARIO o VOLUNTARIO_CONFIANZA) o la veterinaria.
 export function puedeActualizarRevisionInicial(usuario) {
   return tieneRol(usuario, [
+    "VOLUNTARIO",
     "VOLUNTARIO_CONFIANZA",
     "VETERINARIA",
   ]);

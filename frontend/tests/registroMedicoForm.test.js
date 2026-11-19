@@ -36,6 +36,10 @@ test("revision inicial inicial y entrada", () => {
 test("revision final omite filas vacias y campos opcionales", () => {
   const inicial = crearRevisionFinalInicial({ pesoKg: 12.4, clasificacionSalud: "ENFERMO" });
   assert.equal(inicial.pesoRevalidadoKg, 12.4);
+  assert.equal(inicial.condiciones, "sin detalles");
+  assert.equal(inicial.discapacidades, "sin detalles");
+  assert.equal(inicial.lesiones, "sin detalles");
+  assert.equal(inicial.descripcionCuidadosEspeciales, "sin detalles");
 
   const entrada = construirEntradaRevisionFinal({
     pesoRevalidadoKg: "13.2",
@@ -48,6 +52,22 @@ test("revision final omite filas vacias y campos opcionales", () => {
   assert.equal(entrada.enfermedades.length, 1);
   assert.equal(entrada.tratamientos, undefined);
   assert.equal(entrada.atencionesSanitarias, undefined);
+});
+
+test("revision final conserva los detalles existentes", () => {
+  const inicial = crearRevisionFinalInicial({
+    revisionCompleta: {
+      descripcionCondicionMedica: "Artrosis",
+      discapacidades: "Ceguera",
+      lesiones: "Fractura",
+      descripcionCuidadosEspeciales: "Dieta especial",
+    },
+  });
+
+  assert.equal(inicial.condiciones, "Artrosis");
+  assert.equal(inicial.discapacidades, "Ceguera");
+  assert.equal(inicial.lesiones, "Fractura");
+  assert.equal(inicial.descripcionCuidadosEspeciales, "Dieta especial");
 });
 
 test("revision final limpia fecha de fin vacia en tratamientos", () => {

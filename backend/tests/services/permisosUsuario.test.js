@@ -194,15 +194,14 @@ test("directora y veterinaria activas pueden consultar alertas", () => {
 }
 });
 
-test("voluntarios de confianza y veterinarias activas registran la revision inicial", () => {
-  assert.equal(puedeRegistrarRevisionInicial(voluntario), false);
+test("voluntarios y veterinarias activas registran la revision inicial", () => {
+  assert.equal(puedeRegistrarRevisionInicial(voluntario), true);
   assert.equal(puedeRegistrarRevisionInicial(voluntarioConfianza), true);
   assert.equal(puedeRegistrarRevisionInicial(veterinaria), true);
 
   const actores = [
     directora,
     encargada,
-    voluntario,
     undefined,
     null,
     {},
@@ -247,8 +246,8 @@ test("solo la veterinaria activa realiza la revision final", () => {
   }
 });
 
-test("voluntarios de confianza y veterinarias actualizan la revision inicial", () => {
-  assert.equal(puedeActualizarRevisionInicial(voluntario), false);
+test("voluntarios y veterinarias actualizan la revision inicial", () => {
+  assert.equal(puedeActualizarRevisionInicial(voluntario), true);
   assert.equal(puedeActualizarRevisionInicial(voluntarioConfianza), true);
   assert.equal(puedeActualizarRevisionInicial(veterinaria), true);
 

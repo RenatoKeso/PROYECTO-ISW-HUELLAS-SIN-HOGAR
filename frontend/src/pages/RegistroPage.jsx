@@ -72,6 +72,21 @@ const INGRESO_INICIAL = {
   estadoSalud: "",
 };
 
+function fechaHoraActualLocal() {
+  const ahora = new Date();
+  const local = new Date(ahora.getTime() - ahora.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+function soloDigitos(valor) {
+  return String(valor ?? "").replace(/\D/g, "");
+}
+
+function codigoAnimalDesdeNumero(valor) {
+  const digitos = soloDigitos(valor);
+  return digitos ? `anim-${digitos.padStart(3, "0")}` : "";
+}
+
 async function enviarIngreso(valores) {
   const { fechaIngreso, ...resto } = valores;
 
@@ -114,7 +129,10 @@ function RegistroPage() {
   }, []);
 
   const ingreso = useFormulario({
-    iniciales: INGRESO_INICIAL,
+    iniciales: () => ({
+      ...INGRESO_INICIAL,
+      fechaIngreso: fechaHoraActualLocal(),
+    }),
     esquema: ingresoFormSchema,
     enviar: enviarIngreso,
     mensajeExito: (respuesta) => `Ingreso registrado: ${respuesta.codigoAnimal}`,
@@ -304,7 +322,7 @@ function RegistroPage() {
     }
   }
 
-  const codigoBuscado = busquedaFichaCodigo.trim().toLowerCase();
+  const codigoBuscado = codigoAnimalDesdeNumero(busquedaFichaCodigo);
   const nombreBuscado = busquedaFichaNombre.trim().toLowerCase();
 
   const fichasFiltradas = fichas.filter((fichaAnimal) => {
@@ -541,9 +559,12 @@ function RegistroPage() {
                 <input
                   id="busquedaFichaCodigo"
                   type="search"
+                  inputMode="numeric"
                   value={busquedaFichaCodigo}
-                  onChange={(evento) => setBusquedaFichaCodigo(evento.target.value)}
-                  placeholder="anim-001"
+                  onChange={(evento) =>
+                    setBusquedaFichaCodigo(soloDigitos(evento.target.value))
+                  }
+                  placeholder="001"
                 />
               </div>
 
@@ -739,7 +760,7 @@ function RegistroPage() {
           onSubmit={(evento) => {
             evento.preventDefault();
             cargarHistorialGlobal({
-              codigo: busquedaHistorialCodigo,
+              codigo: codigoAnimalDesdeNumero(busquedaHistorialCodigo),
               nombre: busquedaHistorialNombre,
             });
           }}
@@ -750,11 +771,12 @@ function RegistroPage() {
               <input
                 id="busquedaHistorialCodigo"
                 type="search"
+                inputMode="numeric"
                 value={busquedaHistorialCodigo}
                 onChange={(evento) =>
-                  setBusquedaHistorialCodigo(evento.target.value)
+                  setBusquedaHistorialCodigo(soloDigitos(evento.target.value))
                 }
-                placeholder="anim-001"
+                placeholder="001"
               />
             </div>
 

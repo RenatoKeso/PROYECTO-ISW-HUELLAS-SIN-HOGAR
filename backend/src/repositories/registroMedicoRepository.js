@@ -165,6 +165,16 @@ export async function listarHistorialRegistroMedico(
   });
 }
 
+export async function listarActualizacionesMedicas(cliente = prisma) {
+  return cliente.historialRegistroMedico.findMany({
+    include: {
+      actualizadoPor: { select: SELECT_AUTOR },
+      registroMedico: { include: { animal: true } },
+    },
+    orderBy: [{ fecha: "desc" }, { id: "desc" }],
+  });
+}
+
 export async function crearSeguimientoMedico(data, cliente = prisma) {
   return cliente.seguimientoMedicoAnimal.create({
     data,
@@ -227,7 +237,12 @@ export async function guardarRevisionCompletaActual(data, cliente = prisma) {
 }
 
 export async function listarRegistrosMedicos(estado, cliente = prisma) {
-  const where = estado ? { estadoValidacion: estado } : {};
+  const where =
+    estado === "REALIZADO"
+      ? { estadoValidacion: { in: ["REALIZADO", "ACTUALIZADO"] } }
+      : estado
+        ? { estadoValidacion: estado }
+        : {};
   return cliente.registroMedicoAnimal.findMany({
     where,
     include: RELACIONES_LISTADO_REGISTRO_MEDICO,
