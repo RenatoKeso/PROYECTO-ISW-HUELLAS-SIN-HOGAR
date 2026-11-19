@@ -4,11 +4,13 @@ import {
   obtenerTurnosGestion,
   publicarTurno,
 } from "../services/turnoService.js";
+import { obtenerCalendarioVoluntario } from "../services/calendarioTurnosService.js";
 
 export function crearTurnoController({
   publicarTurnoServicio = publicarTurno,
   obtenerGestion = obtenerTurnosGestion,
   obtenerDisponibles = obtenerTurnosDisponibles,
+  obtenerCalendario = obtenerCalendarioVoluntario,
 } = {}) {
   return {
     async publicarTurno(request, response) {
@@ -36,6 +38,15 @@ export function crearTurnoController({
       return enviarRespuestaExitosa(response, {
         mensaje: "Turnos disponibles obtenidos correctamente",
         datos: { turnos },
+      });
+    },
+
+    async verCalendario(request, response) {
+      const calendario = await obtenerCalendario(request.query, request.usuario);
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: "Calendario obtenido correctamente",
+        datos: calendario,
       });
     },
   };

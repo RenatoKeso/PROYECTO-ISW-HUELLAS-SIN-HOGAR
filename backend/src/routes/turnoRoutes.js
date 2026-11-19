@@ -6,9 +6,10 @@ import { crearAutenticacion } from "../middlewares/autenticarUsuario.js";
 import { autorizarAccion } from "../middlewares/autorizarAccion.js";
 import {
   puedeConsultarTurnos,
+  puedeGestionarInscripciones,
   puedeGestionarTurnos,
 } from "../services/permisosUsuario.js";
-import { turnoCreateSchema } from "../validations/turnoValidation.js";
+import { calendarioQuerySchema, turnoCreateSchema } from "../validations/turnoValidation.js";
 
 export function crearTurnoRouter({
   controlador = crearTurnoController(),
@@ -33,6 +34,16 @@ export function crearTurnoRouter({
     "/gestion",
     autorizarAccion(puedeGestionarTurnos),
     capturarErrores(controlador.listarGestion),
+  );
+
+  // Calendario semanal del voluntario: cada turno con su estado para el.
+  // GET /turnos/calendario?semana=2026-11-16 (la fecha del lunes).
+
+  router.get(
+    "/calendario",
+    autorizarAccion(puedeGestionarInscripciones),
+    validarEsquema(calendarioQuerySchema, "query"),
+    capturarErrores(controlador.verCalendario),
   );
 
   // Turnos que se pueden elegir: los ven quienes los publican y los voluntarios.

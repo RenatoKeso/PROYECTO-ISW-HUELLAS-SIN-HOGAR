@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MENSAJE_TITULO, turnoCreateSchema } from "../../src/validations/turnoValidation.js";
+import {
+  MENSAJE_TITULO,
+  calendarioQuerySchema,
+  turnoCreateSchema,
+} from "../../src/validations/turnoValidation.js";
 
 const datosValidos = {
   titulo: "Paseo de perros",
@@ -125,4 +129,23 @@ test("exige todos los campos obligatorios", () => {
   for (const campo of ["titulo", "fecha", "horaInicio", "horaTermino", "fechaLimiteInscripcion", "cupoMaximo"]) {
     assert.ok(campos.includes(campo), `falta el error de ${campo}`);
   }
+});
+
+test("el calendario se pide con la fecha de un lunes", () => {
+  assert.deepEqual(calendarioQuerySchema.parse({ semana: "2026-11-16" }), { semana: "2026-11-16" });
+});
+
+test("el calendario rechaza una fecha que no es lunes", () => {
+  for (const semana of ["2026-11-17", "2026-11-22"]) {
+    const resultado = calendarioQuerySchema.safeParse({ semana });
+    assert.equal(resultado.success, false, semana);
+    assert.equal(resultado.error.issues[0].message, "La semana se indica con la fecha de su lunes");
+  }
+});
+
+test("el calendario rechaza una semana vacia, mal escrita o con campos extra", () => {
+  assert.equal(calendarioQuerySchema.safeParse({}).success, false);
+  assert.equal(calendarioQuerySchema.safeParse({ semana: "16-11-2026" }).success, false);
+  assert.equal(calendarioQuerySchema.safeParse({ semana: "2026-02-30" }).success, false);
+  assert.equal(calendarioQuerySchema.safeParse({ semana: "2026-11-16", voluntarioId: "3" }).success, false);
 });

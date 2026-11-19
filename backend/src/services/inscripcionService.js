@@ -42,7 +42,7 @@ const DEPENDENCIAS_POR_DEFECTO = {
 };
 
 // El voluntario sale de la cuenta con sesion, nunca del cuerpo de la peticion.
-function voluntarioDe(usuario) {
+export function voluntarioDe(usuario) {
   if (!Number.isInteger(usuario?.voluntarioId)) {
     throw voluntarioNoVinculado();
   }

@@ -55,3 +55,16 @@ export const turnoCreateSchema = z.strictObject({
     .min(1, "El turno debe tener al menos 1 cupo")
     .max(CUPO_MAXIMO_TURNO, `El turno no puede tener más de ${CUPO_MAXIMO_TURNO} cupos`),
 });
+
+// El dia de la semana de una fecha "AAAA-MM-DD" no depende de la zona horaria,
+// por eso se puede revisar en UTC. 1 = lunes.
+function esLunes(fecha) {
+  return new Date(`${fecha}T12:00:00.000Z`).getUTCDay() === 1;
+}
+
+// GET /turnos/calendario?semana=2026-11-16: la semana se pide por su lunes.
+export const calendarioQuerySchema = z.strictObject({
+  semana: fechaSchema("La semana").refine(esLunes, {
+    message: "La semana se indica con la fecha de su lunes",
+  }),
+});

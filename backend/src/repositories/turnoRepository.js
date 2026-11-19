@@ -35,6 +35,16 @@ export async function listarTurnosPublicados(ahora, cliente = prisma) {
   });
 }
 
+// Turnos que empiezan dentro del rango, publicados o cancelados, en orden.
+// Los usa el calendario semanal.
+export async function listarTurnosEntre(inicio, fin, cliente = prisma) {
+  return cliente.turno.findMany({
+    where: { inicio: { gte: inicio, lte: fin } },
+    select: CAMPOS_TURNO,
+    orderBy: { inicio: "asc" },
+  });
+}
+
 export async function buscarTurnoPorId(id, cliente = prisma) {
   return cliente.turno.findUnique({
     where: { id },

@@ -281,3 +281,77 @@ test("el router principal monta /api/turnos con sesion y permisos", async () => 
     servidor.close();
   }
 });
+
+// GET /calendario
+
+const CALENDARIO = { semana: { desde: "2026-11-16", hasta: "2026-11-22" }, turnos: [TURNO] };
+
+function controladorDeCalendario() {
+  const llamadas = [];
+  const controlador = crearTurnoController({
+    obtenerCalendario: async (consulta, usuario) => {
+      llamadas.push({ consulta, usuario });
+      return CALENDARIO;
+    },
+  });
+
+  return { controlador, llamadas };
+}
+
+test("el calendario exige sesion", async () => {
+  const { controlador, llamadas } = controladorDeCalendario();
+
+  await conServidor(controlador, async (url) => {
+    const respuesta = await pedir(`${url}/calendario?semana=2026-11-16`);
+    assert.equal(respuesta.status, 401);
+  });
+
+  assert.equal(llamadas.length, 0);
+});
+
+test("el calendario es solo para voluntarios", async () => {
+  const { controlador } = controladorDeCalendario();
+
+  await conServidor(controlador, async (url) => {
+    for (const rol of ROLES_QUE_SOLO_CONSULTAN) {
+      const respuesta = await pedir(`${url}/calendario?semana=2026-11-16`, { rol });
+      assert.equal(respuesta.status, 200, rol);
+    }
+
+    for (const rol of [...ROLES_QUE_GESTIONAN, ...ROLES_SIN_ACCESO]) {
+      const respuesta = await pedir(`${url}/calendario?semana=2026-11-16`, { rol });
+      assert.equal(respuesta.status, 403, rol);
+    }
+  });
+});
+
+test("el calendario responde la semana y pasa la consulta y la cuenta al servicio", async () => {
+  const { controlador, llamadas } = controladorDeCalendario();
+
+  await conServidor(controlador, async (url) => {
+    const respuesta = await pedir(`${url}/calendario?semana=2026-11-16`, { rol: "VOLUNTARIO" });
+    const cuerpo = await respuesta.json();
+
+    assert.equal(respuesta.status, 200);
+    assert.equal(cuerpo.message, "Calendario obtenido correctamente");
+    assert.deepEqual(cuerpo.semana, CALENDARIO.semana);
+    assert.deepEqual(cuerpo.turnos, [TURNO]);
+  });
+
+  assert.deepEqual(llamadas[0].consulta, { semana: "2026-11-16" });
+  assert.equal(llamadas[0].usuario.id, 5);
+});
+
+test("el calendario responde 400 si la semana falta, no es lunes o trae campos extra", async () => {
+  const { controlador, llamadas } = controladorDeCalendario();
+
+  await conServidor(controlador, async (url) => {
+    for (const consulta of ["", "?semana=2026-11-17", "?semana=16-11-2026", "?semana=2026-11-16&voluntarioId=3"]) {
+      const respuesta = await pedir(`${url}/calendario${consulta}`, { rol: "VOLUNTARIO" });
+      assert.equal(respuesta.status, 400, consulta);
+      assert.equal((await respuesta.json()).code, "DATOS_INVALIDOS", consulta);
+    }
+  });
+
+  assert.equal(llamadas.length, 0, "no debe llegar al servicio");
+});

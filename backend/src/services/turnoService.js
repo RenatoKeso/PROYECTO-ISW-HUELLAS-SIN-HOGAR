@@ -16,7 +16,7 @@ const DEPENDENCIAS_POR_DEFECTO = {
 // Agrega al turno lo que la pantalla necesita para mostrarlo:
 // cuantos voluntarios hay inscritos y si todavia se puede inscribir alguien.
 
-function presentarTurno(turno, ahora) {
+export function presentarTurno(turno, ahora) {
   const inscripcionAbierta =
     turno.estado === "PUBLICADO" &&
     hayCupos(turno) &&
