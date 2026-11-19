@@ -13,9 +13,12 @@ import {
 import {
   ESTADOS_POSTULACION,
   MOTIVOS_DEVOLUCION,
+  TENENCIAS_VIVIENDA,
   TIPOS_VIVIENDA,
+  formatearCantidad,
   formatearEdad,
   formatearFecha,
+  formatearSiNo,
 } from "../utils/formatoAdopcion.js";
 import { urlImagen } from "../utils/urlImagen.js";
 import "../styles/postulaciones.css";
@@ -204,12 +207,43 @@ function PostulacionDetallePage() {
           <dl className="datos">
             <Dato etiqueta="Nombre">{postulacion.nombrePostulante}</Dato>
             <Dato etiqueta="RUT">{postulacion.rutPostulante}</Dato>
+            <Dato etiqueta="Nacimiento">
+              {postulacion.fechaNacimientoPostulante &&
+                formatearFecha(postulacion.fechaNacimientoPostulante, { soloFecha: true })}
+            </Dato>
             <Dato etiqueta="Teléfono">{postulacion.telefonoPostulante}</Dato>
             <Dato etiqueta="Correo">{postulacion.emailPostulante}</Dato>
-            <Dato etiqueta="Vivienda">{TIPOS_VIVIENDA[postulacion.tipoVivienda]}</Dato>
-            <Dato etiqueta="Otras mascotas">{postulacion.otrasMascotas}</Dato>
-            <Dato etiqueta="Disponibilidad">{postulacion.disponibilidadTiempo}</Dato>
+            <Dato etiqueta="Dirección">{postulacion.direccionPostulante}</Dato>
+            <Dato etiqueta="Comuna">{postulacion.comunaPostulante}</Dato>
             <Dato etiqueta="Recibida">{formatearFecha(postulacion.createdAt)}</Dato>
+          </dl>
+        </div>
+
+        {/* Las postulaciones antiguas no tienen estos datos: se muestran con "—". */}
+        <div className="tarjeta">
+          <h3>Hogar y compromiso</h3>
+          <dl className="datos">
+            <Dato etiqueta="Vivienda">{TIPOS_VIVIENDA[postulacion.tipoVivienda]}</Dato>
+            <Dato etiqueta="Tenencia">{TENENCIAS_VIVIENDA[postulacion.tenenciaVivienda]}</Dato>
+            {postulacion.tenenciaVivienda === "ARRENDADA" && (
+              <Dato etiqueta="Arriendo permite mascotas">
+                {formatearSiNo(postulacion.permiteMascotasArriendo)}
+              </Dato>
+            )}
+            <Dato etiqueta="Patio">{formatearSiNo(postulacion.tienePatio)}</Dato>
+            <Dato etiqueta="Personas en el hogar">
+              {formatearCantidad(postulacion.personasHogar, "persona", "personas")}
+            </Dato>
+            <Dato etiqueta="Niños en el hogar">{formatearSiNo(postulacion.hayNinos)}</Dato>
+            <Dato etiqueta="Otras mascotas">{postulacion.otrasMascotas}</Dato>
+            <Dato etiqueta="Horas solo al día">
+              {formatearCantidad(postulacion.horasSoloAlDia, "hora", "horas")}
+            </Dato>
+            <Dato etiqueta="Disponibilidad">{postulacion.disponibilidadTiempo}</Dato>
+            <Dato etiqueta="Motivo para adoptar">{postulacion.motivoAdopcion}</Dato>
+            <Dato etiqueta="Acepta seguimientos">
+              {formatearSiNo(postulacion.aceptaSeguimiento)}
+            </Dato>
           </dl>
         </div>
 
@@ -255,8 +289,8 @@ function PostulacionDetallePage() {
 
       {(["APROBADA", "ENTREGADA"].includes(postulacion.estado) ||
         postulacion.visitas?.length > 0) && (
-        <ProcesoAdopcion postulacion={postulacion} onActualizada={recargar} />
-      )}
+          <ProcesoAdopcion postulacion={postulacion} onActualizada={recargar} />
+        )}
     </section>
   );
 }

@@ -76,11 +76,11 @@ model Voluntario {
   activo    Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  ingresosRecibidos      IngresoAnimal[]
-  devolucionesRecibidas  Devolucion[]
-  usuario                Usuario?
-  inscripcionesTurno     InscripcionTurno[]
-  postulacionVoluntario  PostulacionVoluntario?
+  ingresosRecibidos     IngresoAnimal[]
+  devolucionesRecibidas Devolucion[]
+  usuario               Usuario?
+  inscripcionesTurno    InscripcionTurno[]
+  postulacionVoluntario PostulacionVoluntario?
 }
 
 // Módulo de adopción
@@ -97,6 +97,12 @@ enum TipoVivienda {
   CASA
   DEPARTAMENTO
   OTRO
+}
+
+enum TenenciaVivienda {
+  PROPIA
+  ARRENDADA
+  OTRA
 }
 
 model Postulacion {
@@ -118,6 +124,21 @@ model Postulacion {
   observaciones        String?
   estado               EstadoPostulacion @default(EN_REVISION)
   createdAt            DateTime          @default(now())
+
+  // Datos del postulante y su hogar que se piden desde la revision de codigo.
+  // Son opcionales en la base de datos porque las postulaciones antiguas no
+  // los tienen; para las nuevas, Zod los exige.
+  fechaNacimientoPostulante DateTime?         @db.Date
+  direccionPostulante       String?
+  comunaPostulante          String?
+  tenenciaVivienda          TenenciaVivienda?
+  permiteMascotasArriendo   Boolean?
+  tienePatio                Boolean?
+  personasHogar             Int?
+  hayNinos                  Boolean?
+  horasSoloAlDia            Int?
+  motivoAdopcion            String?
+  aceptaSeguimiento         Boolean?
 
   // Omision de la visita al hogar (RF3): motivo de la lista y quien la autorizo.
   motivoOmisionVisitaHogar      MotivoOmisionVisita?
@@ -372,23 +393,23 @@ model Usuario {
   turnosPublicados       Turno[]                @relation("TurnosPublicados")
   historialInscripciones HistorialInscripcion[] @relation("HistorialInscripcionesRealizadas")
 
-  revisionesInicialesCreadas      RevisionInicial[]           @relation("RevisionInicialCreatedBy")
-  revisionesInicialesActualizadas RevisionInicial[]           @relation("RevisionInicialUpdatedBy")
-  revisionInicialRealizada        RegistroMedicoAnimal[]      @relation("RevisionInicialRealizada")
-  revisionesCompletasCreadas      RevisionCompleta[]          @relation("RevisionCompletaCreatedBy")
-  revisionesCompletasActualizadas RevisionCompleta[]          @relation("RevisionCompletaUpdatedBy")
-  tratamientosCreados             TratamientoAnimal[]
-  enfermedadesCreadas             EnfermedadAnimal[]
-  seguimientosCreados             SeguimientoMedicoAnimal[]
-  atencionesRegistradas           AtencionVeterinaria[]
-  actualizacionesEstadoAnimal     ActualizacionEstadoAnimal[]
-  auditoriasRealizadas            AuditoriaRevisionInicial[]
-  versionesHistorial              HistorialRegistroMedico[]
-  notificacionesRecibidas         Notificacion[]
-  reportesDevolucionGenerados     ReporteDevolucion[]
-  visitasAdopcionRegistradas      VisitaAdopcion[]            @relation("VisitasAdopcionRegistradas")
-  omisionesVisitaAutorizadas      Postulacion[]               @relation("OmisionesVisitaAutorizadas")
-  postulacionesRevisadas          Postulacion[]               @relation("PostulacionesRevisadas")
+  revisionesInicialesCreadas       RevisionInicial[]           @relation("RevisionInicialCreatedBy")
+  revisionesInicialesActualizadas  RevisionInicial[]           @relation("RevisionInicialUpdatedBy")
+  revisionInicialRealizada         RegistroMedicoAnimal[]      @relation("RevisionInicialRealizada")
+  revisionesCompletasCreadas       RevisionCompleta[]          @relation("RevisionCompletaCreatedBy")
+  revisionesCompletasActualizadas  RevisionCompleta[]          @relation("RevisionCompletaUpdatedBy")
+  tratamientosCreados              TratamientoAnimal[]
+  enfermedadesCreadas              EnfermedadAnimal[]
+  seguimientosCreados              SeguimientoMedicoAnimal[]
+  atencionesRegistradas            AtencionVeterinaria[]
+  actualizacionesEstadoAnimal      ActualizacionEstadoAnimal[]
+  auditoriasRealizadas             AuditoriaRevisionInicial[]
+  versionesHistorial               HistorialRegistroMedico[]
+  notificacionesRecibidas          Notificacion[]
+  reportesDevolucionGenerados      ReporteDevolucion[]
+  visitasAdopcionRegistradas       VisitaAdopcion[]            @relation("VisitasAdopcionRegistradas")
+  omisionesVisitaAutorizadas       Postulacion[]               @relation("OmisionesVisitaAutorizadas")
+  postulacionesRevisadas           Postulacion[]               @relation("PostulacionesRevisadas")
   postulacionesVoluntarioRevisadas PostulacionVoluntario[]
 
   createdAt DateTime @default(now())
@@ -695,7 +716,6 @@ model Notificacion {
 
   @@index([destinatarioId, leida])
 }
-
 
 // ---------- Postulacion de voluntarios ----------
 
