@@ -87,10 +87,6 @@ export async function obtenerReportesDevolucion() {
   return listarReportesDevolucion();
 }
 
-
-
-
-
 export async function generarPdfReporte(id) {
   const reporte = await buscarReportePorId(id);
   if (!reporte) {

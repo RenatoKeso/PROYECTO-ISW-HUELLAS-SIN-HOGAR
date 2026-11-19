@@ -18,6 +18,7 @@ import {
   postulacionYaRevisada,
   postulacionSinRevisar,
   voluntarioConActividad,
+  curriculumNoEsPdf,
 } from "../entities/postulacionVoluntarioErrors.js";
 
 const DEPENDENCIAS_POR_DEFECTO = {
@@ -48,7 +49,15 @@ export async function postularComoVoluntario(datos, dependencias = DEPENDENCIAS_
 
   const otraHabilidad = datos.habilidades.includes("OTRA") ? datos.otraHabilidad : null;
 
-  return crearPostulacionVoluntario({ ...datos, otraHabilidad });
+  const { curriculumBase64, ...resto } = datos;
+  let curriculum = null;
+
+  if (curriculumBase64) {
+    curriculum = Buffer.from(curriculumBase64, "base64");
+    if (curriculum.subarray(0, 4).toString() !== "%PDF") throw curriculumNoEsPdf();
+  }
+
+  return crearPostulacionVoluntario({ ...resto, otraHabilidad, curriculum });
 }
 
 export async function obtenerPostulacionesVoluntario(estado) {

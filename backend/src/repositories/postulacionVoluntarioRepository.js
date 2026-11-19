@@ -9,6 +9,7 @@ const CAMPOS_POSTULACION = {
   motivacion: true,
   habilidades: true,
   otraHabilidad: true,
+  curriculumNombre: true,
   estado: true,
   motivoRechazo: true,
   fechaRevision: true,
