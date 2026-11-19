@@ -134,6 +134,7 @@ function AdopcionPage() {
 
   return (
     <section className="bloque">
+      <Link to="/" className="volver-link">← Volver al inicio</Link>
       <h2>Animales en adopción</h2>
       <p>
         Estos son los animales del refugio que esperan un hogar. Elige uno y
