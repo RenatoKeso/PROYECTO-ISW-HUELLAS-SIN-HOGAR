@@ -62,3 +62,11 @@ export function curriculumNoEsPdf() {
     400,
   );
 }
+
+export function curriculumNoEncontrado() {
+  return new PostulacionVoluntarioError(
+    "CURRICULUM_INEXISTENTE",
+    "Esta postulación no tiene currículum",
+    404,
+  );
+}

@@ -10,6 +10,7 @@ import {
   buscarActividadVoluntario,
   volverARevision,
   eliminarVoluntario,
+  buscarCurriculum,
 } from "../repositories/postulacionVoluntarioRepository.js";
 import {
   yaEsVoluntario,
@@ -19,6 +20,7 @@ import {
   postulacionSinRevisar,
   voluntarioConActividad,
   curriculumNoEsPdf,
+  curriculumNoEncontrado,
 } from "../entities/postulacionVoluntarioErrors.js";
 
 const DEPENDENCIAS_POR_DEFECTO = {
@@ -154,4 +156,13 @@ export async function deshacerRevisionPostulacionVoluntario(
   });
 
   return buscarPostulacionVoluntarioPorId(postulacionId);
+}
+
+export async function obtenerCurriculum(id) {
+  const postulacion = await buscarCurriculum(id);
+
+  if (!postulacion) throw postulacionVoluntarioNoEncontrada(id);
+  if (!postulacion.curriculum) throw curriculumNoEncontrado();
+
+  return postulacion;
 }
