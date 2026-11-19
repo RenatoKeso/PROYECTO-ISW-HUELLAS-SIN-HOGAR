@@ -2,7 +2,7 @@ import { Router } from "express";
 import { capturarErrores } from "../middlewares/capturarErrores.js";
 import { validarEsquema } from "../middlewares/validarEsquema.js";
 import { reporteDevolucionSchema } from "../validations/reporteDevolucionValidation.js";
-import { generarReporte, listarReportes } from "../controllers/reporteDevolucionController.js";
+import { generarReporte, listarReportes, descargarPdf } from "../controllers/reporteDevolucionController.js";
 
 export function crearReporteDevolucionRouter() {
   const router = Router();
@@ -14,6 +14,8 @@ export function crearReporteDevolucionRouter() {
   );
 
   router.get("/reportes/devoluciones", capturarErrores(listarReportes));
+
+  router.get("/reportes/devoluciones/:id/pdf", capturarErrores(descargarPdf));
 
   return router;
 }

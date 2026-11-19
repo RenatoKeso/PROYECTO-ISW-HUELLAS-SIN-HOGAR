@@ -39,3 +39,9 @@ export async function listarReportesDevolucion(cliente = prisma) {
   });
 }
 
+export async function buscarReportePorId(id, cliente = prisma) {
+  return cliente.reporteDevolucion.findUnique({
+    where: { id },
+    include: { generadoPor: { select: { nombre: true } } },
+  });
+}
