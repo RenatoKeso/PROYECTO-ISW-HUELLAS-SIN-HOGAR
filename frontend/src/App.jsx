@@ -87,7 +87,7 @@ function App() {
 
     return pagina;
   }
-  
+
   return (
     <div className="app">
       {!esLogin && (
@@ -120,8 +120,6 @@ function App() {
             </div>
           ) : (
             <nav>
-              <Link to="/">Inicio</Link>
-              <Link to="/adopcion">Adopción</Link>
               <Link to="/login">Iniciar sesión</Link>
             </nav>
           )}
