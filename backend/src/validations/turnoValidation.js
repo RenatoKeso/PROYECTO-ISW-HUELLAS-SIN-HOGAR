@@ -4,6 +4,12 @@ export const CUPO_MAXIMO_TURNO = 100;
 
 const REGEX_HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
 
+// El titulo empieza con una letra y despues solo lleva letras (con tildes y ñ),
+// espacios, comas o guiones. Asi se rechazan numeros y simbolos.
+const REGEX_TITULO = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ ,-]*$/;
+export const MENSAJE_TITULO =
+  "El título debe empezar con una letra y solo puede tener letras, espacios, comas y guiones";
+
 // Capa 1 (forma): aqui solo se revisa que cada dato tenga el tipo y el formato
 // correctos. Las reglas que comparan fechas entre si (termino despues del
 // inicio, turno futuro, plazo valido) se revisan en turnoService.
@@ -14,7 +20,8 @@ function textoObligatorio(campo, maximo) {
   return z
     .string({ message: mensaje })
     .trim()
-    .min(1, mensaje)
+    // abort: si esta vacio no sigue revisando, asi responde un solo error.
+    .min(1, { message: mensaje, abort: true })
     .max(maximo, `${campo} no puede superar los ${maximo} caracteres`);
 }
 
@@ -31,7 +38,7 @@ function horaSchema(campo) {
 // La encargada escribe fechas y horas de Chile. El servicio las convierte a
 // instantes UTC antes de guardarlas.
 export const turnoCreateSchema = z.strictObject({
-  titulo: textoObligatorio("El título", 120),
+  titulo: textoObligatorio("El título", 120).regex(REGEX_TITULO, MENSAJE_TITULO),
   descripcion: z
     .string({ message: "La descripción debe ser un texto" })
     .trim()

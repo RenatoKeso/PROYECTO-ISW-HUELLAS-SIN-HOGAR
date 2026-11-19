@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { turnoCreateSchema } from "../../src/validations/turnoValidation.js";
+import { MENSAJE_TITULO, turnoCreateSchema } from "../../src/validations/turnoValidation.js";
 
 const datosValidos = {
   titulo: "Paseo de perros",
@@ -38,6 +38,43 @@ test("rechaza un titulo vacio, solo con espacios o demasiado largo", () => {
   assert.deepEqual(camposConError({ ...datosValidos, titulo: "" }), ["titulo"]);
   assert.deepEqual(camposConError({ ...datosValidos, titulo: "   " }), ["titulo"]);
   assert.deepEqual(camposConError({ ...datosValidos, titulo: "a".repeat(121) }), ["titulo"]);
+});
+
+function mensajesDelTitulo(titulo) {
+  const resultado = turnoCreateSchema.safeParse({ ...datosValidos, titulo });
+  assert.equal(resultado.success, false);
+  return resultado.error.issues.map((issue) => issue.message);
+}
+
+test("acepta un titulo con tildes, ñ, comas y guiones", () => {
+  for (const titulo of ["Baño de gatos", "Paseo de perros, turno mañana", "Limpieza - patio norte", "ÑANDÚ"]) {
+    assert.equal(turnoCreateSchema.safeParse({ ...datosValidos, titulo }).success, true, titulo);
+  }
+});
+
+test("acepta un titulo de exactamente 120 caracteres", () => {
+  assert.equal(turnoCreateSchema.safeParse({ ...datosValidos, titulo: "a".repeat(120) }).success, true);
+});
+
+test("rechaza un titulo con numeros", () => {
+  assert.deepEqual(mensajesDelTitulo("Turno 2"), [MENSAJE_TITULO]);
+  assert.deepEqual(mensajesDelTitulo("123"), [MENSAJE_TITULO]);
+});
+
+test("rechaza un titulo con caracteres especiales", () => {
+  for (const titulo of ["Paseo!", "Baño @ refugio", "Limpieza.", "Turno #1", "Paseo_perros", "Feria (sábado)"]) {
+    assert.deepEqual(mensajesDelTitulo(titulo), [MENSAJE_TITULO], titulo);
+  }
+});
+
+test("el titulo debe empezar con una letra", () => {
+  assert.deepEqual(mensajesDelTitulo("- Paseo"), [MENSAJE_TITULO]);
+  assert.deepEqual(mensajesDelTitulo(", Paseo"), [MENSAJE_TITULO]);
+});
+
+test("un titulo vacio da un solo error, el de obligatorio", () => {
+  assert.deepEqual(mensajesDelTitulo(""), ["El título es obligatorio"]);
+  assert.deepEqual(mensajesDelTitulo("   "), ["El título es obligatorio"]);
 });
 
 test("rechaza una descripcion vacia o demasiado larga", () => {
