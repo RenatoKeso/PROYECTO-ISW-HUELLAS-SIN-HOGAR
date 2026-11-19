@@ -128,3 +128,18 @@ export function fechasTurnoInvalidas(detalle) {
     detalle,
   );
 }
+
+// El error que corresponde a cada motivo de evaluarDisponibilidad (reglasTurnos.js).
+// Lo usa la inscripcion para rechazar y el calendario para explicar el motivo.
+const ERROR_POR_MOTIVO = {
+  CANCELADO: turnoCancelado,
+  YA_COMENZO: turnoYaComenzado,
+  PLAZO_VENCIDO: plazoInscripcionVencido,
+  YA_INSCRITO: inscripcionDuplicada,
+  SIN_CUPOS: turnoSinCupos,
+  SOLAPE: horarioSolapado,
+};
+
+export function errorDeDisponibilidad(motivo) {
+  return ERROR_POR_MOTIVO[motivo]();
+}

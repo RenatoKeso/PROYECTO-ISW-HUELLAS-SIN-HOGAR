@@ -14,24 +14,16 @@ import {
 } from "../repositories/inscripcionRepository.js";
 import { buscarTurnoPorId } from "../repositories/turnoRepository.js";
 import {
-  horarioSolapado,
-  inscripcionDuplicada,
+  errorDeDisponibilidad,
   inscripcionInexistente,
   inscripcionNoActiva,
   mismoTurno,
-  plazoInscripcionVencido,
-  turnoCancelado,
   turnoInexistente,
   turnoSinCupos,
   turnoYaComenzado,
   voluntarioNoVinculado,
 } from "../entities/turnoErrors.js";
-import {
-  hayCupos,
-  plazoVencido,
-  turnoSolapadoCon,
-  turnoYaComenzo,
-} from "./reglasTurnos.js";
+import { evaluarDisponibilidad, turnoYaComenzo } from "./reglasTurnos.js";
 
 const DEPENDENCIAS_POR_DEFECTO = {
   enTransaccion: ejecutarEnTransaccion,
@@ -68,32 +60,16 @@ async function tomarCupoEnTurno(turnoId, voluntarioId, dependencias, ahora, tx, 
     throw turnoInexistente(turnoId);
   }
 
-  if (turno.estado === "CANCELADO") {
-    throw turnoCancelado();
-  }
-
-  if (turnoYaComenzo(turno, ahora)) {
-    throw turnoYaComenzado();
-  }
-
-  if (plazoVencido(turno, ahora)) {
-    throw plazoInscripcionVencido();
-  }
-
   const activas = (await dependencias.listarInscripcionesActivasDeVoluntario(voluntarioId, tx)).filter(
     (inscripcion) => inscripcion.id !== ignorarInscripcionId,
   );
 
-  if (activas.some((inscripcion) => inscripcion.turnoId === turno.id)) {
-    throw inscripcionDuplicada();
-  }
+  // Las mismas reglas que usa el calendario: si no esta disponible, se rechaza
+  // con el error de su motivo.
+  const evaluacion = evaluarDisponibilidad(turno, activas, ahora);
 
-  if (!hayCupos(turno)) {
-    throw turnoSinCupos();
-  }
-
-  if (turnoSolapadoCon(turno, activas.map((inscripcion) => inscripcion.turno))) {
-    throw horarioSolapado();
+  if (!evaluacion.disponible) {
+    throw errorDeDisponibilidad(evaluacion.motivo);
   }
 
   // Si otra persona tomo el ultimo cupo entre la lectura y este punto, no queda cupo.
