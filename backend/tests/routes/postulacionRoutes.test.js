@@ -16,10 +16,33 @@ const FORMULARIO_VALIDO = {
   fichaAnimalId: 1,
   nombrePostulante: "Ana Soto",
   rutPostulante: "12.345.678-5",
+  fechaNacimientoPostulante: "1995-04-10",
   telefonoPostulante: "9 1234 5678",
+  emailPostulante: "Ana.Soto@Correo.cl",
+  direccionPostulante: "Av. Libertad 123",
+  comunaPostulante: "Chillán",
   tipoVivienda: "CASA",
+  tenenciaVivienda: "PROPIA",
+  tienePatio: true,
+  personasHogar: 3,
+  hayNinos: false,
+  horasSoloAlDia: 4,
   disponibilidadTiempo: "Trabaja media jornada",
+  motivoAdopcion: "Queremos darle un hogar a un animal rescatado",
+  aceptaSeguimiento: true,
 };
+
+// Envia el formulario con algunos campos cambiados y devuelve los campos con error.
+async function camposConError(url, cambios) {
+  const respuesta = await enviar(`${url}/postulaciones`, {
+    method: "POST",
+    body: { ...FORMULARIO_VALIDO, ...cambios },
+  });
+  const cuerpo = await respuesta.json();
+
+  assert.equal(respuesta.status, 400);
+  return cuerpo.detalles.map((detalle) => detalle.campo);
+}
 
 // Autenticacion simulada: el token es el rol de la cuenta.
 function autenticarDePrueba(request, response, next) {
@@ -88,8 +111,69 @@ test("POST /postulaciones es publico y guarda el RUT y el telefono normalizados"
       assert.equal(respuesta.status, 201);
       assert.equal(recibido.rutPostulante, "12345678-5");
       assert.equal(recibido.telefonoPostulante, "912345678");
+      assert.equal(recibido.emailPostulante, "ana.soto@correo.cl");
+      assert.ok(recibido.fechaNacimientoPostulante instanceof Date);
     },
   );
+});
+
+test("POST /postulaciones rechaza un nombre con numeros, como Benj4", async () => {
+  await conServidor({}, async (url) => {
+    assert.deepEqual(await camposConError(url, { nombrePostulante: "Benj4 Soto" }), [
+      "nombrePostulante",
+    ]);
+    assert.deepEqual(await camposConError(url, { nombrePostulante: "Benjamin" }), [
+      "nombrePostulante",
+    ]);
+  });
+});
+
+test("POST /postulaciones rechaza un RUT con el digito verificador incorrecto", async () => {
+  await conServidor({}, async (url) => {
+    assert.deepEqual(await camposConError(url, { rutPostulante: "12.345.678-9" }), [
+      "rutPostulante",
+    ]);
+  });
+});
+
+test("POST /postulaciones exige el correo", async () => {
+  await conServidor({}, async (url) => {
+    const sinCorreo = { ...FORMULARIO_VALIDO };
+    delete sinCorreo.emailPostulante;
+
+    const respuesta = await enviar(`${url}/postulaciones`, { method: "POST", body: sinCorreo });
+    const cuerpo = await respuesta.json();
+
+    assert.equal(respuesta.status, 400);
+    assert.deepEqual(cuerpo.detalles.map((detalle) => detalle.campo), ["emailPostulante"]);
+  });
+});
+
+test("POST /postulaciones rechaza a un menor de 18 años", async () => {
+  await conServidor({}, async (url) => {
+    const haceDiezAnios = `${new Date().getFullYear() - 10}-01-01`;
+
+    assert.deepEqual(
+      await camposConError(url, { fechaNacimientoPostulante: haceDiezAnios }),
+      ["fechaNacimientoPostulante"],
+    );
+  });
+});
+
+test("POST /postulaciones exige el permiso del arriendo solo si la vivienda es arrendada", async () => {
+  await conServidor({}, async (url) => {
+    assert.deepEqual(await camposConError(url, { tenenciaVivienda: "ARRENDADA" }), [
+      "permiteMascotasArriendo",
+    ]);
+  });
+});
+
+test("POST /postulaciones exige aceptar los seguimientos", async () => {
+  await conServidor({}, async (url) => {
+    assert.deepEqual(await camposConError(url, { aceptaSeguimiento: false }), [
+      "aceptaSeguimiento",
+    ]);
+  });
 });
 
 test("POST /postulaciones responde 400 si faltan datos obligatorios", async () => {
@@ -188,6 +272,20 @@ test("PATCH /postulaciones/:id/resolucion pasa la decision y el usuario al servi
       assert.equal(llamada.usuario.rol, "ENCARGADA_ADOPCIONES");
     },
   );
+});
+
+test("PATCH /postulaciones/:id/resolucion exige un motivo de rechazo de al menos 10 caracteres", async () => {
+  await conServidor({}, async (url) => {
+    const respuesta = await enviar(`${url}/postulaciones/7/resolucion`, {
+      method: "PATCH",
+      rol: "DIRECTORA",
+      body: { decision: "RECHAZADA", observaciones: "no" },
+    });
+    const cuerpo = await respuesta.json();
+
+    assert.equal(respuesta.status, 400);
+    assert.equal(cuerpo.detalles[0].campo, "observaciones");
+  });
 });
 
 test("PATCH /postulaciones/:id/resolucion solo acepta APROBADA o RECHAZADA", async () => {

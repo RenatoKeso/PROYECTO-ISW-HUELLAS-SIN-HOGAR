@@ -33,3 +33,11 @@ export function receptorInvalido() {
     400,
   );
 }
+
+export function reporteNoEncontrado(id) {
+  return new DevolucionError(
+    "REPORTE_INEXISTENTE",
+    'No existe el reporte con ese id ${id}',
+    404,
+  );
+}

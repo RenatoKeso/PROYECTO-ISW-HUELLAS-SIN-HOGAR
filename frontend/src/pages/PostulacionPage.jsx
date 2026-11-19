@@ -8,22 +8,38 @@ import {
   listarAnimalesEnAdopcion,
 } from "../services/adopcionesService.js";
 import {
+  OPCIONES_SI_NO,
+  OPCIONES_TENENCIA,
   OPCIONES_VIVIENDA,
   postulacionFormSchema,
 } from "../validations/postulacionValidation.js";
+import { hoyLocal } from "../utils/formatoAdopcion.js";
 import { urlImagen } from "../utils/urlImagen.js";
 import "../styles/postulaciones.css";
 
 const DIBUJOS = { PERRO: "🐶", GATO: "🐱", OTRO: "🐾" };
 
+// Todos parten vacios ("") porque asi los entregan los inputs. La casilla de
+// los seguimientos es la excepcion: parte en false (sin marcar).
 const POSTULACION_INICIAL = {
   nombrePostulante: "",
   rutPostulante: "",
+  fechaNacimientoPostulante: "",
   telefonoPostulante: "",
   emailPostulante: "",
+  direccionPostulante: "",
+  comunaPostulante: "",
   tipoVivienda: "",
+  tenenciaVivienda: "",
+  permiteMascotasArriendo: "",
+  tienePatio: "",
+  personasHogar: "",
+  hayNinos: "",
   otrasMascotas: "",
+  horasSoloAlDia: "",
   disponibilidadTiempo: "",
+  motivoAdopcion: "",
+  aceptaSeguimiento: false,
 };
 
 // Formulario publico: la persona interesada postula a un animal del catalogo.
@@ -111,7 +127,11 @@ function PostulacionPage() {
         </div>
       </div>
 
-      <form className="formulario" onSubmit={formulario.enviarFormulario} noValidate>
+      <form
+        className="formulario formulario-postulacion"
+        onSubmit={formulario.enviarFormulario}
+        noValidate
+      >
         <h2>Tus datos</h2>
 
         <div className="formulario-campos">
@@ -121,6 +141,7 @@ function PostulacionPage() {
             valor={valores.nombrePostulante}
             error={errores.nombrePostulante}
             maxLength={255}
+            placeholder="Nombre y apellido"
             onChange={(evento) => cambiar("nombrePostulante", evento.target.value)}
           />
 
@@ -131,6 +152,16 @@ function PostulacionPage() {
             error={errores.rutPostulante}
             placeholder="12345678-9"
             onChange={(evento) => cambiar("rutPostulante", evento.target.value)}
+          />
+
+          <Campo
+            etiqueta="Fecha de nacimiento"
+            nombre="fechaNacimientoPostulante"
+            type="date"
+            max={hoyLocal()}
+            valor={valores.fechaNacimientoPostulante}
+            error={errores.fechaNacimientoPostulante}
+            onChange={(evento) => cambiar("fechaNacimientoPostulante", evento.target.value)}
           />
 
           <Campo
@@ -149,10 +180,34 @@ function PostulacionPage() {
             type="email"
             valor={valores.emailPostulante}
             error={errores.emailPostulante}
-            placeholder="Opcional"
+            placeholder="nombre@correo.cl"
             onChange={(evento) => cambiar("emailPostulante", evento.target.value)}
           />
 
+          <Campo
+            etiqueta="Dirección"
+            nombre="direccionPostulante"
+            valor={valores.direccionPostulante}
+            error={errores.direccionPostulante}
+            maxLength={255}
+            placeholder="Calle, número, depto."
+            onChange={(evento) => cambiar("direccionPostulante", evento.target.value)}
+          />
+
+          <Campo
+            etiqueta="Comuna"
+            nombre="comunaPostulante"
+            valor={valores.comunaPostulante}
+            error={errores.comunaPostulante}
+            maxLength={255}
+            placeholder="Ej: Chillán"
+            onChange={(evento) => cambiar("comunaPostulante", evento.target.value)}
+          />
+        </div>
+
+        <h2>Tu hogar</h2>
+
+        <div className="formulario-campos">
           <Campo
             etiqueta="Tipo de vivienda"
             nombre="tipoVivienda"
@@ -164,6 +219,60 @@ function PostulacionPage() {
           />
 
           <Campo
+            etiqueta="La vivienda es"
+            nombre="tenenciaVivienda"
+            control="select"
+            opciones={OPCIONES_TENENCIA}
+            valor={valores.tenenciaVivienda}
+            error={errores.tenenciaVivienda}
+            onChange={(evento) => cambiar("tenenciaVivienda", evento.target.value)}
+          />
+
+          {/* Solo se pregunta si arrienda. */}
+          {valores.tenenciaVivienda === "ARRENDADA" && (
+            <Campo
+              etiqueta="¿El arriendo permite mascotas?"
+              nombre="permiteMascotasArriendo"
+              control="select"
+              opciones={OPCIONES_SI_NO}
+              valor={valores.permiteMascotasArriendo}
+              error={errores.permiteMascotasArriendo}
+              onChange={(evento) => cambiar("permiteMascotasArriendo", evento.target.value)}
+            />
+          )}
+
+          <Campo
+            etiqueta="¿Tiene patio?"
+            nombre="tienePatio"
+            control="select"
+            opciones={OPCIONES_SI_NO}
+            valor={valores.tienePatio}
+            error={errores.tienePatio}
+            onChange={(evento) => cambiar("tienePatio", evento.target.value)}
+          />
+
+          <Campo
+            etiqueta="Personas en el hogar"
+            nombre="personasHogar"
+            type="number"
+            min={1}
+            max={20}
+            valor={valores.personasHogar}
+            error={errores.personasHogar}
+            onChange={(evento) => cambiar("personasHogar", evento.target.value)}
+          />
+
+          <Campo
+            etiqueta="¿Hay niños en el hogar?"
+            nombre="hayNinos"
+            control="select"
+            opciones={OPCIONES_SI_NO}
+            valor={valores.hayNinos}
+            error={errores.hayNinos}
+            onChange={(evento) => cambiar("hayNinos", evento.target.value)}
+          />
+
+          <Campo
             etiqueta="Otras mascotas"
             nombre="otrasMascotas"
             valor={valores.otrasMascotas}
@@ -171,6 +280,21 @@ function PostulacionPage() {
             maxLength={255}
             placeholder="Opcional. Ej: un gato de 3 años"
             onChange={(evento) => cambiar("otrasMascotas", evento.target.value)}
+          />
+        </div>
+
+        <h2>Tiempo y compromiso</h2>
+
+        <div className="formulario-campos">
+          <Campo
+            etiqueta="Horas al día que estaría solo"
+            nombre="horasSoloAlDia"
+            type="number"
+            min={0}
+            max={24}
+            valor={valores.horasSoloAlDia}
+            error={errores.horasSoloAlDia}
+            onChange={(evento) => cambiar("horasSoloAlDia", evento.target.value)}
           />
 
           <Campo
@@ -184,6 +308,35 @@ function PostulacionPage() {
             placeholder="¿Cuánto tiempo al día podrías dedicarle? ¿Trabajas fuera de casa?"
             onChange={(evento) => cambiar("disponibilidadTiempo", evento.target.value)}
           />
+
+          <Campo
+            etiqueta="¿Por qué quieres adoptar?"
+            nombre="motivoAdopcion"
+            control="textarea"
+            ancho
+            valor={valores.motivoAdopcion}
+            error={errores.motivoAdopcion}
+            maxLength={1000}
+            placeholder="Cuéntanos por qué quieres adoptar y cómo sería su vida contigo."
+            onChange={(evento) => cambiar("motivoAdopcion", evento.target.value)}
+          />
+
+          {/* Campo.jsx no maneja casillas (usa value y no checked), por eso va aparte. */}
+          <div className="campo campo-ancho">
+            <label className="campo-check">
+              <input
+                type="checkbox"
+                name="aceptaSeguimiento"
+                checked={valores.aceptaSeguimiento}
+                aria-invalid={Boolean(errores.aceptaSeguimiento)}
+                onChange={(evento) => cambiar("aceptaSeguimiento", evento.target.checked)}
+              />
+              Acepto que el refugio haga seguimientos a los 15 y 30 días de la adopción.
+            </label>
+            {errores.aceptaSeguimiento && (
+              <span className="campo-error">{errores.aceptaSeguimiento}</span>
+            )}
+          </div>
         </div>
 
         <button type="submit" className="boton">Enviar postulación</button>

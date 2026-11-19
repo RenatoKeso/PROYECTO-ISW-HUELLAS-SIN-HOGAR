@@ -143,6 +143,8 @@ img.postulacion-animal-dibujo {
 
 .dato dd {
     margin: 0;
+    /* Un texto largo sin espacios no se sale de la tarjeta. */
+    overflow-wrap: anywhere;
 }
 
 .acciones-resolucion {
@@ -317,4 +319,33 @@ img.postulacion-animal-dibujo {
 .seguimiento-REALIZADO {
     background: #d5e6d8;
     color: var(--verde);
+}
+
+/* ---------- FORMULARIO PUBLICO: SECCIONES Y CASILLA ---------- */
+
+/* Separa "Tus datos", "Tu hogar" y "Tiempo y compromiso". */
+.formulario-postulacion .formulario-campos+h2 {
+    margin-top: 1.75rem;
+}
+
+/* ".campo .campo-check" le gana a ".campo label" de index.css. */
+.campo .campo-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 0.95rem;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--texto);
+}
+
+.campo .campo-check input {
+    flex-shrink: 0;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0.15rem 0 0;
+    padding: 0;
+    accent-color: var(--verde);
 }
