@@ -30,5 +30,6 @@ export const devolucionSchema = z.strictObject({
     .string({ message: "El detalle es obligatorio" })
     .trim()
     .min(1, "El detalle es obligatorio")
+    .min(10, "El detalle debe tener al menos 10 caracteres")
     .max(1000, "El detalle puede tener máximo 1000 caracteres"),
 });

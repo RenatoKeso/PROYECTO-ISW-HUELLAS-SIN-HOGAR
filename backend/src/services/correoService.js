@@ -63,3 +63,20 @@ export async function enviarCorreoRevision(postulacion) {
     });
   }
 }
+export async function enviarCodigoVerificacion(email, codigo) {
+return enviarCorreo({
+ para: email,
+  asunto: `Tu código de verificación es ${codigo}`,
+    html: `
+   <div style="font-family: Arial, sans-serif; max-width: 520px; margin: auto;">
+      <div style="background: #56643f; color: white; padding: 20px; border-radius: 12px 12px 0 0;">
+         <h2 style="margin: 0;">Confirma tu correo 🐾</h2>
+       </div>
+        <div style="background: #f7f3ea; padding: 20px; border-radius: 0 0 12px 12px;">
+        <p>Para terminar tu postulación de voluntariado, escribe este código en el formulario:</p>
+         <p style="font-size: 32px; font-weight: bold; letter-spacing: 8px; text-align: center; color: #56643f;">${codigo}</p>
+         <p>El código dura 10 minutos. Si no pediste este código, ignora este correo.</p>
+      </div>
+    </div>`,
+  });
+}

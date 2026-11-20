@@ -70,3 +70,19 @@ export function curriculumNoEncontrado() {
     404,
   );
 }
+
+export function correoNoExiste() {
+  return new PostulacionVoluntarioError(
+    "CORREO_NO_EXISTE",
+    "El correo no existe. Revisa que esté bien escrito (por ejemplo: gmail.com)",
+    400,
+  );
+}
+
+export function codigoInvalido() {
+  return new PostulacionVoluntarioError(
+    "CODIGO_INVALIDO",
+    "El código no es correcto o ya expiró. Pide uno nuevo",
+    400,
+  );
+}

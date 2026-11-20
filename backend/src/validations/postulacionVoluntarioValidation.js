@@ -25,6 +25,7 @@ export const ESTADO_POSTULACION_VOLUNTARIO_VALUES = ["EN_REVISION", "ACEPTADA", 
 
 export const DECISION_POSTULACION_VOLUNTARIO_VALUES = ["ACEPTADA", "RECHAZADA"];
 
+export const SOLO_LETRAS = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü' -]+$/;
 
 export const postulacionVoluntarioSchema = z
   .strictObject({
@@ -32,7 +33,9 @@ export const postulacionVoluntarioSchema = z
       .string({ message: "El nombre es obligatorio" })
       .trim()
       .min(1, "El nombre es obligatorio")
-      .max(255, "El nombre puede tener máximo 255 caracteres"),
+      .min(3, "El nombre debe tener al menos 3 letras")
+      .max(255, "El nombre puede tener máximo 255 caracteres")
+      .regex(SOLO_LETRAS, "El nombre solo puede tener letras"),
     email: z
       .email("El correo no es válido")
       .max(255, "El correo puede tener máximo 255 caracteres")
@@ -47,6 +50,7 @@ export const postulacionVoluntarioSchema = z
       .string({ message: "Cuéntanos por qué quieres ser voluntario" })
       .trim()
       .min(1, "Cuéntanos por qué quieres ser voluntario")
+      .min(20, "Cuéntanos un poco más (mínimo 20 caracteres)")
       .max(1000, "La motivación puede tener máximo 1000 caracteres"),
     habilidades: z
       .array(z.enum(HABILIDAD_VOLUNTARIO_VALUES, { message: "Elige habilidades de la lista" }), {
@@ -58,7 +62,11 @@ export const postulacionVoluntarioSchema = z
       .trim()
       .min(1, "Escribe cuál es tu otra habilidad")
       .max(255, "La otra habilidad puede tener máximo 255 caracteres")
+      .regex(SOLO_LETRAS, "La otra habilidad solo puede tener letras")
       .optional(),
+    codigo: z
+      .string({ message: "Escribe el código que te llegó al correo" })
+      .regex(/^\d{6}$/, "El código debe tener 6 números"),
     curriculumNombre: z
       .string()
       .trim()
@@ -80,6 +88,13 @@ export const postulacionVoluntarioSchema = z
     path: ["curriculumBase64"],
   });
 
+ export const pedirCodigoSchema = z.strictObject({
+  email: z
+   .email("El correo no es válido")
+   .max(255, "El correo puede tener máximo 255 caracteres")
+    .transform((valor) => valor.toLowerCase()),
+});
+
 export const listarPostulacionesVoluntarioQuerySchema = z.strictObject({
   estado: z
     .enum(ESTADO_POSTULACION_VOLUNTARIO_VALUES, { message: "El estado indicado no es válido" })
@@ -96,6 +111,7 @@ export const revisarPostulacionVoluntarioSchema = z
       .string()
       .trim()
       .min(1, "Escribe el motivo del rechazo")
+      .min(10, "El motivo debe tener al menos 10 caracteres")
       .max(1000, "El motivo puede tener máximo 1000 caracteres")
       .optional(),
   })
