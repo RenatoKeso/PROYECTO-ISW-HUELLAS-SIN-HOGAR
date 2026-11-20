@@ -349,3 +349,9 @@ img.postulacion-animal-dibujo {
     padding: 0;
     accent-color: var(--verde);
 }
+
+/* ---------- ACTA DE ENTREGA (PDF) ---------- */
+
+.acta-entrega {
+    margin: 1rem 0 0.5rem;
+}

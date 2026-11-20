@@ -1,6 +1,7 @@
 import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
 import {
   formalizarEntrega,
+  obtenerActaEntrega,
   obtenerCatalogo,
   obtenerDetallePostulacion,
   obtenerPostulaciones,
@@ -23,6 +24,7 @@ export function crearAdopcionController({
   omitirVisitaHogarAdopcion = omitirVisitaHogar,
   formalizarEntregaAdopcion = formalizarEntrega,
   realizarSeguimientoAdopcion = realizarSeguimiento,
+  obtenerActa = obtenerActaEntrega,
 } = {}) {
   return {
     async listarAnimales(request, response) {
@@ -115,6 +117,15 @@ export function crearAdopcionController({
         mensaje: "Entrega registrada: el animal quedo adoptado",
         datos: resultado,
       });
+    },
+
+    // Responde el PDF como archivo para descargar (igual que el reporte de devoluciones).
+    async descargarActaEntrega(request, response) {
+      const { pdf, nombreArchivo } = await obtenerActa(request.params.id);
+
+      response.setHeader("Content-Type", "application/pdf");
+      response.setHeader("Content-Disposition", `attachment; filename="${nombreArchivo}"`);
+      return response.send(pdf);
     },
 
     async realizarSeguimiento(request, response) {
