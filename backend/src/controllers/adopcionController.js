@@ -11,8 +11,17 @@ import {
   registrarVisita,
   resolverPostulacion,
 } from "../services/adopcionService.js";
+import { enviarCorreoAprobacion } from "../services/correoAdopcionService.js";
 
 const MENSAJE_CATALOGO = "Animales en adopcion obtenidos correctamente";
+
+// El correo se envia sin esperarlo: si Gmail falla, la decision ya quedo
+// guardada y solo se deja el error en la consola.
+function avisarSinEsperar(avisar, postulacion) {
+  Promise.resolve()
+    .then(() => avisar(postulacion))
+    .catch((error) => console.error("No se pudo enviar el correo de aprobacion:", error.message));
+}
 
 export function crearAdopcionController({
   obtenerCatalogoAdopcion = obtenerCatalogo,
@@ -25,6 +34,7 @@ export function crearAdopcionController({
   formalizarEntregaAdopcion = formalizarEntrega,
   realizarSeguimientoAdopcion = realizarSeguimiento,
   obtenerActa = obtenerActaEntrega,
+  avisarAprobacion = enviarCorreoAprobacion,
 } = {}) {
   return {
     async listarAnimales(request, response) {
@@ -70,6 +80,8 @@ export function crearAdopcionController({
         request.body,
         request.usuario,
       );
+
+      if (postulacion.estado === "APROBADA") avisarSinEsperar(avisarAprobacion, postulacion);
 
       return enviarRespuestaExitosa(response, {
         mensaje:

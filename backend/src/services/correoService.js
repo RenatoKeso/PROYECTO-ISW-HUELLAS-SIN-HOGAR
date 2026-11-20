@@ -10,7 +10,7 @@ const transporte = hayCorreoConfigurado
     })
   : null;
 
-async function enviarCorreo({ para, asunto, html }) {
+export async function enviarCorreo({ para, asunto, html }) {
   if (!transporte) {
     console.log(`[correo sin configurar] Para: ${para} | Asunto: ${asunto}`);
     return;

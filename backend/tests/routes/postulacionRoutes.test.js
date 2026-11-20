@@ -274,6 +274,55 @@ test("PATCH /postulaciones/:id/resolucion pasa la decision y el usuario al servi
   );
 });
 
+test("PATCH /postulaciones/:id/resolucion avisa por correo al aprobar, no al rechazar", async () => {
+  const avisadas = [];
+
+  await conServidor(
+    {
+      resolverPostulacionAdopcion: async (id, cuerpo) => ({ id, estado: cuerpo.decision }),
+      avisarAprobacion: async (postulacion) => avisadas.push(postulacion),
+    },
+    async (url) => {
+      await enviar(`${url}/postulaciones/7/resolucion`, {
+        method: "PATCH",
+        rol: "DIRECTORA",
+        body: { decision: "APROBADA" },
+      });
+      await enviar(`${url}/postulaciones/8/resolucion`, {
+        method: "PATCH",
+        rol: "DIRECTORA",
+        body: { decision: "RECHAZADA", observaciones: "El arriendo no permite mascotas" },
+      });
+    },
+  );
+
+  assert.deepEqual(avisadas, [{ id: 7, estado: "APROBADA" }]);
+});
+
+test("PATCH /postulaciones/:id/resolucion aprueba igual si el correo falla", async (t) => {
+  const errores = t.mock.method(console, "error", () => {});
+
+  await conServidor(
+    {
+      resolverPostulacionAdopcion: async (id, cuerpo) => ({ id, estado: cuerpo.decision }),
+      avisarAprobacion: async () => {
+        throw new Error("Gmail no responde");
+      },
+    },
+    async (url) => {
+      const respuesta = await enviar(`${url}/postulaciones/7/resolucion`, {
+        method: "PATCH",
+        rol: "DIRECTORA",
+        body: { decision: "APROBADA" },
+      });
+
+      assert.equal(respuesta.status, 200);
+    },
+  );
+
+  assert.equal(errores.mock.callCount(), 1);
+});
+
 test("PATCH /postulaciones/:id/resolucion exige un motivo de rechazo de al menos 10 caracteres", async () => {
   await conServidor({}, async (url) => {
     const respuesta = await enviar(`${url}/postulaciones/7/resolucion`, {
