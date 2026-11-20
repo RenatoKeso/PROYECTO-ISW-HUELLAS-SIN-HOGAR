@@ -21,7 +21,12 @@ import {
   voluntarioConActividad,
   curriculumNoEsPdf,
   curriculumNoEncontrado,
+  correoNoExiste,
+  codigoInvalido,
 } from "../entities/postulacionVoluntarioErrors.js";
+import { dominioRecibeCorreos } from "./correoExiste.js";
+import { crearCodigo, codigoEsValido, borrarCodigo } from "./codigoCorreoService.js";
+import { enviarCodigoVerificacion } from "./correoService.js";
 
 const DEPENDENCIAS_POR_DEFECTO = {
   buscarVoluntarioPorEmail,
@@ -34,11 +39,30 @@ const DEPENDENCIAS_POR_DEFECTO = {
   volverARevision,
   eliminarVoluntario,
   ejecutarEnTransaccion,
+  dominioRecibeCorreos,
+  codigoEsValido,
+  borrarCodigo,
 };
 
+export async function enviarCodigoPostulacion(email) {
+  if (!(await dominioRecibeCorreos(email))) throw correoNoExiste();
+
+  const codigo = crearCodigo(email);
+  await enviarCodigoVerificacion(email, codigo);
+}
+
 export async function postularComoVoluntario(datos, dependencias = DEPENDENCIAS_POR_DEFECTO) {
-  const { buscarVoluntarioPorEmail, buscarPostulacionVigente, crearPostulacionVoluntario } =
-    dependencias;
+ const {
+    buscarVoluntarioPorEmail,
+    buscarPostulacionVigente,
+    crearPostulacionVoluntario,
+    dominioRecibeCorreos,
+    codigoEsValido,
+    borrarCodigo,
+  } = dependencias;
+
+  if (!(await dominioRecibeCorreos(datos.email))) throw correoNoExiste();
+  if (!codigoEsValido(datos.email, datos.codigo)) throw codigoInvalido();
 
   const voluntario = await buscarVoluntarioPorEmail(datos.email);
 
@@ -51,15 +75,17 @@ export async function postularComoVoluntario(datos, dependencias = DEPENDENCIAS_
 
   const otraHabilidad = datos.habilidades.includes("OTRA") ? datos.otraHabilidad : null;
 
-  const { curriculumBase64, ...resto } = datos;
+  const { curriculumBase64, codigo, ...resto } = datos;
   let curriculum = null;
 
   if (curriculumBase64) {
     curriculum = Buffer.from(curriculumBase64, "base64");
     if (curriculum.subarray(0, 4).toString() !== "%PDF") throw curriculumNoEsPdf();
   }
-
-  return crearPostulacionVoluntario({ ...resto, otraHabilidad, curriculum });
+  const postulacion = await crearPostulacionVoluntario({ ...resto, otraHabilidad, curriculum });
+  borrarCodigo(datos.email);
+ 
+  return postulacion;
 }
 
 export async function obtenerPostulacionesVoluntario(estado) {

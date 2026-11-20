@@ -610,3 +610,47 @@
   background: var(--verde);
   color: white;
 }
+/* ===== Código de verificación del correo ===== */
+.codigo-correo {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.codigo-correo .campo {
+  width: 220px;
+}
+
+.boton-codigo {
+  align-self: flex-end;
+}
+
+.campos-voluntario {
+  grid-template-columns: repeat(3, 1fr);
+  row-gap: 0.8rem;
+}
+
+.campos-voluntario .codigo-correo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.campos-voluntario .codigo-correo .campo {
+  width: 260px;
+}
+
+.campos-voluntario .boton-codigo {
+  width: auto;
+  padding: 0.7rem 1.4rem;
+}
+
+@media (max-width: 700px) {
+  .campos-voluntario,
+  .campos-voluntario .codigo-correo {
+    grid-template-columns: 1fr;
+  }
+}

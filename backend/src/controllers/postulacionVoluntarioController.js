@@ -6,7 +6,16 @@ import {
   revisarPostulacionVoluntario,
   deshacerRevisionPostulacionVoluntario,
   obtenerCurriculum,
+  enviarCodigoPostulacion,
 } from "../services/postulacionVoluntarioService.js";
+
+export async function pedirCodigo(request, response) {
+  await enviarCodigoPostulacion(request.body.email);
+
+  return enviarRespuestaExitosa(response, {
+    mensaje: "Te enviamos un código a tu correo",
+  });
+}
 
 export async function postular(request, response) {
   const postulacion = await postularComoVoluntario(request.body);

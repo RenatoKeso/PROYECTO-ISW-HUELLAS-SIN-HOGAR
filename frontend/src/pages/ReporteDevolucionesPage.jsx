@@ -153,6 +153,9 @@ function ReporteDevolucionesPage({ usuario }) {
     const faltan = {};
     if (!registro.postulacionId) faltan.postulacionId = "Elige el animal que se devuelve";
     if (!registro.receptorId) faltan.receptorId = "Elige quién recibe al animal";
+    if (registro.detalle.trim().length < 10) {
+     faltan.detalle = "El detalle debe tener al menos 10 caracteres";
+    }
     if (registro.fechaDevolucion && registro.fechaDevolucion > hoyLocal()) {
       faltan.fechaDevolucion = "La fecha no puede ser futura";
     } else if (
@@ -450,6 +453,7 @@ function ReporteDevolucionesPage({ usuario }) {
                     valor={valores.fechaDesde}
                     error={errores.fechaDesde}
                     onChange={(e) => cambiar("fechaDesde", e.target.value)}
+                    max={hoyLocal()}                  
                   />
                   <Campo
                     etiqueta="Hasta"
@@ -458,6 +462,7 @@ function ReporteDevolucionesPage({ usuario }) {
                     valor={valores.fechaHasta}
                     error={errores.fechaHasta}
                     onChange={(e) => cambiar("fechaHasta", e.target.value)}
+                    max={hoyLocal()}
                   />
                 </div>
 

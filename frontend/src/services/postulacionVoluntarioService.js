@@ -1,5 +1,9 @@
 import { api, obtenerToken } from "./api.js";
 
+export function pedirCodigoVoluntario(email) {
+  return api.post("/postulaciones-voluntario/codigo", { email }, { sinSesion: true });
+}
+
 export function enviarPostulacionVoluntario(datos) {
   return api.post("/postulaciones-voluntario", datos, { sinSesion: true });
 }

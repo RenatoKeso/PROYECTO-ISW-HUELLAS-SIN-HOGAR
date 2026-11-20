@@ -49,6 +49,10 @@ function TarjetaPostulacion({ postulacion, alRevisar, alDeshacer }) {
       setError("Para rechazar tienes que escribir el motivo");
       return;
     }
+    if (decision === "RECHAZADA" && motivo.trim().length < 10) {
+      setError("El motivo debe tener al menos 10 caracteres");
+      return;
+    }
 
     setGuardando(true);
     setError("");
