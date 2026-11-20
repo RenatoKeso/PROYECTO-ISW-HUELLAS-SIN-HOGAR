@@ -1,0 +1,148 @@
+.donaciones {
+  max-width: 65rem;
+  margin-inline: auto;
+}
+
+.donaciones .formulario::after {
+  display: none;
+}
+
+.donaciones fieldset {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0 0 1.5rem;
+}
+
+.donaciones legend {
+  color: var(--verde);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.donaciones label {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.donaciones input,
+.donaciones select,
+.donaciones textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  padding: 0.65rem;
+  border: 1px solid var(--borde);
+  border-radius: 0.6rem;
+  background: var(--crema-claro);
+  color: var(--texto);
+}
+
+.donacion-campos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 1.2rem;
+}
+
+.donaciones .donacion-check,
+.donacion-animales label {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.donacion-check input,
+.donacion-animales input {
+  width: auto;
+}
+
+.donacion-animales {
+  list-style: none;
+  padding: 0;
+}
+
+.donacion-animales li {
+  border-bottom: 1px solid var(--borde);
+  padding: 0.35rem;
+}
+
+.donacion-animales small,
+.donacion-tabla small {
+  display: block;
+  color: var(--texto-suave);
+}
+
+.donacion-buscador {
+  margin-top: 0.75rem;
+}
+
+.donacion-paginas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  align-items: center;
+  margin-block: 0.75rem;
+}
+
+.donaciones button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.donacion-paginas button,
+.donacion-tabla button {
+  font: inherit;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--borde);
+  border-radius: 0.5rem;
+  color: var(--verde);
+  background: var(--blanco-calido);
+  cursor: pointer;
+}
+
+.donacion-total strong {
+  display: block;
+  font-size: 2rem;
+  color: var(--verde);
+}
+
+.donacion-folio {
+  overflow-wrap: anywhere;
+}
+
+.donacion-tabla {
+  overflow-x: auto;
+}
+
+.donacion-tabla table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.donacion-tabla th,
+.donacion-tabla td {
+  padding: 0.7rem;
+  text-align: left;
+  border-bottom: 1px solid var(--borde);
+}
+
+.inicio-donaciones {
+  grid-column: 1 / -1;
+  background: var(--blanco-calido);
+  border: 1px solid var(--borde);
+  border-radius: 22px;
+  padding: 1.6rem 2rem;
+}
+
+.inicio-donaciones h2 {
+  margin-top: 0;
+}
+
+@media (max-width: 650px) {
+  .donacion-campos {
+    grid-template-columns: 1fr;
+  }
+}

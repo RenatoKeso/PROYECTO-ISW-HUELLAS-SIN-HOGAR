@@ -14,7 +14,11 @@ import PostulacionesVoluntarioPage from "./pages/PostulacionesVoluntarioPage.jsx
 import RegistroMedicoPage from "./pages/RegistroMedicoPage.jsx";
 import TurnosPage from "./pages/TurnosPage.jsx";
 import useSesion from "./hooks/useSesion.js";
-import { puedeGestionarFichas, puedeConsultarAlertas, puedeConsultarReportesDevolucion, puedeRegistrarDevoluciones, puedeGestionarAdopciones, puedeRevisarPostulacionesVoluntario, puedeConsultarRegistroMedico, puedeConsultarTurnos, NOMBRES_ROL, } from "./utils/permisosUsuario.js";
+import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeGestionarAdopciones,puedeRevisarPostulacionesVoluntario,puedeConsultarRegistroMedico,puedeConsultarTurnos,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
+import DonacionesPage from "./pages/DonacionesPage.jsx";
+import GestionDonacionesPage from "./pages/GestionDonacionesPage.jsx";
+import { puedeGestionarDonaciones } from "./utils/permisosUsuario.js";
+
 
 const TITULOS_POR_RUTA = {
   "/": "Inicio",
@@ -30,6 +34,8 @@ const TITULOS_POR_RUTA = {
   "/postulaciones": "Postulaciones de adopción",
   "/postulaciones/:id": "Detalle de postulación",
   "/reportes/devoluciones": "Devoluciones",
+  "/donaciones": "Donar",
+  "/donaciones/gestion": "Administrar donaciones",
 };
 function App() {
   const { pathname } = useLocation();
@@ -154,6 +160,12 @@ function App() {
                 <NavLink to="/postulaciones">📋 Postulaciones</NavLink>
               )}
 
+              {puedeGestionarDonaciones(usuario) && (
+                <NavLink to="/donaciones/gestion">
+                  Donaciones
+                </NavLink>
+              )}
+
               {puedeRevisarPostulacionesVoluntario(usuario) && (
                 <NavLink to="/voluntariado/postulaciones">🙋 Postulaciones Voluntario</NavLink>
               )}
@@ -178,6 +190,19 @@ function App() {
           <main className={esLogin ? "contenido contenido-login" : "contenido"}>
             <Routes>
               <Route path="/" element={<HomePage />} />
+              
+                <Route
+                path="/donaciones"
+                element={<DonacionesPage />}
+              />
+
+              <Route
+                path="/donaciones/gestion"
+                element={proteger(
+                  <GestionDonacionesPage />,
+                  puedeGestionarDonaciones
+                )}
+              />
 
               <Route
                 path="/login"
