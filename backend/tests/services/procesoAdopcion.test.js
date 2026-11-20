@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
-  publicarAnimal,
   registrarVisita,
   omitirVisitaHogar,
   formalizarEntrega,
@@ -36,51 +35,6 @@ function postulacionAprobada(cambios = {}) {
     ...cambios,
   };
 }
-
-// ---------- publicarAnimal ----------
-
-test("publicarAnimal publica un animal activo y adoptable", async () => {
-  let publicado;
-
-  const animal = await publicarAnimal(3, {
-    buscarAnimalParaPublicar: async () => ({ id: 3, estadoEstadia: "ACTIVO", estadoAdopcion: "ADOPTABLE" }),
-    publicarAnimalAdoptable: async (id) => {
-      publicado = id;
-      return 1;
-    },
-  });
-
-  assert.equal(publicado, 3);
-  assert.equal(animal.estadoEstadia, "ESPERA_ADOPCION");
-});
-
-test("publicarAnimal rechaza un animal que la veterinaria no marco como adoptable", async () => {
-  await assert.rejects(
-    publicarAnimal(3, {
-      buscarAnimalParaPublicar: async () => ({ id: 3, estadoEstadia: "ACTIVO", estadoAdopcion: null }),
-    }),
-    conCodigo(CODIGO_ERROR_ADOPCION.ANIMAL_NO_PUBLICABLE),
-  );
-});
-
-test("publicarAnimal rechaza un animal ya publicado o adoptado", async () => {
-  for (const estadoEstadia of ["ESPERA_ADOPCION", "ADOPTADO"]) {
-    await assert.rejects(
-      publicarAnimal(3, {
-        buscarAnimalParaPublicar: async () => ({ id: 3, estadoEstadia, estadoAdopcion: "ADOPTABLE" }),
-      }),
-      conCodigo(CODIGO_ERROR_ADOPCION.ANIMAL_NO_PUBLICABLE),
-      estadoEstadia,
-    );
-  }
-});
-
-test("publicarAnimal responde ANIMAL_INEXISTENTE si no existe", async () => {
-  await assert.rejects(
-    publicarAnimal(99, { buscarAnimalParaPublicar: async () => null }),
-    conCodigo(CODIGO_ERROR_ADOPCION.ANIMAL_INEXISTENTE),
-  );
-});
 
 // ---------- registrarVisita ----------
 

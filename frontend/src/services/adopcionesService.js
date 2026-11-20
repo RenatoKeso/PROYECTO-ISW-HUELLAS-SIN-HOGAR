@@ -26,14 +26,6 @@ export function resolverPostulacion(id, datos) {
   return api.patch(`/adopciones/postulaciones/${id}/resolucion`, datos);
 }
 
-export function listarAnimalesPublicables() {
-  return api.get("/adopciones/animales/publicables");
-}
-
-export function publicarAnimal(id) {
-  return api.patch(`/adopciones/animales/${id}/publicar`, {});
-}
-
 export function registrarVisita(postulacionId, datos) {
   return api.post(`/adopciones/postulaciones/${postulacionId}/visitas`, datos);
 }

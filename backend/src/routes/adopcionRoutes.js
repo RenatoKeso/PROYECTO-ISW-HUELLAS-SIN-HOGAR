@@ -6,7 +6,6 @@ import { crearAutenticacion } from "../middlewares/autenticarUsuario.js";
 import { autorizarAccion } from "../middlewares/autorizarAccion.js";
 import { puedeGestionarAdopciones } from "../services/permisosUsuario.js";
 import {
-  animalIdParamSchema,
   entregaSchema,
   listarPostulacionesQuerySchema,
   omitirVisitaHogarSchema,
@@ -34,20 +33,6 @@ export function crearAdopcionRouter({
     "/postulaciones",
     validarEsquema(postulacionCreateSchema),
     capturarErrores(controlador.crearPostulacion),
-  );
-
-  // ---------- Equipo de adopciones: publicacion ----------
-  router.get(
-    "/animales/publicables",
-    ...soloEquipoAdopciones,
-    capturarErrores(controlador.listarPublicables),
-  );
-
-  router.patch(
-    "/animales/:id/publicar",
-    ...soloEquipoAdopciones,
-    validarEsquema(animalIdParamSchema, "params"),
-    capturarErrores(controlador.publicarAnimal),
   );
 
   // ---------- Equipo de adopciones: revision ----------
