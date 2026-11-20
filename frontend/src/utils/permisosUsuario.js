@@ -118,3 +118,7 @@ export function puedeRealizarRevisionFinal(usuario) {
 export function puedeActualizarRegistroMedico(usuario) {
   return tieneRol(usuario, ["VETERINARIA"]);
 }
+
+export function puedeGestionarDonaciones(usuario) {
+  return tieneRol(usuario, ["DIRECTORA"]);
+}
