@@ -535,9 +535,10 @@ test("la veterinaria completa la revision final y actualiza registro, ficha e hi
     estadoValidacion: "REALIZADO",
   });
 
+  // Adoptable y en el refugio: pasa directo al catalogo de adopcion.
   assert.deepEqual(llamadas.fichas[0], {
     id: 39,
-    data: { estadoAdopcion: "ADOPTABLE" },
+    data: { estadoAdopcion: "ADOPTABLE", estadoEstadia: "ESPERA_ADOPCION" },
     cliente: "tx",
   });
 
@@ -572,6 +573,38 @@ test("la revision final sin listas opcionales no crea enfermedades, tratamientos
   assert.equal(llamadas.enfermedades.length, 0);
   assert.equal(llamadas.tratamientos.length, 0);
   assert.equal(llamadas.atenciones.length, 0);
+});
+
+test("la revision final NO_ADOPTABLE no publica al animal en el catalogo", async () => {
+  const { dependencias, llamadas } = crearDependenciasRevisionFinal();
+
+  await realizarRevisionFinal(
+    {
+      registroMedicoId: 14,
+      datos: { ...datosRevisionFinal, adoptabilidad: "NO_ADOPTABLE" },
+      actor: actoraVeterinaria,
+    },
+    dependencias,
+  );
+
+  assert.deepEqual(llamadas.fichas[0].data, { estadoAdopcion: "NO_ADOPTABLE" });
+});
+
+test("la revision final no cambia la estadia de un animal que no esta ACTIVO", async () => {
+  const { dependencias, llamadas } = crearDependenciasRevisionFinal({
+    registro: { animal: { id: 39, estadoEstadia: "ESPERA_ADOPCION", estadoAdopcion: null } },
+  });
+
+  await realizarRevisionFinal(
+    {
+      registroMedicoId: 14,
+      datos: datosRevisionFinal,
+      actor: actoraVeterinaria,
+    },
+    dependencias,
+  );
+
+  assert.deepEqual(llamadas.fichas[0].data, { estadoAdopcion: "ADOPTABLE" });
 });
 
 test("solo una veterinaria activa puede realizar la revision final", async () => {

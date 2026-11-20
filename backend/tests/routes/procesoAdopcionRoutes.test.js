@@ -60,15 +60,13 @@ function enviar(url, { method = "GET", body, rol } = {}) {
 }
 
 const RUTAS_PROTEGIDAS = [
-  ["GET", "/animales/publicables"],
-  ["PATCH", "/animales/3/publicar"],
   ["POST", "/postulaciones/1/visitas", { tipo: "PRIMERA_VISITA", fechaVisita: "2026-10-20", resultado: "FAVORABLE" }],
   ["POST", "/postulaciones/1/omision-visita", { motivo: "DISTANCIA" }],
   ["POST", "/postulaciones/1/entrega", { fechaEntrega: "2026-10-20", documentacionEntregada: "Contrato" }],
   ["PATCH", "/postulaciones/1/seguimientos/2/realizado"],
 ];
 
-test("las rutas de publicacion, visitas y entrega exigen sesion", async () => {
+test("las rutas de visitas y entrega exigen sesion", async () => {
   await conServidor({}, async (url) => {
     for (const [method, ruta, body] of RUTAS_PROTEGIDAS) {
       const respuesta = await enviar(url + ruta, { method, body });
@@ -77,7 +75,7 @@ test("las rutas de publicacion, visitas y entrega exigen sesion", async () => {
   });
 });
 
-test("una veterinaria no puede publicar, registrar visitas ni entregar", async () => {
+test("una veterinaria no puede registrar visitas ni entregar", async () => {
   await conServidor({}, async (url) => {
     for (const [method, ruta, body] of RUTAS_PROTEGIDAS) {
       const respuesta = await enviar(url + ruta, { method, body, rol: "VETERINARIA" });
@@ -86,23 +84,6 @@ test("una veterinaria no puede publicar, registrar visitas ni entregar", async (
   });
 });
 
-test("PATCH /animales/:id/publicar llama al servicio con el id numerico", async () => {
-  let recibido;
-
-  await conServidor(
-    {
-      publicarAnimalAdopcion: async (id) => {
-        recibido = id;
-        return { id, estadoEstadia: "ESPERA_ADOPCION" };
-      },
-    },
-    async (url) => {
-      const respuesta = await enviar(`${url}/animales/3/publicar`, { method: "PATCH", rol: "ENCARGADA_ADOPCIONES" });
-      assert.equal(respuesta.status, 200);
-      assert.equal(recibido, 3);
-    },
-  );
-});
 
 test("POST /visitas valida el tipo, el resultado y que la fecha no sea futura", async () => {
   await conServidor({}, async (url) => {

@@ -442,9 +442,19 @@ export async function realizarRevisionFinal(
       cliente,
     );
 
+    // Si la veterinaria lo evalua como adoptable y sigue en el refugio, el
+    // animal pasa directo al catalogo de adopcion (RF3.1): la encargada ya no
+    // tiene que publicarlo a mano. Va en la misma transaccion, asi que si algo
+    // falla tampoco se publica.
+    const publicarEnCatalogo =
+      datos.adoptabilidad === "ADOPTABLE" && registro.animal?.estadoEstadia === "ACTIVO";
+
     const ficha = await dependencias.actualizarFichaAnimal(
       registro.animalId,
-      { estadoAdopcion: datos.adoptabilidad },
+      {
+        estadoAdopcion: datos.adoptabilidad,
+        ...(publicarEnCatalogo ? { estadoEstadia: "ESPERA_ADOPCION" } : {}),
+      },
       cliente,
     );
 

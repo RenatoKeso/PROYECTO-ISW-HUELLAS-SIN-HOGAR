@@ -1,12 +1,10 @@
 import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
 import {
   formalizarEntrega,
-  obtenerAnimalesPublicables,
   obtenerCatalogo,
   obtenerDetallePostulacion,
   obtenerPostulaciones,
   omitirVisitaHogar,
-  publicarAnimal,
   realizarSeguimiento,
   registrarPostulacion,
   registrarVisita,
@@ -17,8 +15,6 @@ const MENSAJE_CATALOGO = "Animales en adopcion obtenidos correctamente";
 
 export function crearAdopcionController({
   obtenerCatalogoAdopcion = obtenerCatalogo,
-  obtenerPublicables = obtenerAnimalesPublicables,
-  publicarAnimalAdopcion = publicarAnimal,
   registrarPostulacionAdopcion = registrarPostulacion,
   obtenerPostulacionesAdopcion = obtenerPostulaciones,
   obtenerDetalle = obtenerDetallePostulacion,
@@ -35,24 +31,6 @@ export function crearAdopcionController({
       return enviarRespuestaExitosa(response, {
         mensaje: MENSAJE_CATALOGO,
         datos: { animales },
-      });
-    },
-
-    async listarPublicables(request, response) {
-      const animales = await obtenerPublicables();
-
-      return enviarRespuestaExitosa(response, {
-        mensaje: "Animales listos para publicar obtenidos correctamente",
-        datos: { animales },
-      });
-    },
-
-    async publicarAnimal(request, response) {
-      const animal = await publicarAnimalAdopcion(request.params.id);
-
-      return enviarRespuestaExitosa(response, {
-        mensaje: "Animal publicado en el catalogo de adopcion",
-        datos: { animal },
       });
     },
 
