@@ -41,7 +41,7 @@ function AlertaAntecedentes({ antecedentes }) {
           <li key={devolucion.id}>
             <strong>{formatearFecha(devolucion.fechaDevolucion, { soloFecha: true })}</strong>
             {" · "}
-            {devolucion.fichaAnimal.nombre || devolucion.fichaAnimal.codigoAnimal}
+            {devolucion.fichaAnimal.nombre || "Animal sin nombre"}
             {" · "}
             {MOTIVOS_DEVOLUCION[devolucion.motivo] ?? devolucion.motivo}
             {devolucion.detalle && <span className="texto-suave"> — {devolucion.detalle}</span>}
@@ -193,7 +193,7 @@ function PostulacionDetallePage() {
       <Link to="/postulaciones" className="volver-link">← Volver a postulaciones</Link>
 
       <div className="detalle-encabezado">
-        <h2>Postulación N° {postulacion.id}</h2>
+        <h2>Postulación de {postulacion.nombrePostulante}</h2>
         <span className={`estado-chip estado-${postulacion.estado}`}>
           {ESTADOS_POSTULACION[postulacion.estado]}
         </span>
@@ -253,12 +253,11 @@ function PostulacionDetallePage() {
             <img
               className="detalle-foto-animal"
               src={urlImagen(animal.imagenUrl)}
-              alt={`Foto de ${animal.nombre || animal.codigoAnimal}`}
+              alt={animal.nombre ? `Foto de ${animal.nombre}` : "Foto del animal"}
             />
           )}
           <dl className="datos">
             <Dato etiqueta="Nombre">{animal.nombre || "Sin nombre"}</Dato>
-            <Dato etiqueta="Código">{animal.codigoAnimal}</Dato>
             <Dato etiqueta="Raza">{animal.raza}</Dato>
             <Dato etiqueta="Edad">{formatearEdad(animal.edad)}</Dato>
           </dl>

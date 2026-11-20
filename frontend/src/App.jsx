@@ -27,7 +27,7 @@ const TITULOS_POR_RUTA = {
   "/salud/alertas": "Alertas sanitarias",
   "/salud/registros-medicos": "Registro médico",
   "/adopcion": "Adopción",
-  "/adopcion/:animalId/postular": "Postular a adopción",
+  "/adopcion/postular": "Postular a adopción",
   "/voluntariado": "Voluntariado",
   "/voluntariado/postulaciones": "Postulaciones de voluntariado",
   "/turnos": "Turnos de voluntariado",
@@ -241,7 +241,7 @@ function App() {
 
               <Route path="/adopcion" element={<AdopcionPage />} />
               <Route
-                path="/adopcion/:animalId/postular"
+                path="/adopcion/postular"
                 element={<PostulacionPage />}
               />
 

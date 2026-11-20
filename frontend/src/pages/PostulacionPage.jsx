@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Campo from "../components/ui/Campo.jsx";
 import Mensaje from "../components/ui/Mensaje.jsx";
 import { useFormulario } from "../hooks/useFormulario.js";
@@ -44,13 +44,18 @@ const POSTULACION_INICIAL = {
 
 // Formulario publico: la persona interesada postula a un animal del catalogo.
 function PostulacionPage() {
-  const { animalId } = useParams();
+  // El animal elegido en el catalogo llega en el estado de la navegacion (no en
+  // la URL), asi la direccion no muestra ids ni codigos. El navegador lo conserva
+  // si se recarga la pagina; si alguien entra directo, se le pide elegir un animal.
+  const animalId = useLocation().state?.animalId;
   const [animal, setAnimal] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
   // No hay una ruta para un solo animal: se busca dentro del catalogo publico.
   useEffect(() => {
+    if (animalId === undefined) return undefined;
+
     let vigente = true;
 
     listarAnimalesEnAdopcion()
@@ -58,7 +63,7 @@ function PostulacionPage() {
         if (!vigente) return;
 
         const encontrado = respuesta.animales.find(
-          (candidato) => String(candidato.id) === animalId,
+          (candidato) => candidato.id === animalId,
         );
 
         if (encontrado) {
@@ -79,12 +84,22 @@ function PostulacionPage() {
     iniciales: POSTULACION_INICIAL,
     esquema: postulacionFormSchema,
     enviar: (datos) =>
-      enviarPostulacion({ ...datos, fichaAnimalId: Number(animalId) }),
+      // El backend sigue necesitando el id; se toma del animal encontrado.
+      enviarPostulacion({ ...datos, fichaAnimalId: animal.id }),
     mensajeExito:
       "¡Postulación enviada! El equipo de adopciones la revisará y te contactará.",
   });
 
   const { valores, errores, cambiar } = formulario;
+
+  if (animalId === undefined) {
+    return (
+      <section className="bloque">
+        <p className="mensaje mensaje-error">Elige un animal del catálogo para postular.</p>
+        <Link to="/adopcion" className="volver-link">← Ir al catálogo</Link>
+      </section>
+    );
+  }
 
   if (cargando) {
     return (
@@ -113,7 +128,7 @@ function PostulacionPage() {
           <img
             className="postulacion-animal-dibujo"
             src={urlImagen(animal.imagenUrl)}
-            alt={`Foto de ${animal.nombre || animal.codigoAnimal}`}
+            alt={animal.nombre ? `Foto de ${animal.nombre}` : "Foto del animal"}
           />
         ) : (
           <span className="postulacion-animal-dibujo" aria-hidden="true">
@@ -123,7 +138,6 @@ function PostulacionPage() {
         <div>
           <p className="etiqueta-pequena">Postulación para adoptar a</p>
           <h2>{animal.nombre || "Sin nombre"}</h2>
-          <p className="texto-suave">Código {animal.codigoAnimal}</p>
         </div>
       </div>
 

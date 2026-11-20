@@ -5,6 +5,7 @@ export const CODIGO_ERROR_ADOPCION = {
   POSTULACION_INEXISTENTE: "POSTULACION_INEXISTENTE",
   POSTULACION_YA_RESUELTA: "POSTULACION_YA_RESUELTA",
   POSTULACION_NO_APROBADA: "POSTULACION_NO_APROBADA",
+  POSTULACION_NO_ENTREGADA: "POSTULACION_NO_ENTREGADA",
   VISITA_YA_REGISTRADA: "VISITA_YA_REGISTRADA",
   PRIMERA_VISITA_PENDIENTE: "PRIMERA_VISITA_PENDIENTE",
   VISITA_HOGAR_YA_RESUELTA: "VISITA_HOGAR_YA_RESUELTA",
@@ -21,6 +22,7 @@ const ESTADO_HTTP_POR_CODIGO = {
   [CODIGO_ERROR_ADOPCION.POSTULACION_INEXISTENTE]: 404,
   [CODIGO_ERROR_ADOPCION.POSTULACION_YA_RESUELTA]: 409,
   [CODIGO_ERROR_ADOPCION.POSTULACION_NO_APROBADA]: 409,
+  [CODIGO_ERROR_ADOPCION.POSTULACION_NO_ENTREGADA]: 409,
   [CODIGO_ERROR_ADOPCION.VISITA_YA_REGISTRADA]: 409,
   [CODIGO_ERROR_ADOPCION.PRIMERA_VISITA_PENDIENTE]: 409,
   [CODIGO_ERROR_ADOPCION.VISITA_HOGAR_YA_RESUELTA]: 409,
@@ -45,11 +47,9 @@ export function esErrorAdopcion(error) {
   return error instanceof AdopcionError;
 }
 
-export function animalInexistente(id) {
-  return new AdopcionError(
-    CODIGO_ERROR_ADOPCION.ANIMAL_INEXISTENTE,
-    `No existe el animal con id ${id}`,
-  );
+// Los mensajes no incluyen el id: el frontend los muestra tal cual en pantalla.
+export function animalInexistente() {
+  return new AdopcionError(CODIGO_ERROR_ADOPCION.ANIMAL_INEXISTENTE, "El animal no existe");
 }
 
 export function animalNoDisponible() {
@@ -66,10 +66,10 @@ export function postulacionDuplicada() {
   );
 }
 
-export function postulacionInexistente(id) {
+export function postulacionInexistente() {
   return new AdopcionError(
     CODIGO_ERROR_ADOPCION.POSTULACION_INEXISTENTE,
-    `No existe la postulacion con id ${id}`,
+    "La postulacion no existe",
   );
 }
 
@@ -80,12 +80,17 @@ export function postulacionYaResuelta() {
   );
 }
 
-
-
 export function postulacionNoAprobada() {
   return new AdopcionError(
     CODIGO_ERROR_ADOPCION.POSTULACION_NO_APROBADA,
     "La postulacion debe estar aprobada para registrar visitas o la entrega",
+  );
+}
+
+export function postulacionNoEntregada() {
+  return new AdopcionError(
+    CODIGO_ERROR_ADOPCION.POSTULACION_NO_ENTREGADA,
+    "El acta de entrega solo existe cuando el animal ya fue entregado",
   );
 }
 
@@ -118,10 +123,10 @@ export function fechaInvalida(mensaje) {
   return new AdopcionError(CODIGO_ERROR_ADOPCION.FECHA_INVALIDA, mensaje);
 }
 
-export function seguimientoInexistente(id) {
+export function seguimientoInexistente() {
   return new AdopcionError(
     CODIGO_ERROR_ADOPCION.SEGUIMIENTO_INEXISTENTE,
-    `No existe el seguimiento con id ${id} en esta postulacion`,
+    "Ese seguimiento no existe en esta postulacion",
   );
 }
 
