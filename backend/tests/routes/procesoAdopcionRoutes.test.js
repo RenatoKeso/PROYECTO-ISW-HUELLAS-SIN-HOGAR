@@ -6,6 +6,7 @@ import express from "express";
 import { crearAdopcionRouter } from "../../src/routes/adopcionRoutes.js";
 import { crearAdopcionController } from "../../src/controllers/adopcionController.js";
 import { AuthError } from "../../src/entities/authErrors.js";
+import { postulacionNoEntregada } from "../../src/entities/adopcionErrors.js";
 import {
   manejadorErrores,
   manejarRutaNoEncontrada,
@@ -64,6 +65,7 @@ const RUTAS_PROTEGIDAS = [
   ["POST", "/postulaciones/1/omision-visita", { motivo: "DISTANCIA" }],
   ["POST", "/postulaciones/1/entrega", { fechaEntrega: "2026-10-20", documentacionEntregada: "Contrato" }],
   ["PATCH", "/postulaciones/1/seguimientos/2/realizado"],
+  ["GET", "/postulaciones/1/entrega/pdf"],
 ];
 
 test("las rutas de visitas y entrega exigen sesion", async () => {
@@ -84,6 +86,47 @@ test("una veterinaria no puede registrar visitas ni entregar", async () => {
   });
 });
 
+
+test("GET /entrega/pdf descarga el acta con el nombre del animal en el archivo", async () => {
+  let recibido;
+
+  await conServidor(
+    {
+      obtenerActa: async (id) => {
+        recibido = id;
+        return { pdf: Buffer.from("%PDF-1.3 acta"), nombreArchivo: "acta-entrega-luna.pdf" };
+      },
+    },
+    async (url) => {
+      const respuesta = await enviar(`${url}/postulaciones/1/entrega/pdf`, {
+        rol: "ENCARGADA_ADOPCIONES",
+      });
+
+      assert.equal(respuesta.status, 200);
+      assert.equal(respuesta.headers.get("content-type"), "application/pdf");
+      assert.match(respuesta.headers.get("content-disposition"), /acta-entrega-luna\.pdf/);
+      assert.equal(Buffer.from(await respuesta.arrayBuffer()).toString(), "%PDF-1.3 acta");
+      assert.equal(recibido, 1);
+    },
+  );
+});
+
+test("GET /entrega/pdf responde 409 si la postulacion no esta entregada", async () => {
+  await conServidor(
+    {
+      obtenerActa: async () => {
+        throw postulacionNoEntregada();
+      },
+    },
+    async (url) => {
+      const respuesta = await enviar(`${url}/postulaciones/1/entrega/pdf`, { rol: "DIRECTORA" });
+      const cuerpo = await respuesta.json();
+
+      assert.equal(respuesta.status, 409);
+      assert.equal(cuerpo.code, "POSTULACION_NO_ENTREGADA");
+    },
+  );
+});
 
 test("POST /visitas valida el tipo, el resultado y que la fecha no sea futura", async () => {
   await conServidor({}, async (url) => {

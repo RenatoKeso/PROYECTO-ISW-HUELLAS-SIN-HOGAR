@@ -3,6 +3,7 @@ import Campo from "../ui/Campo.jsx";
 import Mensaje from "../ui/Mensaje.jsx";
 import { useFormulario } from "../../hooks/useFormulario.js";
 import {
+  descargarActaEntrega,
   formalizarEntrega,
   marcarSeguimientoRealizado,
   omitirVisitaHogar,
@@ -308,6 +309,40 @@ function SeccionVisitaHogar({ postulacion, editable, primeraFavorable, onActuali
   );
 }
 
+// Descarga el acta de entrega en PDF. La arma el backend con todos los datos
+// de la adopcion (adoptante, hogar, animal, proceso y seguimientos).
+function BotonActaEntrega({ postulacion }) {
+  const [descargando, setDescargando] = useState(false);
+  const [error, setError] = useState("");
+
+  async function descargar() {
+    setError("");
+    setDescargando(true);
+
+    try {
+      await descargarActaEntrega(postulacion.id, postulacion.fichaAnimal?.nombre);
+    } catch (errorDescarga) {
+      setError(errorDescarga.message);
+    } finally {
+      setDescargando(false);
+    }
+  }
+
+  return (
+    <div className="acta-entrega">
+      <button
+        type="button"
+        className="boton boton-secundario"
+        disabled={descargando}
+        onClick={descargar}
+      >
+        {descargando ? "Preparando PDF..." : "Descargar acta de entrega (PDF)"}
+      </button>
+      {error && <p className="mensaje mensaje-error">{error}</p>}
+    </div>
+  );
+}
+
 function SeccionEntrega({ postulacion, puedeEntregar, onActualizada }) {
   if (postulacion.estado === "ENTREGADA") {
     return (
@@ -317,6 +352,8 @@ function SeccionEntrega({ postulacion, puedeEntregar, onActualizada }) {
           <Dato etiqueta="Adoptante">{postulacion.nombrePostulante}</Dato>
           <Dato etiqueta="Documentación">{postulacion.documentacionEntregada}</Dato>
         </dl>
+
+        <BotonActaEntrega postulacion={postulacion} />
 
         <h4 className="subtitulo">Seguimientos programados</h4>
         <ul className="lista-seguimientos">

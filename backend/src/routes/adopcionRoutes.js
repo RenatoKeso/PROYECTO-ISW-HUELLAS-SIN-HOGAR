@@ -83,6 +83,13 @@ export function crearAdopcionRouter({
     capturarErrores(controlador.formalizarEntrega),
   );
 
+  router.get(
+    "/postulaciones/:id/entrega/pdf",
+    ...soloEquipoAdopciones,
+    conPostulacionId,
+    capturarErrores(controlador.descargarActaEntrega),
+  );
+
   // ---------- Equipo de adopciones: seguimientos ----------
   router.patch(
     "/postulaciones/:id/seguimientos/:seguimientoId/realizado",
