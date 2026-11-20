@@ -4,6 +4,14 @@ export function crearPlanSanitarioController(
   servicio = servicioPorDefecto
 ) {
   return {
+    async agenda(req, res) {
+      res.json(await servicio.agenda(req.query));
+    },
+
+    async buscarAnimales(req, res) {
+      res.json(await servicio.buscarAnimales(req.query));
+    },
+
     async consultar(req, res) {
       res.json(
         await servicio.consultar(req.params.codigo)
