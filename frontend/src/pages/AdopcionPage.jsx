@@ -49,7 +49,7 @@ function TarjetaAnimal({ animal }) {
         {imagen ? (
           <img
             src={imagen}
-            alt={`Foto de ${animal.nombre || animal.codigoAnimal}`}
+            alt={animal.nombre ? `Foto de ${animal.nombre}` : "Foto del animal"}
             loading="lazy"
           />
         ) : (
@@ -63,7 +63,9 @@ function TarjetaAnimal({ animal }) {
       </h3>
       <p>{primeraLinea.filter(Boolean).join(" · ")}</p>
       <p>{segundaLinea.filter(Boolean).join(" · ")}</p>
-      <Link to={`/adopcion/${animal.id}/postular`} className="boton boton-postular">
+      {/* El animal elegido viaja en el estado de la navegacion y no en la URL:
+          la direccion queda /adopcion/postular, sin ids ni codigos. */}
+      <Link to="/adopcion/postular" state={{ animalId: animal.id }} className="boton boton-postular">
         Postular
       </Link>
     </article>
