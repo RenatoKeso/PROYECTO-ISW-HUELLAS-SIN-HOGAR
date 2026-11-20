@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Campo from "../components/ui/Campo.jsx";
 import { useFormulario } from "../hooks/useFormulario.js";
-import { enviarPostulacionVoluntario } from "../services/postulacionVoluntarioService.js";
+import { enviarPostulacionVoluntario, pedirCodigoVoluntario } from "../services/postulacionVoluntarioService.js";
 import {
   OPCIONES_DIAS,
   OPCIONES_HABILIDADES,
@@ -12,6 +13,7 @@ import "../styles/voluntariado.css";
 const POSTULACION_INICIAL = {
   nombre: "",
   email: "",
+  codigo: "",
   telefono: "",
   diasDisponibles: [],
   motivacion: "",
@@ -70,6 +72,28 @@ function VoluntariadoPage() {
 
   const { valores, errores, cambiar } = formulario;
 
+  const [avisoCodigo, setAvisoCodigo] = useState(null);
+  const [enviandoCodigo, setEnviandoCodigo] = useState(false);
+
+  async function pedirCodigo() {
+    if (!valores.email.trim()) {
+      setAvisoCodigo({ tipo: "error", texto: "Primero escribe tu correo" });
+      return;
+    }
+
+    setEnviandoCodigo(true);
+    setAvisoCodigo(null);
+
+    try {
+      await pedirCodigoVoluntario(valores.email.trim());
+      setAvisoCodigo(null);
+    } catch (error) {
+      setAvisoCodigo({ tipo: "error", texto: error.message || "No se pudo enviar el código" });
+    } finally {
+      setEnviandoCodigo(false);
+    }
+  }
+
   function elegirCurriculum(evento) {
     const archivo = evento.target.files[0];
 
@@ -112,15 +136,29 @@ function VoluntariadoPage() {
       <form className="formulario" onSubmit={formulario.enviarFormulario} noValidate>
         <h2>Tus datos</h2>
 
-        <div className="formulario-campos">
+      <div className="formulario-campos campos-voluntario">
           <Campo
             etiqueta="Nombre completo"
             nombre="nombre"
             valor={valores.nombre}
             error={errores.nombre}
             maxLength={255}
-            onChange={(evento) => cambiar("nombre", evento.target.value)}
+            onChange={(evento) =>
+              cambiar("nombre", evento.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü' -]/g, ""))
+            }
           />
+          <Campo
+            etiqueta="Teléfono"
+            nombre="telefono"
+            type="tel"
+            valor={valores.telefono}
+            error={errores.telefono}
+            placeholder="912345678"
+            inputMode="numeric"
+            maxLength={12}
+            onChange={(evento) => cambiar("telefono", evento.target.value.replace(/[^\d+]/g, ""))}
+          />
+         <div className="codigo-correo">
           <Campo
             etiqueta="Correo"
             nombre="email"
@@ -129,17 +167,26 @@ function VoluntariadoPage() {
             error={errores.email}
             onChange={(evento) => cambiar("email", evento.target.value)}
           />
-
           <Campo
-            etiqueta="Teléfono"
-            nombre="telefono"
-            type="tel"
-            valor={valores.telefono}
-            error={errores.telefono}
-            placeholder="912345678"
-            onChange={(evento) => cambiar("telefono", evento.target.value)}
-          />
-
+              etiqueta="Código del correo"
+              nombre="codigo"
+              valor={valores.codigo}
+              error={errores.codigo}
+              placeholder="123456"
+              inputMode="numeric"
+              maxLength={6}
+              onChange={(evento) => cambiar("codigo", evento.target.value.replace(/\D/g, ""))}
+            />
+            <button
+              type="button"
+              className="boton boton-codigo"
+              onClick={pedirCodigo}
+              disabled={enviandoCodigo}
+            >
+              {enviandoCodigo ? "Enviando..." : "Enviar código "}
+            </button>
+            <Mensaje mensaje={avisoCodigo} />
+          </div>
           <Casillas
             titulo="¿Qué días puedes venir?"
             opciones={OPCIONES_DIAS}
