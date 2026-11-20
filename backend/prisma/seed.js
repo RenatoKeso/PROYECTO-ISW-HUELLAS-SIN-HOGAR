@@ -151,8 +151,8 @@ async function main() {
     },
   });
 
-  // Modulo de adopcion: Luna ya fue evaluada como adoptable, pero todavia no
-  // se publica en el catalogo. Sirve para probar la accion "publicar".
+  // Modulo de adopcion: Luna ya fue evaluada como adoptable, asi que esta
+  // publicada en el catalogo (un animal adoptable pasa automaticamente a ESPERA_ADOPCION).
   await prisma.fichaAnimal.create({
     data: {
       codigoAnimal: "anim-003",
@@ -161,7 +161,7 @@ async function main() {
       especie: "GATO",
       raza: "Común europeo",
       edad: 2,
-      estadoEstadia: "ACTIVO",
+      estadoEstadia: "ESPERA_ADOPCION",
       estadoAdopcion: "ADOPTABLE",
       observaciones: "Tranquila, acostumbrada a convivir con niños.",
     },

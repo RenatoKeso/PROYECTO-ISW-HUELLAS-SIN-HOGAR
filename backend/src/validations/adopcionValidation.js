@@ -253,8 +253,6 @@ export const postulacionIdParamSchema = z.object({
     .positive("El identificador debe ser mayor que cero"),
 });
 
-export const animalIdParamSchema = postulacionIdParamSchema;
-
 // Ruta de un seguimiento: /postulaciones/:id/seguimientos/:seguimientoId
 export const seguimientoParamSchema = postulacionIdParamSchema.extend({
   seguimientoId: postulacionIdParamSchema.shape.id,

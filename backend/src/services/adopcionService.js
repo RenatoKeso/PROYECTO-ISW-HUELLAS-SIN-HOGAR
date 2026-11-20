@@ -1,11 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { ejecutarEnTransaccion } from "../config/prisma.js";
-import {
-  buscarAnimalParaPublicar,
-  listarAnimalesDisponibles,
-  listarAnimalesPublicables,
-  publicarAnimalAdoptable,
-} from "../repositories/animalAdopcionRepository.js";
+import { listarAnimalesDisponibles } from "../repositories/animalAdopcionRepository.js";
 import {
   buscarAnimalPorId,
   buscarPostulacionAbierta,
@@ -28,7 +23,6 @@ import {
 import {
   animalInexistente,
   animalNoDisponible,
-  animalNoPublicable,
   entregaNoPermitida,
   fechaInvalida,
   postulacionDuplicada,
@@ -45,9 +39,6 @@ import { diaEnChile } from "../validations/adopcionValidation.js";
 
 const DEPENDENCIAS_POR_DEFECTO = {
   listarAnimalesDisponibles,
-  listarAnimalesPublicables,
-  buscarAnimalParaPublicar,
-  publicarAnimalAdoptable,
   buscarAnimalPorId,
   buscarPostulacionAbierta,
   buscarPostulacionPorId,
@@ -91,51 +82,14 @@ function visitaHogarResuelta(postulacion) {
   );
 }
 
-// ---------- Catalogo y publicacion ----------
+
+// ---------- Catalogo ----------
 
 // Catalogo de adopcion: los animales que hoy pueden recibir postulaciones.
+// Un animal entra al catalogo automaticamente cuando la veterinaria lo evalua
+// como adoptable en la revision final (realizarRevisionFinal, en registroMedicoService.js).
 export async function obtenerCatalogo(dependencias = DEPENDENCIAS_POR_DEFECTO) {
   return dependencias.listarAnimalesDisponibles();
-}
-
-// Animales adoptables que todavia no estan publicados.
-export async function obtenerAnimalesPublicables(dependencias = DEPENDENCIAS_POR_DEFECTO) {
-  return dependencias.listarAnimalesPublicables();
-}
-
-// Publicar = pasar un animal ACTIVO y ADOPTABLE a ESPERA_ADOPCION (aparece en el catalogo).
-export async function publicarAnimal(id, dependencias = DEPENDENCIAS_POR_DEFECTO) {
-  const animal = await dependencias.buscarAnimalParaPublicar(id);
-
-  if (!animal) throw animalInexistente(id);
-
-  if (animal.estadoEstadia === ESTADO_DISPONIBLE) {
-    throw animalNoPublicable(
-      "El animal ya esta publicado en el catalogo",
-    );
-  }
-
-  if (animal.estadoAdopcion !== "ADOPTABLE") {
-    throw animalNoPublicable(
-      "La veterinaria todavia no evalua a este animal como adoptable",
-    );
-  }
-
-  if (animal.estadoEstadia !== "ACTIVO") {
-    throw animalNoPublicable(
-      "Solo se pueden publicar animales que estan en el refugio",
-    );
-  }
-
-  const cambios = await dependencias.publicarAnimalAdoptable(id);
-
-  if (cambios === 0) {
-    throw animalNoPublicable(
-      "El animal cambio de estado mientras se publicaba",
-    );
-  }
-
-  return { ...animal, estadoEstadia: ESTADO_DISPONIBLE };
 }
 
 // ---------- Postulaciones ----------

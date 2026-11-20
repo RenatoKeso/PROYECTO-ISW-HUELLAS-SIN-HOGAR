@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import {Routes,Route,Link,NavLink,Navigate,matchPath,useLocation,} from "react-router-dom";
+import { Routes, Route, Link, NavLink, Navigate, matchPath, useLocation, } from "react-router-dom";
 import HomePage from "./pages/HomePage.jsx";
 import RegistroPage from "./pages/RegistroPage.jsx";
 import AlertasSanitariasPage from "./pages/AlertasSanitariasPage.jsx";
@@ -9,13 +9,12 @@ import LoginPage from "./pages/LoginPage.jsx";
 import PostulacionPage from "./pages/PostulacionPage.jsx";
 import PostulacionesPage from "./pages/PostulacionesPage.jsx";
 import PostulacionDetallePage from "./pages/PostulacionDetallePage.jsx";
-import PublicarAnimalesPage from "./pages/PublicarAnimalesPage.jsx";
 import VoluntariadoPage from "./pages/VoluntariadoPage.jsx";
 import PostulacionesVoluntarioPage from "./pages/PostulacionesVoluntarioPage.jsx";
 import RegistroMedicoPage from "./pages/RegistroMedicoPage.jsx";
 import TurnosPage from "./pages/TurnosPage.jsx";
 import useSesion from "./hooks/useSesion.js";
-import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeGestionarAdopciones,puedeRevisarPostulacionesVoluntario,puedeConsultarRegistroMedico,puedeConsultarTurnos,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
+import { puedeGestionarFichas, puedeConsultarAlertas, puedeConsultarReportesDevolucion, puedeRegistrarDevoluciones, puedeGestionarAdopciones, puedeRevisarPostulacionesVoluntario, puedeConsultarRegistroMedico, puedeConsultarTurnos, NOMBRES_ROL, } from "./utils/permisosUsuario.js";
 
 const TITULOS_POR_RUTA = {
   "/": "Inicio",
@@ -30,7 +29,6 @@ const TITULOS_POR_RUTA = {
   "/turnos": "Turnos de voluntariado",
   "/postulaciones": "Postulaciones de adopción",
   "/postulaciones/:id": "Detalle de postulación",
-  "/adopciones/publicar": "Publicar animales en adopción",
   "/reportes/devoluciones": "Devoluciones",
 };
 function App() {
@@ -149,8 +147,8 @@ function App() {
 
               {(puedeConsultarReportesDevolucion(usuario) ||
                 puedeRegistrarDevoluciones(usuario)) && (
-                <NavLink to="/reportes/devoluciones">↩️ Devoluciones</NavLink>
-              )}
+                  <NavLink to="/reportes/devoluciones">↩️ Devoluciones</NavLink>
+                )}
 
               {puedeGestionarAdopciones(usuario) && (
                 <NavLink to="/postulaciones">📋 Postulaciones</NavLink>
@@ -263,14 +261,6 @@ function App() {
               />
 
               <Route
-                path="/adopciones/publicar"
-                element={proteger(
-                  <PublicarAnimalesPage />,
-                  puedeGestionarAdopciones
-                )}
-              />
-
-              <Route
                 path="/reportes/devoluciones"
                 element={proteger(
                   <ReporteDevolucionesPage usuario={usuario} />,
@@ -298,4 +288,3 @@ function App() {
 }
 
 export default App;
-   
