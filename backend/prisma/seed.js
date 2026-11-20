@@ -783,6 +783,141 @@ async function main() {
     },
   });
 
+  // 7. Turno cancelado por la encargada (por lluvia). Martina estaba inscrita: su
+  //    inscripcion quedo CANCELADA con el motivo en el historial. Sirve para ver
+  //    el bloque gris punteado en el calendario y el motivo en el panel.
+  const turnoCancelado = await prisma.turno.create({
+    data: {
+      titulo: "Jornada de adopcion en la plaza",
+      descripcion: "Stand del refugio en la plaza de armas.",
+      inicio: horaUtc(4, 13),
+      termino: horaUtc(4, 17),
+      fechaLimiteInscripcion: finDelDia(3),
+      cupoMaximo: 4,
+      cuposDisponibles: 3,
+      estado: "CANCELADO",
+      motivoCancelacion: "Se suspende por lluvia",
+      canceladoEn: new Date(),
+      canceladoPorId: cuentaEncargada.id,
+      publicadoPorId: cuentaEncargada.id,
+    },
+  });
+  const inscripcionCanceladaPorRefugio = await prisma.inscripcionTurno.create({
+    data: {
+      turnoId: turnoCancelado.id,
+      voluntarioId: Martina.id,
+      estado: "CANCELADA",
+      canceladaEn: new Date(),
+    },
+  });
+  await prisma.historialInscripcion.createMany({
+    data: [
+      {
+        inscripcionId: inscripcionCanceladaPorRefugio.id,
+        accion: "INSCRIPCION",
+        turnoId: turnoCancelado.id,
+        realizadoPorId: cuentaVoluntaria.id,
+      },
+      {
+        inscripcionId: inscripcionCanceladaPorRefugio.id,
+        accion: "CANCELACION",
+        turnoId: turnoCancelado.id,
+        detalle: "Turno cancelado por el refugio: Se suspende por lluvia",
+        realizadoPorId: cuentaEncargada.id,
+      },
+    ],
+  });
+
+  // 8. Turno de la semana pasada en que Martina estuvo: sirve para retroceder
+  //    una semana en el calendario (historial de la encargada y RF15).
+  const turnoSemanaPasada = await prisma.turno.create({
+    data: {
+      titulo: "Limpieza general",
+      descripcion: "Limpieza general del refugio.",
+      inicio: horaUtc(-8, 13),
+      termino: horaUtc(-8, 16),
+      fechaLimiteInscripcion: finDelDia(-9),
+      cupoMaximo: 6,
+      cuposDisponibles: 5,
+      publicadoPorId: cuentaEncargada.id,
+    },
+  });
+  const inscripcionSemanaPasada = await prisma.inscripcionTurno.create({
+    data: { turnoId: turnoSemanaPasada.id, voluntarioId: Martina.id },
+  });
+  await prisma.historialInscripcion.create({
+    data: {
+      inscripcionId: inscripcionSemanaPasada.id,
+      accion: "INSCRIPCION",
+      turnoId: turnoSemanaPasada.id,
+      realizadoPorId: cuentaVoluntaria.id,
+    },
+  });
+
+  // 9. Diego se inscribio en el paseo y despues se cambio a este turno: sirve
+  //    para ver una MODIFICACION en el historial ("De ... a ...").
+  const turnoCachorros = await prisma.turno.create({
+    data: {
+      titulo: "Socializacion de cachorros",
+      descripcion: "Juego y socializacion con los cachorros recien llegados.",
+      inicio: horaUtc(4, 18),
+      termino: horaUtc(4, 20),
+      fechaLimiteInscripcion: finDelDia(3),
+      cupoMaximo: 5,
+      cuposDisponibles: 4,
+      publicadoPorId: cuentaEncargada.id,
+    },
+  });
+  const inscripcionCachorrosDiego = await prisma.inscripcionTurno.create({
+    data: { turnoId: turnoCachorros.id, voluntarioId: Diego.id },
+  });
+  await prisma.historialInscripcion.createMany({
+    data: [
+      {
+        inscripcionId: inscripcionCachorrosDiego.id,
+        accion: "INSCRIPCION",
+        turnoId: turnoPaseo.id,
+        realizadoPorId: cuentaVoluntario.id,
+      },
+      {
+        inscripcionId: inscripcionCachorrosDiego.id,
+        accion: "MODIFICACION",
+        turnoId: turnoCachorros.id,
+        turnoAnteriorId: turnoPaseo.id,
+        realizadoPorId: cuentaVoluntario.id,
+      },
+    ],
+  });
+
+  // 10. Turno de la tarde-noche (21:00 a 23:00 en Chile): sirve para ver que la
+  //     grilla se agranda para mostrarlo.
+  await prisma.turno.create({
+    data: {
+      titulo: "Ronda nocturna",
+      descripcion: "Revision de los caniles y la gatera antes de cerrar.",
+      inicio: horaUtc(6, 24),
+      termino: horaUtc(6, 26),
+      fechaLimiteInscripcion: finDelDia(5),
+      cupoMaximo: 2,
+      cuposDisponibles: 2,
+      publicadoPorId: cuentaEncargada.id,
+    },
+  });
+
+  // 11. Turno de la semana siguiente, libre: sirve para avanzar en el calendario.
+  await prisma.turno.create({
+    data: {
+      titulo: "Paseo de perros",
+      descripcion: "Paseo por el cerro con los perros del refugio.",
+      inicio: horaUtc(10, 12),
+      termino: horaUtc(10, 14),
+      fechaLimiteInscripcion: finDelDia(9),
+      cupoMaximo: 5,
+      cuposDisponibles: 5,
+      publicadoPorId: cuentaEncargada.id,
+    },
+  });
+
 
   await prisma.postulacionVoluntario.create({
     data: {
@@ -839,7 +974,7 @@ async function main() {
 
   console.log("Seed completado");
   console.log(`  Usuarios: ${cuentaDirectora.email}, ${cuentaVeterinaria.email}, ${cuentaVoluntaria.email}, ${cuentaVoluntario.email}, ${cuentaEncargada.email}`);
-  console.log("  Turnos: 6 (futuros, solapados, lleno, cerrado a inscripciones y ya iniciado)");
+  console.log("  Turnos: 11 (futuros, solapados, lleno, cerrado, ya iniciado, cancelado, semana pasada, con cambio, nocturno y semana siguiente)");
   console.log(`  Registros medicos: ${revisionInicialGretel.id ? 2 : 0} (Gretel ACTUALIZADO, Galileo PROVISIONAL)`);
   console.log(`  Revision completa de Gretel (id): ${revisionCompletaGretel.id}`);
 }

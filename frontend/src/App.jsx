@@ -14,9 +14,8 @@ import VoluntariadoPage from "./pages/VoluntariadoPage.jsx";
 import PostulacionesVoluntarioPage from "./pages/PostulacionesVoluntarioPage.jsx";
 import RegistroMedicoPage from "./pages/RegistroMedicoPage.jsx";
 import TurnosPage from "./pages/TurnosPage.jsx";
-import MisInscripcionesPage from "./pages/MisInscripcionesPage.jsx";
 import useSesion from "./hooks/useSesion.js";
-import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeGestionarAdopciones,puedeRevisarPostulacionesVoluntario,puedeConsultarRegistroMedico,puedeConsultarTurnos,puedeGestionarInscripciones,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
+import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeGestionarAdopciones,puedeRevisarPostulacionesVoluntario,puedeConsultarRegistroMedico,puedeConsultarTurnos,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
 
 const TITULOS_POR_RUTA = {
   "/": "Inicio",
@@ -29,7 +28,6 @@ const TITULOS_POR_RUTA = {
   "/voluntariado": "Voluntariado",
   "/voluntariado/postulaciones": "Postulaciones de voluntariado",
   "/turnos": "Turnos de voluntariado",
-  "/turnos/mis-inscripciones": "Mis inscripciones",
   "/postulaciones": "Postulaciones de adopción",
   "/postulaciones/:id": "Detalle de postulación",
   "/adopciones/publicar": "Publicar animales en adopción",
@@ -166,10 +164,6 @@ function App() {
                 <NavLink to="/turnos" end>📅 Turnos</NavLink>
               )}
 
-              {puedeGestionarInscripciones(usuario) && (
-                <NavLink to="/turnos/mis-inscripciones">✅ Mis inscripciones</NavLink>
-              )}
-
               <button
                 type="button"
                 className="cerrar-lateral"
@@ -246,12 +240,10 @@ function App() {
                 )}
               />
 
+              {/* Mis inscripciones ahora es el filtro del calendario de /turnos. */}
               <Route
                 path="/turnos/mis-inscripciones"
-                element={proteger(
-                  <MisInscripcionesPage />,
-                  puedeGestionarInscripciones
-                )}
+                element={<Navigate to="/turnos" replace />}
               />
 
               <Route
