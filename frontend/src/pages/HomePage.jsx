@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import perritos from "../assets/perritos.jpg";
 import mascotas from "../assets/mascotas.svg";
 import "../styles/inicio.css";
+import "../styles/donaciones.css";
 
 function HomePage() {
   return (
@@ -50,6 +51,22 @@ function HomePage() {
             <small>Turnos para alimentar, pasear y acompañar.</small>
           </div>
         </article>
+      </div>
+
+      <div className="inicio-donaciones">
+        <h2>Ayúdanos a cuidar sus huellas</h2>
+
+        <p>
+          Tu aporte ayuda a cubrir alimentación,
+          tratamientos y el cuidado diario de los animales.
+        </p>
+
+        <Link
+          to="/donaciones"
+          className="boton"
+        >
+          Registrar una donación
+        </Link>
       </div>
 
       <div className="invitacion-voluntariado">
