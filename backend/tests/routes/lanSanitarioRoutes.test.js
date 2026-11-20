@@ -64,157 +64,177 @@ async function conServidor(router, comprobar) {
   }
 }
 
-test("las nuevas rutas del plan exigen sesion y rechazan todos los roles sin permiso sanitario", async () => {
-  const router = crearRouter({
-    servicioAuth: {
-      autenticar: async (rol) => ({
-        id: 1,
-        activo: true,
-        rol,
-      }),
-    },
-  });
+test(
+  "las nuevas rutas del plan exigen sesion y rechazan todos los roles sin permiso sanitario",
+  async () => {
+    const router = crearRouter({
+      servicioAuth: {
+        autenticar: async (rol) => ({
+          id: 1,
+          activo: true,
+          rol,
+        }),
+      },
+    });
 
-  await conServidor(router, async (solicitar) => {
-    for (const [ruta, metodo, cuerpo] of [
-      ["/salud/plan/anim-001", "GET"],
-      [
-        "/salud/plan/anim-001/atenciones",
-        "POST",
-        {
-          tipo: "vacuna",
-          fechaProgramada: "2026-11-02",
-        },
-      ],
-      [
-        "/salud/atenciones/1",
-        "PATCH",
-        {
-          accion: "cancelar",
-          motivoCancelacion: "Prueba",
-        },
-      ],
-    ]) {
-      assert.equal(
-        (await solicitar(ruta, metodo, cuerpo)).status,
-        401
-      );
-
-      for (const rol of ROLES_USUARIO.filter(
-        (r) =>
-          !["DIRECTORA", "VETERINARIA"].includes(r)
-      )) {
-        assert.equal(
-          (
-            await solicitar(
-              ruta,
-              metodo,
-              cuerpo,
-              rol
-            )
-          ).status,
-          403
-        );
-      }
-    }
-  });
-});
-
-test("las rutas validan cuerpos y parametros antes de invocar al servicio", async () => {
-  const llamadas = [];
-
-  const servicioPlan = {
-    consultar: async (...args) => {
-      llamadas.push(args);
-      return { atenciones: [] };
-    },
-
-    programar: async (...args) => {
-      llamadas.push(args);
-      return { id: 1 };
-    },
-
-    modificar: async (...args) => {
-      llamadas.push(args);
-
-      throw new PlanSanitarioError(
-        "Atencion finalizada"
-      );
-    },
-  };
-
-  await conServidor(
-    crearSaludRouter({ servicioPlan }),
-    async (solicitar) => {
-      for (const [ruta, metodo, cuerpo] of [
-        ["/plan/codigo-invalido", "GET"],
+    await conServidor(router, async (solicitar) => {
+      const rutas = [
+        ["/salud/plan/anim-001", "GET"],
+        ["/salud/agenda?mes=2026-11", "GET"],
+        ["/salud/animales?nombre=Gretel", "GET"],
         [
-          "/plan/anim-001/atenciones",
+          "/salud/plan/anim-001/atenciones",
           "POST",
           {
             tipo: "vacuna",
-            fechaProgramada: "2026-02-30",
+            fechaProgramada: "2026-11-02",
           },
         ],
         [
-          "/atenciones/0",
+          "/salud/atenciones/1",
           "PATCH",
           {
             accion: "cancelar",
             motivoCancelacion: "Prueba",
           },
         ],
-        [
-          "/atenciones/1",
-          "PATCH",
-          {
-            accion: "cancelar",
-            motivoCancelacion: " ",
-          },
-        ],
-      ]) {
-        assert.equal(
-          (await solicitar(ruta, metodo, cuerpo)).status,
-          400
-        );
-      }
+      ];
 
-      assert.equal(llamadas.length, 0);
-
-      assert.equal(
-        (await solicitar("/plan/anim-001")).status,
-        200
+      const rolesSinPermiso = ROLES_USUARIO.filter(
+        (rol) =>
+          !["DIRECTORA", "VETERINARIA"].includes(rol)
       );
 
-      assert.equal(
-        (
-          await solicitar(
+      for (const [ruta, metodo, cuerpo] of rutas) {
+        const respuestaSinSesion = await solicitar(
+          ruta,
+          metodo,
+          cuerpo
+        );
+
+        assert.equal(
+          respuestaSinSesion.status,
+          401
+        );
+
+        for (const rol of rolesSinPermiso) {
+          const respuestaSinPermiso = await solicitar(
+            ruta,
+            metodo,
+            cuerpo,
+            rol
+          );
+
+          assert.equal(
+            respuestaSinPermiso.status,
+            403
+          );
+        }
+      }
+    });
+  }
+);
+
+test(
+  "las rutas validan cuerpos y parametros antes de invocar al servicio",
+  async () => {
+    const llamadas = [];
+
+    const servicioPlan = {
+      consultar: async (...args) => {
+        llamadas.push(args);
+        return { atenciones: [] };
+      },
+
+      programar: async (...args) => {
+        llamadas.push(args);
+        return { id: 1 };
+      },
+
+      modificar: async (...args) => {
+        llamadas.push(args);
+
+        throw new PlanSanitarioError(
+          "Atencion finalizada"
+        );
+      },
+    };
+
+    await conServidor(
+      crearSaludRouter({ servicioPlan }),
+      async (solicitar) => {
+        const solicitudesInvalidas = [
+          ["/plan/codigo-invalido", "GET"],
+          [
             "/plan/anim-001/atenciones",
             "POST",
             {
-              tipo: "esterilizacion",
-              fechaProgramada: "2026-11-02",
-            }
-          )
-        ).status,
-        201
-      );
-
-      assert.equal(
-        (
-          await solicitar(
+              tipo: "vacuna",
+              fechaProgramada: "2026-02-30",
+            },
+          ],
+          [
+            "/atenciones/0",
+            "PATCH",
+            {
+              accion: "cancelar",
+              motivoCancelacion: "Prueba",
+            },
+          ],
+          [
             "/atenciones/1",
             "PATCH",
             {
-              accion: "realizar",
-              fechaRealizacion: "2026-11-02",
-            }
-          )
-        ).status,
-        409
-      );
+              accion: "cancelar",
+              motivoCancelacion: " ",
+            },
+          ],
+        ];
 
-      assert.equal(llamadas.length, 3);
-    }
-  );
-});
+        for (
+          const [ruta, metodo, cuerpo]
+          of solicitudesInvalidas
+        ) {
+          const respuesta = await solicitar(
+            ruta,
+            metodo,
+            cuerpo
+          );
+
+          assert.equal(respuesta.status, 400);
+        }
+
+        assert.equal(llamadas.length, 0);
+
+        const consulta = await solicitar(
+          "/plan/anim-001"
+        );
+
+        assert.equal(consulta.status, 200);
+
+        const programacion = await solicitar(
+          "/plan/anim-001/atenciones",
+          "POST",
+          {
+            tipo: "esterilizacion",
+            fechaProgramada: "2026-11-02",
+          }
+        );
+
+        assert.equal(programacion.status, 201);
+
+        const modificacion = await solicitar(
+          "/atenciones/1",
+          "PATCH",
+          {
+            accion: "realizar",
+            fechaRealizacion: "2026-11-02",
+          }
+        );
+
+        assert.equal(modificacion.status, 409);
+        assert.equal(llamadas.length, 3);
+      }
+    );
+  }
+);
