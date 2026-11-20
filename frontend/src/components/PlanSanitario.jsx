@@ -1,5 +1,13 @@
 import { useState } from "react";
-import {consultarPlan,programarAtencion,modificarAtencion,} from "../services/planSanitarioService.js";
+import { formatearEdad } from "../utils/formatoAdopcion.js";
+import { hoyEnChile } from "../utils/calendarioTurnos.js";
+import PaginacionSanitaria from "./PaginacionSanitaria.jsx";
+import {
+  buscarAnimalesPlan,
+  consultarPlan,
+  programarAtencion,
+  modificarAtencion,
+} from "../services/planSanitarioService.js";
 import { TIPOS_PLAN } from "../validations/alertasPlanValidation.js";
 import { ETIQUETAS_TIPO_ATENCION } from "../utils/planSanitario.js";
 
@@ -9,33 +17,23 @@ const nuevoFormulario = () => ({
   observaciones: "",
 });
 
-function hoy() {
-  const partes = Object.fromEntries(
-    new Intl.DateTimeFormat("en", {
-      timeZone: "America/Santiago",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    })
-      .formatToParts(new Date())
-      .map(({ type, value }) => [type, value])
-  );
-
-  return `${partes.year}-${partes.month}-${partes.day}`;
-}
-
 export default function PlanSanitario({
   bloqueado,
   onActividad,
   onActualizar,
 }) {
-  const [codigo, setCodigo] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [coincidencias, setCoincidencias] = useState(null);
+  const [paginaBusqueda, setPaginaBusqueda] = useState(1);
+  const [paginaPlan, setPaginaPlan] = useState(1);
   const [plan, setPlan] = useState(null);
   const [nuevo, setNuevo] = useState(nuevoFormulario);
   const [edicion, setEdicion] = useState(null);
   const [ocupado, setOcupado] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
+
+  const porPagina = 5;
 
   async function ejecutar(operacion) {
     if (ocupado || bloqueado) return;
@@ -66,29 +64,47 @@ export default function PlanSanitario({
       ...actual,
       atenciones: [
         ...actual.atenciones.filter(
-          (a) => a.id !== atencion.id
+          (registrada) => registrada.id !== atencion.id
         ),
         atencion,
       ].sort(
-        (a, b) =>
-          a.fechaProgramada.localeCompare(
-            b.fechaProgramada
-          ) || a.id - b.id
+        (primera, segunda) =>
+          primera.fechaProgramada.localeCompare(
+            segunda.fechaProgramada
+          ) || primera.id - segunda.id
       ),
     }));
 
     onActualizar();
   }
 
-  function buscar(evento) {
-    evento.preventDefault();
-
+  function buscar(pagina) {
     ejecutar(async () => {
       setPlan(null);
       setEdicion(null);
-      setNuevo(nuevoFormulario());
+      setCoincidencias(null);
 
-      setPlan(await consultarPlan(codigo));
+      const respuesta = await buscarAnimalesPlan(
+        nombre,
+        pagina
+      );
+
+      setCoincidencias(respuesta);
+      setPaginaBusqueda(pagina);
+    });
+  }
+
+  function abrirPlan(animal) {
+    ejecutar(async () => {
+      const respuesta = await consultarPlan(
+        animal.codigoAnimal
+      );
+
+      setPlan(respuesta);
+      setCoincidencias(null);
+      setNuevo(nuevoFormulario());
+      setEdicion(null);
+      setPaginaPlan(1);
     });
   }
 
@@ -153,8 +169,11 @@ export default function PlanSanitario({
       <h3>Plan sanitario del animal</h3>
 
       <form
-        className="formulario"
-        onSubmit={buscar}
+        className="formulario salud-busqueda"
+        onSubmit={(evento) => {
+          evento.preventDefault();
+          buscar(1);
+        }}
         noValidate
       >
         <fieldset
@@ -162,12 +181,16 @@ export default function PlanSanitario({
           disabled={ocupado || bloqueado}
         >
           <label>
-            Código del animal
+            Nombre del animal
             <input
-              value={codigo}
-              placeholder="anim-001"
-              onChange={(e) => {
-                setCodigo(e.target.value);
+              value={nombre}
+              placeholder="Ej. Gretel"
+              maxLength={100}
+              onChange={(evento) => {
+                setNombre(evento.target.value);
+                setCoincidencias(null);
+                setError("");
+                setMensaje("");
                 setPlan(null);
                 setEdicion(null);
               }}
@@ -175,10 +198,64 @@ export default function PlanSanitario({
           </label>
 
           <button className="boton" type="submit">
-            Cargar o actualizar plan
+            Buscar animales
           </button>
         </fieldset>
       </form>
+
+      {coincidencias && (
+        <div aria-live="polite">
+          {coincidencias.animales.length === 0 ? (
+            <p>Sin coincidencias para ese nombre.</p>
+          ) : (
+            <ul className="salud-coincidencias">
+              {coincidencias.animales.map((animal) => (
+                <li key={animal.codigoAnimal}>
+                  <div>
+                    <strong>
+                      {animal.nombre || "Sin nombre"}
+                    </strong>
+
+                    <small>
+                      {[
+                        animal.especie.toLowerCase(),
+                        animal.sexoAnimal.toLowerCase(),
+                        animal.raza,
+                        formatearEdad(animal.edad),
+                        "Ficha del " +
+                          new Date(
+                            animal.createdAt
+                          ).toLocaleDateString("es-CL", {
+                            timeZone: "America/Santiago",
+                          }),
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </small>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="boton"
+                    disabled={ocupado || bloqueado}
+                    onClick={() => abrirPlan(animal)}
+                  >
+                    Ver plan
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <PaginacionSanitaria
+            pagina={paginaBusqueda}
+            hayMas={coincidencias.hayMas}
+            cambiar={buscar}
+            bloqueada={ocupado || bloqueado}
+            etiqueta="Resultados de búsqueda"
+          />
+        </div>
+      )}
 
       {ocupado && (
         <p role="status">
@@ -192,8 +269,6 @@ export default function PlanSanitario({
       {plan && (
         <>
           <p>
-            {plan.animal.codigoAnimal}
-            {" · "}
             {plan.animal.nombre || "Sin nombre"}
             {" · "}
             {plan.animal.estadoEstadia}
@@ -218,18 +293,15 @@ export default function PlanSanitario({
                     Tipo
                     <select
                       value={nuevo.tipo}
-                      onChange={(e) =>
+                      onChange={(evento) =>
                         setNuevo({
                           ...nuevo,
-                          tipo: e.target.value,
+                          tipo: evento.target.value,
                         })
                       }
                     >
                       {TIPOS_PLAN.map((tipo) => (
-                        <option
-                          key={tipo}
-                          value={tipo}
-                        >
+                        <option key={tipo} value={tipo}>
                           {ETIQUETAS_TIPO_ATENCION[tipo]}
                         </option>
                       ))}
@@ -241,11 +313,11 @@ export default function PlanSanitario({
                     <input
                       type="date"
                       value={nuevo.fechaProgramada}
-                      onChange={(e) =>
+                      onChange={(evento) =>
                         setNuevo({
                           ...nuevo,
                           fechaProgramada:
-                            e.target.value,
+                            evento.target.value,
                         })
                       }
                     />
@@ -256,11 +328,11 @@ export default function PlanSanitario({
                     <textarea
                       value={nuevo.observaciones}
                       maxLength={2000}
-                      onChange={(e) =>
+                      onChange={(evento) =>
                         setNuevo({
                           ...nuevo,
                           observaciones:
-                            e.target.value,
+                            evento.target.value,
                         })
                       }
                     />
@@ -303,56 +375,77 @@ export default function PlanSanitario({
                 </thead>
 
                 <tbody>
-                  {plan.atenciones.map((atencion) => (
-                    <tr key={atencion.id}>
-                      <td>
-                        #{atencion.id}
-                        {" · "}
-                        {ETIQUETAS_TIPO_ATENCION[atencion.tipo]}
-                        <br />
-                        {atencion.observaciones}
-                      </td>
+                  {plan.atenciones
+                    .slice(
+                      (paginaPlan - 1) * porPagina,
+                      paginaPlan * porPagina
+                    )
+                    .map((atencion) => (
+                      <tr key={atencion.id}>
+                        <td>
+                          {
+                            ETIQUETAS_TIPO_ATENCION[
+                              atencion.tipo
+                            ]
+                          }
+                          <br />
+                          {atencion.observaciones}
+                        </td>
 
-                      <td>
-                        {atencion.fechaProgramada}
-                      </td>
+                        <td>
+                          {atencion.fechaProgramada}
+                        </td>
 
-                      <td>
-                        {atencion.estado}
-                        <br />
-                        {atencion.fechaRealizacion ||
-                          atencion.motivoCancelacion}
-                      </td>
+                        <td>
+                          {atencion.estado}
+                          <br />
+                          {atencion.fechaRealizacion ||
+                            atencion.motivoCancelacion}
+                        </td>
 
-                      <td>
-                        {atencion.estado ===
-                          "PENDIENTE" && (
-                          <button
-                            type="button"
-                            className="boton"
-                            disabled={
-                              ocupado || bloqueado
-                            }
-                            onClick={() => {
-                              setEdicion({
-                                ...atencion,
-                                accion: "reprogramar",
-                                fecha:
-                                  atencion.fechaProgramada,
-                                motivo: "",
-                              });
-                              setError("");
-                              setMensaje("");
-                            }}
-                          >
-                            Gestionar
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        <td>
+                          {atencion.estado ===
+                            "PENDIENTE" && (
+                            <button
+                              type="button"
+                              className="boton"
+                              disabled={
+                                ocupado || bloqueado
+                              }
+                              onClick={() => {
+                                setEdicion({
+                                  ...atencion,
+                                  accion: "reprogramar",
+                                  fecha:
+                                    atencion.fechaProgramada,
+                                  motivo: "",
+                                });
+                                setError("");
+                                setMensaje("");
+                              }}
+                            >
+                              Gestionar
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
+
+              <PaginacionSanitaria
+                pagina={paginaPlan}
+                hayMas={
+                  paginaPlan * porPagina <
+                  plan.atenciones.length
+                }
+                cambiar={(pagina) => {
+                  setPaginaPlan(pagina);
+                  setEdicion(null);
+                }}
+                bloqueada={ocupado || bloqueado}
+                etiqueta="Historial del animal"
+              />
             </div>
           )}
 
@@ -367,20 +460,23 @@ export default function PlanSanitario({
                 disabled={ocupado || bloqueado}
               >
                 <legend>
-                  Gestionar atención #{edicion.id}
+                  Gestionar{" "}
+                  {ETIQUETAS_TIPO_ATENCION[edicion.tipo]}
+                  {" del "}
+                  {edicion.fechaProgramada}
                 </legend>
 
                 <label>
                   Acción
                   <select
                     value={edicion.accion}
-                    onChange={(e) =>
+                    onChange={(evento) =>
                       setEdicion({
                         ...edicion,
-                        accion: e.target.value,
+                        accion: evento.target.value,
                         fecha:
-                          e.target.value === "realizar"
-                            ? hoy()
+                          evento.target.value === "realizar"
+                            ? hoyEnChile()
                             : edicion.fechaProgramada,
                       })
                     }
@@ -403,10 +499,10 @@ export default function PlanSanitario({
                     <textarea
                       value={edicion.motivo}
                       maxLength={500}
-                      onChange={(e) =>
+                      onChange={(evento) =>
                         setEdicion({
                           ...edicion,
-                          motivo: e.target.value,
+                          motivo: evento.target.value,
                         })
                       }
                     />
@@ -420,10 +516,10 @@ export default function PlanSanitario({
                     <input
                       type="date"
                       value={edicion.fecha}
-                      onChange={(e) =>
+                      onChange={(evento) =>
                         setEdicion({
                           ...edicion,
-                          fecha: e.target.value,
+                          fecha: evento.target.value,
                         })
                       }
                     />
