@@ -147,7 +147,9 @@ export function hoyEnChile(ahora = new Date()) {
   }).format(ahora);
 }
 
-// "16 – 22 de noviembre de 2026" o "30 de noviembre – 6 de diciembre de 2026".
+// "16 – 22 de noviembre de 2026", "30 de noviembre – 6 de diciembre de 2026" o
+// "28 de diciembre de 2026 – 3 de enero de 2027". La navegacion tiene su propia
+// fila, asi que el titulo largo no empuja nada.
 export function tituloSemana(lunes) {
   const domingo = sumarDias(lunes, 6);
   const formato = (fecha, opciones) =>
@@ -161,6 +163,7 @@ export function tituloSemana(lunes) {
 
   const mismoAnio = lunes.slice(0, 4) === domingo.slice(0, 4);
   const inicioTexto = formato(lunes, mismoAnio ? { day: "numeric", month: "long" } : { day: "numeric", month: "long", year: "numeric" });
+
   return `${inicioTexto} – ${finTexto}`;
 }
 

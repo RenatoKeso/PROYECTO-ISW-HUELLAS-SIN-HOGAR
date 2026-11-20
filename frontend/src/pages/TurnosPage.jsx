@@ -157,6 +157,48 @@ function TurnosPage({ usuario }) {
     setElegidoId(respuesta.turno.id);
   }
 
+  const navegacion = (
+    <div className="navegacion-semana">
+      <button type="button" className="flecha-semana" aria-label="Semana anterior" onClick={() => irASemana(sumarDias(semana, -7))}>
+        ‹
+      </button>
+      <span className="titulo-semana">{tituloSemana(semana)}</span>
+      <button type="button" className="flecha-semana" aria-label="Semana siguiente" onClick={() => irASemana(sumarDias(semana, 7))}>
+        ›
+      </button>
+      <button type="button" className="boton-mini" onClick={() => irASemana(lunesDe(hoyEnChile()))}>
+        Hoy
+      </button>
+    </div>
+  );
+
+  const filtrosHorizontales = (
+    <div className="pestanas-voluntariado" role="group" aria-label="Filtrar turnos">
+      {filtros.map((opcion) => (
+        <button
+          key={opcion.valor}
+          type="button"
+          className={filtro === opcion.valor ? "pestana-voluntariado activa" : "pestana-voluntariado"}
+          aria-pressed={filtro === opcion.valor}
+          onClick={() => setFiltro(opcion.valor)}
+        >
+          {opcion.texto} <span className="cuenta-filtro">{opcion.cuenta}</span>
+        </button>
+      ))}
+    </div>
+  );
+
+  const leyenda = (
+    <ul className="pestanas-voluntariado leyenda-turnos" aria-label="Colores del calendario">
+      {leyendaDe(gestiona).map((item) => (
+        <li key={item.estado}>
+          <span className={`punto-leyenda estado-turno-${item.estado}`} aria-hidden="true" />
+          {item.texto}
+        </li>
+      ))}
+    </ul>
+  );
+
   return (
     <section className="bloque voluntariado turnos-calendario">
       <div className="turnos-encabezado">
@@ -190,45 +232,20 @@ function TurnosPage({ usuario }) {
         </div>
       )}
 
-      <div className="turnos-barra">
-        <div className="pestanas-voluntariado" role="group" aria-label="Filtrar turnos">
-          {filtros.map((opcion) => (
-            <button
-              key={opcion.valor}
-              type="button"
-              className={filtro === opcion.valor ? "pestana-voluntariado activa" : "pestana-voluntariado"}
-              aria-pressed={filtro === opcion.valor}
-              onClick={() => setFiltro(opcion.valor)}
-            >
-              {opcion.texto} <span className="cuenta-filtro">{opcion.cuenta}</span>
-            </button>
-          ))}
+      <div className="turnos-semana">{navegacion}</div>
+
+      {/* Una cuadricula de dos columnas: a la izquierda los filtros y la leyenda
+          (con el mismo ancho de la grilla, asi la leyenda calza con su borde
+          derecho) y debajo la grilla; a la derecha el panel.
+          - Encargada: filtros y leyenda en una linea; el panel parte a esa altura.
+          - Voluntario: la leyenda va debajo de los filtros; el panel parte a la
+            altura de la grilla. */}
+      <div className={`turnos-cuerpo ${gestiona ? "vista-gestion" : "vista-voluntario"}`}>
+        <div className="turnos-barra">
+          {filtrosHorizontales}
+          {leyenda}
         </div>
 
-        <div className="navegacion-semana">
-          <button type="button" className="flecha-semana" aria-label="Semana anterior" onClick={() => irASemana(sumarDias(semana, -7))}>
-            ‹
-          </button>
-          <span className="titulo-semana">{tituloSemana(semana)}</span>
-          <button type="button" className="flecha-semana" aria-label="Semana siguiente" onClick={() => irASemana(sumarDias(semana, 7))}>
-            ›
-          </button>
-          <button type="button" className="boton-mini" onClick={() => irASemana(lunesDe(hoyEnChile()))}>
-            Hoy
-          </button>
-        </div>
-      </div>
-
-      <ul className="leyenda-turnos" aria-label="Colores del calendario">
-        {leyendaDe(gestiona).map((item) => (
-          <li key={item.estado}>
-            <span className={`punto-leyenda estado-turno-${item.estado}`} aria-hidden="true" />
-            {item.texto}
-          </li>
-        ))}
-      </ul>
-
-      <div className="turnos-cuerpo">
         <div className="turnos-grilla">
           {cargando && <p className="texto-suave">Cargando turnos...</p>}
           {!cargando && turnos.length === 0 && (
