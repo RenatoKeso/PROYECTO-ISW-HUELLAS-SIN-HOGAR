@@ -201,3 +201,7 @@ export function puedeConsultarRegistroMedico(usuario) {
     "VOLUNTARIO_CONFIANZA",
   ]);
 }
+
+export function puedeGestionarDonaciones(usuario) {
+  return tieneRol(usuario, ["DIRECTORA"]);
+}

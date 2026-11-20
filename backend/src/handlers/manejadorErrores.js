@@ -7,6 +7,7 @@ import { esErrorNotificacion } from "../entities/notificacionErrors.js";
 import { esErrorAdopcion } from "../entities/adopcionErrors.js";
 import { esErrorTurno } from "../entities/turnoErrors.js";
 import { PlanSanitarioError } from "../entities/planSanitarioErrors.js";
+import { DonacionError } from "../entities/donacionErrors.js";
 
 export const CODIGO_DATOS_INVALIDOS = "DATOS_INVALIDOS";
 export const CODIGO_RUTA_NO_ENCONTRADA =
@@ -55,6 +56,14 @@ export function manejadorErrores(
 ) {
   if (response.headersSent) {
     next(error);
+    return;
+  }
+    if (error.type === "entity.too.large") {
+    response.status(413).json({
+      message:
+        "El contenido enviado supera el tamaño permitido",
+      code: CODIGO_DATOS_INVALIDOS,
+    });
     return;
   }
 
@@ -125,7 +134,7 @@ export function manejadorErrores(
     return;
   }
 
-  if (error instanceof PlanSanitarioError) {
+  if (error instanceof PlanSanitarioError ||error instanceof DonacionError) {
     response.status(error.estadoHttp).json({
       message: error.message,
       code: error.codigo,
