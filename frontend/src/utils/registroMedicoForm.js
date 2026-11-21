@@ -78,11 +78,14 @@ export function crearRevisionFinalInicial(registro) {
   return {
     pesoRevalidadoKg: registro?.revisionCompleta?.peso ?? registro?.pesoKg ?? "",
     estadoSalud: registro?.clasificacionSalud ?? "",
-    condiciones: registro?.revisionCompleta?.descripcionCondicionMedica ?? "",
-    discapacidades: registro?.revisionCompleta?.discapacidades ?? "",
-    lesiones: registro?.revisionCompleta?.lesiones ?? "",
+    condiciones:
+      registro?.revisionCompleta?.descripcionCondicionMedica ?? "sin detalles",
+    discapacidades:
+      registro?.revisionCompleta?.discapacidades ?? "sin detalles",
+    lesiones: registro?.revisionCompleta?.lesiones ?? "sin detalles",
     descripcionCuidadosEspeciales:
-      registro?.revisionCompleta?.descripcionCuidadosEspeciales ?? "",
+      registro?.revisionCompleta?.descripcionCuidadosEspeciales ??
+      "sin detalles",
     adoptabilidad: "",
     enfermedades: [],
     tratamientos: [],

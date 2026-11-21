@@ -1,38 +1,30 @@
 export const ESTADOS_EN_REFUGIO = [
-    "ACTIVO",
-    "ESPERA_ADOPCION",
+  "ACTIVO",
+  "ESPERA_ADOPCION",
 ];
 
+export function filtroAtencionesPendientes(fechaProgramada) {
+  return {
+    estado: "PENDIENTE",
+    fechaProgramada,
+    fichaAnimal: { is: { estadoEstadia: { in: ESTADOS_EN_REFUGIO } } },
+  };
+}
+
 export async function buscarAtencionesPendientes(
-    { fechaLimite },
-    cliente
+  { fechaLimite },
+  cliente
 ) {
-const prisma =
+  const prisma =
     cliente ?? (await import("../config/prisma.js")).default;
 
-    return prisma.atencionSanitaria.findMany({
-    where: {
-      estado: "PENDIENTE",
-
-      fechaProgramada: {
-        lte: fechaLimite,
-      },
-
-      fichaAnimal: {
-        is: {
-          estadoEstadia: {
-            in: ESTADOS_EN_REFUGIO,
-          },
-        },
-      },
-    },
-
+  return prisma.atencionSanitaria.findMany({
+    where: filtroAtencionesPendientes({ lte: fechaLimite }),
     select: {
       id: true,
       fichaAnimalId: true,
       tipo: true,
       fechaProgramada: true,
-
       fichaAnimal: {
         select: {
           codigoAnimal: true,
@@ -40,7 +32,6 @@ const prisma =
         },
       },
     },
-
     orderBy: [
       { fechaProgramada: "asc" },
       { id: "asc" },

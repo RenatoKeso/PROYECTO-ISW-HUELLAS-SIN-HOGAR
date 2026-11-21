@@ -41,6 +41,15 @@ export async function programarAtencion(
   );
 }
 
+export function buscarAnimalesPlan(nombre, pagina = 1) {
+  const filtros = new URLSearchParams({
+    nombre: nombre.trim(),
+    pagina: String(pagina),
+  });
+
+  return api.get("/salud/animales?" + filtros);
+}
+
 export async function modificarAtencion(id, entrada) {
   if (!Number.isSafeInteger(id) || id <= 0) {
     throw new Error(
@@ -58,3 +67,4 @@ export async function modificarAtencion(id, entrada) {
     )
   );
 }
+//

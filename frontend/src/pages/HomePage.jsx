@@ -2,68 +2,76 @@ import { Link } from "react-router-dom";
 import perritos from "../assets/perritos.jpg";
 import mascotas from "../assets/mascotas.svg";
 import "../styles/inicio.css";
+import "../styles/donaciones.css";
 
 function HomePage() {
   return (
-    <>
-      <section className="portada">
-        <div className="hero">
+    <section className="inicio">
+      <div className="inicio-texto">
+        <p className="etiqueta">Refugio Huellas Sin Hogar</p>
+        <h1>
+          Encuentra una <span className="destacado">huella</span> que
+          necesita un hogar.
+        </h1>
+        <p className="bajada">
+          Conoce a los animales disponibles, postula para adoptar o súmate
+          como voluntario del refugio.
+        </p>
+
+        <Link to="/adopcion" className="boton">
+          Ver animales en adopción
+        </Link>
+      </div>
+
+      <div className="inicio-foto">
+        <img src={perritos} alt="Perros del refugio con una voluntaria" />
+      </div>
+
+      <div className="inicio-accesos">
+        <article className="acceso">
+          <span className="acceso-icono" aria-hidden="true">🚑</span>
           <div>
-            <p className="etiqueta">Refugio Huellas Sin Hogar</p>
-            <h1>
-              Encuentra una <span className="destacado">huella</span> que
-              necesita un hogar.
-            </h1>
-            <p className="bajada">
-              Conoce a los animales disponibles, postula para adoptar, avisanos
-              si viste un animal abandonado, o sumate como voluntario del
-              refugio.
-            </p>
-            <Link to="/adopcion" className="boton">
-              Ver animales en adopción
-            </Link>
+            <strong>Rescate e ingreso</strong>
+            <small>Recibimos animales de la calle y de otros refugios.</small>
           </div>
+        </article>
 
-          <img src={perritos} alt="Perros del refugio" className="hero-foto" />
-        </div>
-      </section>
+        <article className="acceso">
+          <span className="acceso-icono" aria-hidden="true">🏡</span>
+          <div>
+            <strong>Adopción responsable</strong>
+            <small>Evaluamos cada postulación con visitas previas.</small>
+          </div>
+        </article>
 
-      <section className="bloque">
-        <h2>Qué hacemos</h2>
+        <article className="acceso">
+          <span className="acceso-icono" aria-hidden="true">🤝</span>
+          <div>
+            <strong>Voluntariado</strong>
+            <small>Turnos para alimentar, pasear y acompañar.</small>
+          </div>
+        </article>
+      </div>
 
-        <div className="tarjetas">
-          <article className="tarjeta">
-            <h3>Rescate e ingreso</h3>
-            <p>
-              Recibimos animales desde la vía pública, entregas voluntarias,
-              decomisos municipales y traslados de otros refugios.
-            </p>
-          </article>
+      <div className="inicio-donaciones">
+        <h2>Ayúdanos a cuidar sus huellas</h2>
 
-          <article className="tarjeta">
-            <h3>Adopción responsable</h3>
-            <p>
-              Evaluamos cada postulación con visitas previas para asegurar que
-              el animal llegue a un hogar adecuado.
-            </p>
-          </article>
+        <p>
+          Tu aporte ayuda a cubrir alimentación,
+          tratamientos y el cuidado diario de los animales.
+        </p>
 
-          <article className="tarjeta">
-            <h3>Voluntariado</h3>
-            <p>
-              Organizamos turnos de cuidado diario donde los voluntarios
-              alimentan, pasean y acompañan a los animales.
-            </p>
-          </article>
-        </div>
-      </section>
+        <Link
+          to="/donaciones"
+          className="boton"
+        >
+          Registrar una donación
+        </Link>
+      </div>
 
-      <section
-        className="bloque invitacion-voluntariado"
-        aria-labelledby="titulo-invitacion"
-      >
+      <div className="invitacion-voluntariado">
         <div>
-          <h2 id="titulo-invitacion">Hazles un espacio en tu semana</h2>
+          <h2>Hazles un espacio en tu semana</h2>
           <p>
             Súmate a los paseos y al cuidado diario de los animales mientras
             encuentran una familia.
@@ -75,8 +83,8 @@ function HomePage() {
         </div>
 
         <img className="invitacion-mascotas" src={mascotas} alt="" />
-      </section>
-    </>
+      </div>
+    </section>
   );
 }
 

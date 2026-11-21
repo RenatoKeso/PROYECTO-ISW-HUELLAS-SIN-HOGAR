@@ -55,6 +55,9 @@ function falsas(cambios = {}) {
       return { id };
     },
     ejecutarEnTransaccion: async (callback) => callback("cliente-falso"),
+    dominioRecibeCorreos: async () => true,
+    codigoEsValido: () => true,
+    borrarCodigo: () => {},
     ...cambios,
   };
 
@@ -67,6 +70,26 @@ function conCodigo(codigo) {
     return true;
   };
 }
+
+test("no deja postular si el código del correo no es correcto", async () => {
+ const { dependencias, guardado } = falsas({ codigoEsValido: () => false });
+
+  await assert.rejects(
+    postularComoVoluntario({ ...DATOS, codigo: "000000" }, dependencias),
+    conCodigo("CODIGO_INVALIDO"),
+  );
+  assert.equal(guardado.postulaciones.length, 0);
+});
+
+test("no deja postular si el dominio del correo no existe", async () => {
+  const { dependencias, guardado } = falsas({ dominioRecibeCorreos: async () => false });
+
+  await assert.rejects(
+    postularComoVoluntario({ ...DATOS, email: "camila@gmial.com" }, dependencias),
+    conCodigo("CORREO_NO_EXISTE"),
+  );
+  assert.equal(guardado.postulaciones.length, 0);
+});
 
 
 test("guarda la postulación cuando la persona no es voluntaria ni tiene otra en revisión", async () => {

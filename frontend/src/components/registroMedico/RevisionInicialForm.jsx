@@ -73,18 +73,6 @@ export default function RevisionInicialForm({
         />
 
         <Campo
-          etiqueta="Observación inicial"
-          nombre="observacionInicial"
-          control="textarea"
-          rows={3}
-          valor={form.valores.observacionInicial}
-          error={form.errores.observacionInicial}
-          onChange={(evento) =>
-            form.cambiar("observacionInicial", evento.target.value)
-          }
-        />
-
-        <Campo
           etiqueta="Requiere cuarentena"
           nombre="requiereCuarentena"
           control="select"
@@ -93,6 +81,19 @@ export default function RevisionInicialForm({
           error={form.errores.requiereCuarentena}
           onChange={(evento) =>
             form.cambiar("requiereCuarentena", evento.target.value)
+          }
+        />
+
+        <Campo
+          etiqueta="Observación inicial"
+          nombre="observacionInicial"
+          control="textarea"
+          rows={3}
+          ancho
+          valor={form.valores.observacionInicial}
+          error={form.errores.observacionInicial}
+          onChange={(evento) =>
+            form.cambiar("observacionInicial", evento.target.value)
           }
         />
       </div>

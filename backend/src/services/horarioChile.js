@@ -134,3 +134,27 @@ export function finDelDiaEnChile(fecha) {
 
   return new Date(inicioSiguiente.getTime() - 1);
 }
+
+// Suma dias a una fecha "AAAA-MM-DD". Date.UTC maneja solo el cambio de mes y
+// de anio (30 de noviembre + 1 = 1 de diciembre).
+function sumarDias(fecha, dias) {
+  const f = REGEX_FECHA.exec(fecha);
+  if (!f) return null;
+  const [anio, mes, dia] = [f[1], f[2], f[3]].map(Number);
+
+  return new Date(Date.UTC(anio, mes - 1, dia + dias)).toISOString().slice(0, 10);
+}
+
+// Semana completa en hora de Chile, desde el lunes 00:00 hasta el domingo
+// 23:59:59.999. Recibe la fecha del lunes. Devuelve null si la fecha no existe.
+// Ejemplo: "2026-11-16" -> desde 2026-11-16T03:00Z hasta 2026-11-23T02:59:59.999Z.
+export function rangoDeSemanaEnChile(lunes) {
+  const domingo = sumarDias(lunes, 6);
+  if (!domingo) return null;
+
+  const inicio = instanteEnChile(lunes, "00:00") ?? instanteEnChile(lunes, "01:00");
+  const fin = finDelDiaEnChile(domingo);
+  if (!inicio || !fin) return null;
+
+  return { desde: lunes, hasta: domingo, inicio, fin };
+}

@@ -1,14 +1,36 @@
+import { ejecutarEnTransaccion } from "../config/prisma.js";
 import {
+  buscarTurnoPorId,
+  cancelarTurno as cancelarTurnoEnBase,
   crearTurno,
+  listarTurnosEntre,
   listarTurnosParaGestion,
   listarTurnosPublicados,
 } from "../repositories/turnoRepository.js";
-import { fechasTurnoInvalidas } from "../entities/turnoErrors.js";
-import { finDelDiaEnChile, instanteEnChile } from "./horarioChile.js";
+import {
+  cancelarInscripcionesDeTurno,
+  listarInscripcionesActivasDeTurno,
+  listarInscripcionesDeTurno,
+  registrarHistoriales,
+} from "../repositories/inscripcionRepository.js";
+import {
+  fechasTurnoInvalidas,
+  turnoInexistente,
+  turnoNoCancelable,
+} from "../entities/turnoErrors.js";
+import { finDelDiaEnChile, instanteEnChile, rangoDeSemanaEnChile } from "./horarioChile.js";
 import { hayCupos, plazoVencido, turnoYaComenzo } from "./reglasTurnos.js";
 
 const DEPENDENCIAS_POR_DEFECTO = {
+  enTransaccion: ejecutarEnTransaccion,
+  buscarTurnoPorId,
+  cancelarTurnoEnBase,
+  cancelarInscripcionesDeTurno,
+  listarInscripcionesActivasDeTurno,
+  registrarHistoriales,
   crearTurno,
+  listarInscripcionesDeTurno,
+  listarTurnosEntre,
   listarTurnosParaGestion,
   listarTurnosPublicados,
 };
@@ -16,7 +38,7 @@ const DEPENDENCIAS_POR_DEFECTO = {
 // Agrega al turno lo que la pantalla necesita para mostrarlo:
 // cuantos voluntarios hay inscritos y si todavia se puede inscribir alguien.
 
-function presentarTurno(turno, ahora) {
+export function presentarTurno(turno, ahora) {
   const inscripcionAbierta =
     turno.estado === "PUBLICADO" &&
     hayCupos(turno) &&
@@ -87,13 +109,54 @@ export async function publicarTurno(
   return presentarTurno(turno, ahora);
 }
 
+// Vista de la encargada. Con `semana` (su lunes) entrega los turnos de esa semana
+// en hora de Chile, tambien de semanas pasadas: ese es su historial. Sin semana
+// entrega todos. Cada turno dice ademas si ya comenzo, para pintarlo gris.
 export async function obtenerTurnosGestion(
+  { semana } = {},
   dependencias = DEPENDENCIAS_POR_DEFECTO,
   ahora = new Date(),
 ) {
-  const turnos = await dependencias.listarTurnosParaGestion();
+  let rango = null;
+  let turnos;
 
-  return turnos.map((turno) => presentarTurno(turno, ahora));
+  if (semana) {
+    rango = rangoDeSemanaEnChile(semana);
+
+    if (!rango) {
+      throw fechasTurnoInvalidas("La semana indicada no es valida");
+    }
+
+    turnos = await dependencias.listarTurnosEntre(rango.inicio, rango.fin);
+  } else {
+    turnos = await dependencias.listarTurnosParaGestion();
+  }
+
+  return {
+    semana: rango ? { desde: rango.desde, hasta: rango.hasta } : null,
+    turnos: turnos.map((turno) => ({
+      ...presentarTurno(turno, ahora),
+      yaComenzo: turnoYaComenzo(turno, ahora),
+    })),
+  };
+}
+
+// "Ver inscritos" de la encargada: el turno y sus inscripciones, activas y
+// canceladas, con el contacto de cada voluntario. Si el turno no existe, 404.
+export async function obtenerInscritosDeTurno(
+  { id },
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+  ahora = new Date(),
+) {
+  const turno = await dependencias.buscarTurnoPorId(id);
+
+  if (!turno) {
+    throw turnoInexistente(id);
+  }
+
+  const inscripciones = await dependencias.listarInscripcionesDeTurno(id);
+
+  return { turno: presentarTurno(turno, ahora), inscripciones };
 }
 
 export async function obtenerTurnosDisponibles(
@@ -103,4 +166,64 @@ export async function obtenerTurnosDisponibles(
   const turnos = await dependencias.listarTurnosPublicados(ahora);
 
   return turnos.map((turno) => presentarTurno(turno, ahora));
+}
+
+// La encargada cancela un turno (por ejemplo, por lluvia). El turno no se borra:
+// pasa a CANCELADO con su motivo, quien lo cancelo y cuando. Todo en una
+// transaccion: el turno, sus inscripciones activas (que pasan a CANCELADA) y una
+// fila de historial por cada una, o no se guarda nada. Devuelve el turno y las
+// inscripciones que se cancelaron (con el voluntario, para avisarles).
+export async function cancelarTurno(
+  { id },
+  { motivo },
+  usuario,
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+  ahora = new Date(),
+) {
+  const turno = await dependencias.buscarTurnoPorId(id);
+
+  if (!turno) {
+    throw turnoInexistente(id);
+  }
+
+  if (turno.estado === "CANCELADO") {
+    throw turnoNoCancelable("Este turno ya estaba cancelado");
+  }
+
+  if (turnoYaComenzo(turno, ahora)) {
+    throw turnoNoCancelable("Este turno ya comenzo y no se puede cancelar");
+  }
+
+  return dependencias.enTransaccion(async (tx) => {
+    // Primero el turno: al actualizarlo queda bloqueado, asi una inscripcion que
+    // llegue al mismo tiempo espera y despues ya lo encuentra cancelado.
+    const cancelado = await dependencias.cancelarTurnoEnBase(
+      id,
+      { motivo, canceladoPorId: usuario.id, canceladoEn: ahora },
+      tx,
+    );
+
+    if (!cancelado) {
+      throw turnoNoCancelable("El turno cambio mientras lo cancelabas, vuelve a cargarlo");
+    }
+
+    const activas = await dependencias.listarInscripcionesActivasDeTurno(id, tx);
+
+    await dependencias.cancelarInscripcionesDeTurno(id, ahora, tx);
+
+    await dependencias.registrarHistoriales(
+      activas.map((inscripcion) => ({
+        inscripcionId: inscripcion.id,
+        accion: "CANCELACION",
+        turnoId: id,
+        detalle: `Turno cancelado por el refugio: ${motivo}`,
+        realizadoPorId: usuario.id,
+      })),
+      tx,
+    );
+
+    const actualizado = await dependencias.buscarTurnoPorId(id, tx);
+
+    return { turno: presentarTurno(actualizado, ahora), inscripciones: activas };
+  });
 }

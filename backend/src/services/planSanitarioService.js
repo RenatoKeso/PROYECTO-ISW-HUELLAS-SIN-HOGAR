@@ -38,6 +38,32 @@ export function crearServicioPlanSanitario({
   transaccion = ejecutarEnTransaccion,
 } = {}) {
   return {
+        async agenda({ mes }) {
+      const desde = new Date(mes + "-01T00:00:00.000Z");
+      const hasta = new Date(desde);
+      hasta.setUTCMonth(hasta.getUTCMonth() + 1, 0);
+
+      const filas = await repos.listarAgendaMes(desde, hasta);
+
+      return {
+        mes,
+        atenciones: filas.map(({ tipo, fechaProgramada, fichaAnimal }) => ({
+          tipo,
+          fechaProgramada: fechaProgramada.toISOString().slice(0, 10),
+          nombreAnimal: fichaAnimal.nombre,
+        })),
+      };
+    },
+
+    async buscarAnimales({ nombre, pagina }) {
+      const porPagina = 6;
+      const animales = await repos.buscarAnimalesPorNombre(nombre, pagina, porPagina);
+
+      return {
+        animales: animales.slice(0, porPagina),
+        hayMas: animales.length > porPagina,
+      };
+    },
     async consultar(codigo) {
       codigo = codigoPlanSchema.parse({ codigo }).codigo;
 
@@ -165,3 +191,5 @@ export function crearServicioPlanSanitario({
 }
 
 export default crearServicioPlanSanitario();
+
+//

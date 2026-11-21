@@ -3,6 +3,7 @@ import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
 import { 
     generarReporteDevoluciones,
     obtenerReportesDevolucion,
+    generarPdfReporte,
 } from "../services/reporteDevolucionService.js";
 
 export async function generarReporte(request, response) {
@@ -26,4 +27,13 @@ export async function listarReportes(request, response) {
     mensaje: "¡Listo! Reportes de devoluciones obtenidos correctamente",
     datos: { reportes },
   });
+}
+
+export async function descargarPdf(request, response) {
+  const id = Number(request.params.id);
+  const pdf = await generarPdfReporte(id);
+
+  response.setHeader("Content-Type", "application/pdf");
+  response.setHeader("Content-Disposition", `attachment; filename="reporte-devoluciones-${id}.pdf"`);
+  return response.send(pdf);
 }

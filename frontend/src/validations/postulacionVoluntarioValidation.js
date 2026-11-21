@@ -20,12 +20,20 @@ export const OPCIONES_HABILIDADES = [
   { valor: "OTRA", texto: " Otra" },
 ];
 
+const SOLO_LETRAS = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü' -]+$/;
+
 const vacioAUndefined = (valor) =>
   typeof valor !== "string" || valor.trim() === "" ? undefined : valor;
 
 export const postulacionVoluntarioFormSchema = z
   .strictObject({
-    nombre: z.string().trim().min(1, "El nombre es obligatorio").max(255, "El nombre es demasiado largo"),
+    nombre: z
+      .string()
+      .trim()
+      .min(1, "El nombre es obligatorio")
+      .min(3, "El nombre debe tener al menos 3 letras")
+      .max(255, "El nombre es demasiado largo")
+      .regex(SOLO_LETRAS, "El nombre solo puede tener letras"),
     email: z.string().trim().min(1, "El correo es obligatorio").pipe(z.email("El correo no es válido")),
     telefono: z
       .string()
@@ -33,17 +41,30 @@ export const postulacionVoluntarioFormSchema = z
       .min(1, "El teléfono es obligatorio")
       .transform((valor) => valor.replace(/\s/g, ""))
       .pipe(z.string().regex(/^\+?\d{8,12}$/, "El teléfono debe tener entre 8 y 12 dígitos")),
+     codigo: z
+      .string()
+      .trim()
+      .min(1, "Pide el código y escríbelo aquí")
+      .regex(/^\d{6}$/, "El código debe tener 6 números"),
     diasDisponibles: z.array(z.string()).min(1, "Elige al menos un día"),
     motivacion: z
       .string()
       .trim()
       .min(1, "Cuéntanos por qué quieres ser voluntario")
+      .min(20, "Cuéntanos un poco más (mínimo 20 caracteres)")
       .max(1000, "La motivación puede tener máximo 1000 caracteres"),
     habilidades: z.array(z.string()).min(1, "Elige al menos una habilidad"),
     otraHabilidad: z.preprocess(
       vacioAUndefined,
-      z.string().trim().max(255, "La otra habilidad es demasiado larga").optional(),
+    z
+     .string()
+     .trim()
+      .max(255, "La otra habilidad es demasiado larga")
+      .regex(SOLO_LETRAS, "La otra habilidad solo puede tener letras")
+      .optional(),
     ),
+    curriculumNombre: z.preprocess(vacioAUndefined, z.string().optional()),
+    curriculumBase64: z.preprocess(vacioAUndefined, z.string().optional()),
   })
   .refine((datos) => !datos.habilidades.includes("OTRA") || datos.otraHabilidad, {
     message: "Si eliges Otra, escribe cuál es tu habilidad",

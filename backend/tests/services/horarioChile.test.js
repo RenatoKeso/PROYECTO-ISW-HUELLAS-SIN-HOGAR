@@ -4,6 +4,7 @@ import {
   instanteEnChile,
   finDelDiaEnChile,
   fechaYHoraEnChile,
+  rangoDeSemanaEnChile,
 } from "../../src/services/horarioChile.js";
 
 const iso = (fecha) => fecha?.toISOString() ?? null;
@@ -120,4 +121,39 @@ test("el fin del dia rechaza fechas que no existen", () => {
     iso(finDelDiaEnChile("2028-02-29")),
     "2028-03-01T02:59:59.999Z"
   );
+});
+
+test("una semana de verano va del lunes 00:00 al domingo 23:59:59.999 de Chile", () => {
+  const rango = rangoDeSemanaEnChile("2026-11-16");
+
+  assert.equal(rango.desde, "2026-11-16");
+  assert.equal(rango.hasta, "2026-11-22");
+  assert.equal(iso(rango.inicio), "2026-11-16T03:00:00.000Z");
+  assert.equal(iso(rango.fin), "2026-11-23T02:59:59.999Z");
+});
+
+test("una semana de invierno usa el desfase de 4 horas", () => {
+  const rango = rangoDeSemanaEnChile("2026-07-13");
+
+  assert.equal(iso(rango.inicio), "2026-07-13T04:00:00.000Z");
+  assert.equal(iso(rango.fin), "2026-07-20T03:59:59.999Z");
+});
+
+test("la semana del cambio de horario empieza en invierno y termina en verano", () => {
+  // El domingo 6 de septiembre de 2026 Chile adelanta el reloj una hora.
+  const rango = rangoDeSemanaEnChile("2026-08-31");
+
+  assert.equal(rango.hasta, "2026-09-06");
+  assert.equal(iso(rango.inicio), "2026-08-31T04:00:00.000Z");
+  assert.equal(iso(rango.fin), "2026-09-07T02:59:59.999Z");
+});
+
+test("una semana que cruza de mes o de anio calcula bien el domingo", () => {
+  assert.equal(rangoDeSemanaEnChile("2026-11-30").hasta, "2026-12-06");
+  assert.equal(rangoDeSemanaEnChile("2026-12-28").hasta, "2027-01-03");
+});
+
+test("una fecha que no existe no tiene semana", () => {
+  assert.equal(rangoDeSemanaEnChile("2026-02-30"), null);
+  assert.equal(rangoDeSemanaEnChile("16-11-2026"), null);
 });

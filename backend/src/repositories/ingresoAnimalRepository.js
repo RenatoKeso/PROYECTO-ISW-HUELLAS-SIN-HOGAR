@@ -28,6 +28,8 @@ export async function listarIngresosAnimales(cliente = prisma) {
           id: true,
           codigoAnimal: true,
           nombre: true,
+          especie: true,
+          raza: true,
         },
       },
       receptor: {

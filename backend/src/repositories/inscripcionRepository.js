@@ -54,6 +54,53 @@ export async function registrarHistorial(data, cliente = prisma) {
   return cliente.historialInscripcion.create({ data });
 }
 
+// Inscripciones activas de un turno, con el contacto del voluntario. Se usan al
+// cancelar el turno (y para avisarles por correo).
+export async function listarInscripcionesActivasDeTurno(turnoId, cliente = prisma) {
+  return cliente.inscripcionTurno.findMany({
+    where: { turnoId, estado: "ACTIVA" },
+    select: {
+      id: true,
+      voluntario: { select: { id: true, nombre: true, email: true } },
+    },
+  });
+}
+
+// Cancela de una vez todas las inscripciones activas de un turno.
+export async function cancelarInscripcionesDeTurno(turnoId, canceladaEn, cliente = prisma) {
+  const { count } = await cliente.inscripcionTurno.updateMany({
+    where: { turnoId, estado: "ACTIVA" },
+    data: { estado: "CANCELADA", canceladaEn },
+  });
+
+  return count;
+}
+
+// Guarda varias filas del historial en una sola consulta.
+export async function registrarHistoriales(filas, cliente = prisma) {
+  if (filas.length === 0) return 0;
+
+  const { count } = await cliente.historialInscripcion.createMany({ data: filas });
+
+  return count;
+}
+
+// Todas las inscripciones de un turno, activas y canceladas, con los datos de
+// contacto del voluntario. Las mas antiguas primero (orden de llegada).
+export async function listarInscripcionesDeTurno(turnoId, cliente = prisma) {
+  return cliente.inscripcionTurno.findMany({
+    where: { turnoId },
+    select: {
+      id: true,
+      estado: true,
+      createdAt: true,
+      canceladaEn: true,
+      voluntario: { select: { id: true, nombre: true, email: true, telefono: true } },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
 // Inscripciones del voluntario, opcionalmente filtradas por estado, con su turno.
 // Las mas recientes primero.
 export async function listarInscripcionesDeVoluntario(voluntarioId, estado, cliente = prisma) {

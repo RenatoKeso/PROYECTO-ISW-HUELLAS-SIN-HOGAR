@@ -67,3 +67,201 @@ background: #f8ddd5;
 color: var(--verde);
 background: #dcebdc;
 }
+
+.alertas-sanitarias {
+  --borde-agenda: #d4cfbf;
+  max-width: 68rem;
+  margin-inline: auto;
+}
+
+.alertas-sanitarias h2 { margin-bottom: 1rem; }
+
+.salud-vistas, .salud-controles, .salud-paginas {
+display: flex;
+flex-wrap: wrap;
+align-items: center;
+gap: .5rem;
+}
+
+.salud-vistas { margin: 0 0 1rem; }
+
+.salud-vistas button, .salud-controles button, .salud-paginas button {
+border: 1px solid var(--borde-agenda);
+border-radius: 2rem;
+background: var(--blanco-calido);
+color: var(--verde);
+padding: .55rem 1rem;
+cursor: pointer;
+font: inherit;
+}
+
+.salud-vistas button[aria-pressed="true"] {
+background: var(--verde);
+color: white;
+}
+
+.salud-paginas {
+justify-content: center;
+padding-block: .7rem;
+font-size: .9rem;
+}
+
+.salud-paginas button:disabled {
+opacity: .5;
+cursor: default;
+}
+
+.salud-panel {
+background: var(--blanco-calido);
+border: 1px solid var(--borde-agenda);
+padding: clamp(.8rem, 2.5vw, 1.7rem);
+border-radius: 1.3rem;
+}
+
+.salud-mes {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: .5rem;
+flex-wrap: wrap;
+margin-bottom: 1.25rem;
+}
+
+.salud-mes h3, .salud-dia h4 {
+margin: 0;
+font-family: var(--serif);
+color: var(--verde);
+}
+
+.salud-mes h3 { font-size: 1.6rem; }
+
+.salud-mes h3::first-letter, .salud-dia h4::first-letter {
+text-transform: uppercase;
+}
+
+.salud-agenda {
+display: grid;
+grid-template-columns: minmax(0, 1.6fr) minmax(13rem, 1fr);
+gap: 1.25rem;
+align-items: start;
+}
+
+.salud-cuadricula {
+display: grid;
+grid-template-columns: repeat(7, minmax(0, 1fr));
+gap: .25rem;
+}
+
+.salud-semana {
+text-align: center;
+color: var(--texto-suave);
+font-size: .8rem;
+padding-bottom: .45rem;
+}
+
+.salud-cuadricula button {
+position: relative;
+min-height: 3.15rem;
+border: 1px solid var(--borde-agenda);
+border-radius: .5rem;
+background: transparent;
+color: var(--texto);
+font: inherit;
+cursor: pointer;
+}
+
+.salud-cuadricula button[aria-current="date"] {
+border: 2px solid var(--verde);
+}
+
+.salud-cuadricula button[aria-pressed="true"] {
+background: var(--verde);
+color: white;
+}
+
+.salud-cuadricula small {
+position: absolute;
+right: .15rem;
+bottom: .1rem;
+padding: 0 .25rem;
+border-radius: 1rem;
+font-size: .65rem;
+background: #e0e8cc;
+color: #33482b;
+}
+
+.salud-dia {
+min-width: 0;
+padding: 1rem;
+border-radius: .8rem;
+background: var(--crema-claro);
+}
+
+.salud-dia h4 { font-size: 1.15rem; }
+
+.salud-dia ul, .salud-coincidencias {
+list-style: none;
+padding: 0;
+margin: .65rem 0;
+}
+
+.salud-dia li, .salud-coincidencias li {
+padding: .45rem 0;
+border-bottom: 1px solid var(--borde-agenda);
+overflow-wrap: anywhere;
+}
+
+.salud-dia li span, .salud-coincidencias small {
+display: block;
+color: var(--texto-suave);
+}
+
+.salud-coincidencias li {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 1rem;
+}
+
+.alertas-sanitarias .formulario { padding: 1rem; }
+.alertas-sanitarias .tarjeta .formulario { box-shadow: none; }
+.alertas-sanitarias .formulario::after { display: none; }
+
+.alertas-sanitarias input, .alertas-sanitarias select, .alertas-sanitarias textarea {
+font: inherit;
+max-width: 100%;
+}
+
+.alertas-sanitarias input:not([type="number"]):not([type="date"]) {
+border: 1px solid var(--borde-agenda);
+border-radius: .5rem;
+padding: .55rem;
+margin: .25rem .65rem;
+}
+
+@media (max-width: 680px) {
+.salud-agenda { grid-template-columns: minmax(0, 1fr); }
+.salud-cuadricula button { min-height: 2.8rem; }
+.salud-vistas button { padding: .5rem .65rem; }
+}
+
+.salud-busqueda .alertas-fieldset {
+display: flex;
+align-items: end;
+flex-wrap: wrap;
+gap: .75rem;
+}
+
+.salud-busqueda label {
+flex: 1 1 13rem;
+display: grid;
+gap: .3rem;
+}
+
+.salud-busqueda .alertas-fieldset input {
+width: 100%;
+margin: 0;
+box-sizing: border-box;
+}
+
+.salud-busqueda .alertas-fieldset .boton { margin: 0; }

@@ -10,6 +10,7 @@ import {
   turnoSinCupos,
   horarioSolapado,
   fechasTurnoInvalidas,
+  turnoNoCancelable,
   esErrorTurno,
 } from "../../src/entities/turnoErrors.js";
 
@@ -81,4 +82,12 @@ test("un error desconocido sigue respondiendo 500 sin exponer el detalle", () =>
   } finally {
     console.error = original;
   }
+});
+
+test("un turno que no se puede cancelar se responde 409 con su detalle", () => {
+  const respuesta = responder(turnoNoCancelable("Este turno ya estaba cancelado"));
+
+  assert.equal(respuesta.estado, 409);
+  assert.equal(respuesta.cuerpo.code, "TURNO_NO_CANCELABLE");
+  assert.equal(respuesta.cuerpo.message, "Este turno ya estaba cancelado");
 });

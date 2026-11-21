@@ -2,6 +2,7 @@ import { z } from "zod";
 import { api } from "./api.js";
 import {
   actualizacionResponseSchema,
+  actualizacionesMedicasResponseSchema,
   historialMedicoResponseSchema,
   registroMedicoResponseSchema,
   registroMedicoSchema,
@@ -110,6 +111,13 @@ export function cancelarActualizacion(id) {
         respuesta,
       ),
     );
+}
+
+export async function listarActualizacionesMedicas() {
+  return validarRespuesta(
+    actualizacionesMedicasResponseSchema,
+    await api.get("/registros-medicos/actualizaciones"),
+  );
 }
 
 export async function listarHistorialMedico(id) {

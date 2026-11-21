@@ -11,6 +11,7 @@ export const CODIGO_ERROR_TURNO = {
   INSCRIPCION_NO_ACTIVA: "INSCRIPCION_NO_ACTIVA",
   MISMO_TURNO: "MISMO_TURNO",
   FECHAS_TURNO_INVALIDAS: "FECHAS_TURNO_INVALIDAS",
+  TURNO_NO_CANCELABLE: "TURNO_NO_CANCELABLE",
 };
 
 const ESTADO_HTTP_POR_CODIGO = {
@@ -26,6 +27,7 @@ const ESTADO_HTTP_POR_CODIGO = {
   [CODIGO_ERROR_TURNO.INSCRIPCION_NO_ACTIVA]: 409,
   [CODIGO_ERROR_TURNO.MISMO_TURNO]: 409,
   [CODIGO_ERROR_TURNO.FECHAS_TURNO_INVALIDAS]: 400,
+  [CODIGO_ERROR_TURNO.TURNO_NO_CANCELABLE]: 409,
 };
 
 // Error de una regla del modulo de turnos y voluntariado. El manejador central
@@ -127,4 +129,25 @@ export function fechasTurnoInvalidas(detalle) {
     CODIGO_ERROR_TURNO.FECHAS_TURNO_INVALIDAS,
     detalle,
   );
+}
+
+// La encargada no puede cancelar el turno: ya estaba cancelado, ya comenzo o
+// cambio mientras lo cancelaba. `detalle` dice cual de esos casos fue.
+export function turnoNoCancelable(detalle) {
+  return new TurnoError(CODIGO_ERROR_TURNO.TURNO_NO_CANCELABLE, detalle);
+}
+
+// El error que corresponde a cada motivo de evaluarDisponibilidad (reglasTurnos.js).
+// Lo usa la inscripcion para rechazar y el calendario para explicar el motivo.
+const ERROR_POR_MOTIVO = {
+  CANCELADO: turnoCancelado,
+  YA_COMENZO: turnoYaComenzado,
+  PLAZO_VENCIDO: plazoInscripcionVencido,
+  YA_INSCRITO: inscripcionDuplicada,
+  SIN_CUPOS: turnoSinCupos,
+  SOLAPE: horarioSolapado,
+};
+
+export function errorDeDisponibilidad(motivo) {
+  return ERROR_POR_MOTIVO[motivo]();
 }

@@ -3,6 +3,7 @@ import {
   listarPostulacionesVoluntario,
   revisarPostulacionVoluntario,
   deshacerRevisionPostulacionVoluntario,
+  verCurriculumPostulacion,
 } from "../services/postulacionVoluntarioService.js";
 import {
   OPCIONES_DIAS,
@@ -46,6 +47,10 @@ function TarjetaPostulacion({ postulacion, alRevisar, alDeshacer }) {
   async function revisar(decision) {
     if (decision === "RECHAZADA" && !motivo.trim()) {
       setError("Para rechazar tienes que escribir el motivo");
+      return;
+    }
+    if (decision === "RECHAZADA" && motivo.trim().length < 10) {
+      setError("El motivo debe tener al menos 10 caracteres");
       return;
     }
 
@@ -109,6 +114,17 @@ function TarjetaPostulacion({ postulacion, alRevisar, alDeshacer }) {
       </div>
 
       <p className="motivacion">"{postulacion.motivacion}"</p>
+            {postulacion.curriculumNombre && (
+        <button
+          type="button"
+          className="boton boton-secundario"
+          onClick={() =>
+            verCurriculumPostulacion(postulacion.id).catch((errorCv) => setError(errorCv.message))
+          }
+        >
+          📄 Ver currículum
+        </button>
+      )}
       <p className="texto-suave">Postuló el {formatearFecha(postulacion.createdAt)}</p>
 
       {postulacion.estado === "EN_REVISION" ? (

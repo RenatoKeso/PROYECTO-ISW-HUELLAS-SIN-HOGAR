@@ -287,3 +287,24 @@
     grid-template-columns: 1fr;
   }
 }
+
+.registro-animales .fichas-registradas,
+.registro-animales .historial-global {
+  margin-top: 0;
+}
+
+.registro-volver {
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+  text-decoration: none;
+}
+
+.registro-volver:hover {
+  color: var(--verde);
+  text-decoration: underline;
+}
+
+

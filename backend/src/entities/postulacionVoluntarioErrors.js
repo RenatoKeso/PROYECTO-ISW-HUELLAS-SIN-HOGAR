@@ -54,3 +54,35 @@ export function voluntarioConActividad() {
     409,
   );
 }
+
+export function curriculumNoEsPdf() {
+  return new PostulacionVoluntarioError(
+    "CURRICULUM_INVALIDO",
+    "El currículum debe ser un archivo PDF",
+    400,
+  );
+}
+
+export function curriculumNoEncontrado() {
+  return new PostulacionVoluntarioError(
+    "CURRICULUM_INEXISTENTE",
+    "Esta postulación no tiene currículum",
+    404,
+  );
+}
+
+export function correoNoExiste() {
+  return new PostulacionVoluntarioError(
+    "CORREO_NO_EXISTE",
+    "El correo no existe. Revisa que esté bien escrito (por ejemplo: gmail.com)",
+    400,
+  );
+}
+
+export function codigoInvalido() {
+  return new PostulacionVoluntarioError(
+    "CODIGO_INVALIDO",
+    "El código no es correcto o ya expiró. Pide uno nuevo",
+    400,
+  );
+}

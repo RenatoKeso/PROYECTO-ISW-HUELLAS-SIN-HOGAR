@@ -1,195 +1,72 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import RegistroPage from "../../src/pages/RegistroPage.jsx";
-import { listarFichas, listarIngresosFicha, listarIngresosGlobales } from "../../src/services/animalesService.js";
-import { listarVoluntarios } from "../../src/services/voluntariosService.js";
+import {
+  listarFichas,
+  listarIngresosGlobales,
+} from "../../src/services/animalesService.js";
 
 vi.mock("../../src/services/animalesService.js", () => ({
-  crearFicha: vi.fn(),
-  crearFichaConImagen: vi.fn(),
   listarFichas: vi.fn(),
-  listarIngresosFicha: vi.fn(),
   listarIngresosGlobales: vi.fn(),
-  quitarImagenFicha: vi.fn(),
-  registrarIngreso: vi.fn(),
-  subirImagenFicha: vi.fn(),
 }));
 
-vi.mock("../../src/services/voluntariosService.js", () => ({
-  listarVoluntarios: vi.fn(),
-}));
-
-const ficha = {
-  id: 1,
-  codigoAnimal: "anim-001",
-  nombre: "Gretel",
-  especie: "PERRO",
-  sexoAnimal: "HEMBRA",
-  observaciones: "Sociable con otros perros.",
-  imagenUrl: "/uploads/animales/gretel.png",
-};
+function renderPage() {
+  render(
+    <MemoryRouter>
+      <RegistroPage />
+    </MemoryRouter>,
+  );
+}
 
 describe("RegistroPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    listarFichas.mockResolvedValue({ fichas: [ficha] });
-    listarVoluntarios.mockResolvedValue({ voluntarios: [] });
+    listarFichas.mockResolvedValue({ fichas: [] });
     listarIngresosGlobales.mockResolvedValue({ ingresos: [] });
-
-    listarIngresosFicha.mockResolvedValue({
-      ficha,
-      ingresos: [
-        {
-          id: 3,
-          tipo: "INGRESO",
-          fechaIngreso: "2026-11-03T10:00:00.000Z",
-          procedencia: "Hallazgo en via publica",
-          receptor: { id: 2, nombre: "Ana" },
-          ubicacionEncontrado: "Av. Central",
-          estadoSalud: "En observacion",
-        },
-        {
-          id: 8,
-          tipo: "REINGRESO",
-          fechaIngreso: "2026-11-04T10:00:00.000Z",
-          procedencia: "Devolucion",
-          receptor: { id: 3, nombre: "Luis" },
-          ubicacionEncontrado: null,
-          estadoSalud: null,
-        },
-      ],
-    });
   });
 
-  test("muestra las observaciones en una ventana", async () => {
-    render(<RegistroPage />);
-
-    fireEvent.click(
-      await screen.findByRole("button", { name: "Observaciones" }),
-    );
-
-    const ventana = screen.getByRole("dialog", {
-      name: "Observaciones de Gretel",
-    });
+  test("muestra el encabezado y las cuatro acciones del registro de animales", async () => {
+    renderPage();
 
     expect(
-      within(ventana).getByText("Sociable con otros perros."),
+      screen.getByRole("heading", { level: 1, name: "Registro de animales" }),
     ).toBeInTheDocument();
-
-    fireEvent.click(
-      within(ventana).getByRole("button", { name: "Cerrar ventana" }),
-    );
-
-    await waitFor(() => {
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    });
-  });
-
-  test("amplía la imagen de la ficha y cierra con Escape", async () => {
-    render(<RegistroPage />);
-
-    fireEvent.click(
-      await screen.findByRole("button", {
-        name: "Ampliar imagen de Gretel",
-      }),
-    );
-
-    const ventana = screen.getByRole("dialog", {
-      name: "Imagen ampliada de Gretel",
-    });
-
+    expect(screen.getByText("Módulo Operativo")).toBeInTheDocument();
     expect(
-      within(ventana).getByRole("img", { name: "Imagen de Gretel" }),
-    ).toHaveAttribute(
-      "src",
-      expect.stringMatching(/\/uploads\/animales\/gretel\.png$/),
-    );
+      screen.getByRole("link", { name: /Registrar ficha de animal/i }),
+    ).toHaveAttribute("href", "/registro/ficha");
+    expect(
+      screen.getByRole("link", { name: /Registrar ingreso de animal/i }),
+    ).toHaveAttribute("href", "/registro/ingreso");
+    expect(
+      screen.getByRole("link", { name: /Lista de fichas/i }),
+    ).toHaveAttribute("href", "/registro/fichas");
+    expect(
+      screen.getByRole("link", { name: /Historial de ingresos/i }),
+    ).toHaveAttribute("href", "/registro/historial");
 
-    fireEvent.keyDown(document, { key: "Escape" });
-
-    await waitFor(() => {
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    });
+    expect(await screen.findAllByText("0")).toHaveLength(2);
   });
 
-  test("filtra fichas por nombre y muestra su código", async () => {
-    render(<RegistroPage />);
-
-    await screen.findByText("Gretel");
-
-    fireEvent.change(screen.getByLabelText("Nombre del animal", { selector: "#busquedaFichaNombre" }), {
-      target: { value: "gret" },
-    });
-
-    expect(screen.getByText("anim-001")).toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText("Nombre del animal", { selector: "#busquedaFichaNombre" }), {
-      target: { value: "no-existe" },
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByText("anim-001")).not.toBeInTheDocument();
-    });
-  });
-
-  test("abre el historial y muestra el tipo de ingreso", async () => {
-    render(<RegistroPage />);
-
-    fireEvent.click(await screen.findByRole("button", { name: "Historial" }));
-
-    await screen.findByText("Historial de ingresos de Gretel");
-
-    expect(screen.getByText("Ingreso")).toBeInTheDocument();
-    expect(screen.getByText("Reingreso")).toBeInTheDocument();
-  });
-
-  test("busca en el historial global por código y nombre", async () => {
+  test("muestra la cantidad de fichas y de ingresos existentes", async () => {
+    listarFichas.mockResolvedValue({ fichas: [{}, {}] });
     listarIngresosGlobales.mockResolvedValue({
-      ingresos: [
-        {
-          id: 38,
-          tipo: "INGRESO",
-          fechaIngreso: "2026-11-09T22:26:00.000Z",
-          procedencia: "via publica",
-          receptor: { id: 6, nombre: "Martina Concha" },
-          ubicacionEncontrado: "Av. Central",
-          estadoSalud: "Sano",
-          fichaAnimal: {
-            id: 52,
-            codigoAnimal: "anim-005",
-            nombre: "adolfo",
-          },
-        },
-      ],
+      ingresos: [{}, {}, {}],
     });
 
-    render(<RegistroPage />);
+    renderPage();
 
-    await screen.findByText("Historial de ingresos");
+    const bloqueFichas = screen
+      .getByText("Fichas existentes")
+      .closest(".registro-hub-contador");
+    const bloqueIngresos = screen
+      .getByText("Animales ingresados")
+      .closest(".registro-hub-contador");
 
-    fireEvent.change(
-      screen.getByLabelText("Código del animal", {
-        selector: "#busquedaHistorialCodigo",
-      }),
-      { target: { value: "anim-005" } },
-    );
-    fireEvent.change(
-      screen.getByLabelText("Nombre del animal", {
-        selector: "#busquedaHistorialNombre",
-      }),
-      { target: { value: "adolfo" } },
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Buscar" }));
-
-    await waitFor(() => {
-      expect(listarIngresosGlobales).toHaveBeenCalledWith({
-        codigo: "anim-005",
-        nombre: "adolfo",
-      });
-    });
-
-    await screen.findByText("adolfo");
-    expect(screen.getByText("anim-005")).toBeInTheDocument();
+    expect(await within(bloqueFichas).findByText("2")).toBeInTheDocument();
+    expect(await within(bloqueIngresos).findByText("3")).toBeInTheDocument();
   });
 });

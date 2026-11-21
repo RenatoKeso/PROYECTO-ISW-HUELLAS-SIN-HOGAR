@@ -1,8 +1,12 @@
+import { crearPdf } from "./pdfReporteDevolucion.js";
+import { reporteNoEncontrado } from "../entities/devolucionErrors.js";
 import {
   buscarDevolucionesPorFecha,
   guardarReporteDevolucion,
   listarReportesDevolucion,
+  buscarReportePorId,
 } from "../repositories/reporteDevolucionRepository.js";
+
 
 function finDelDia(fecha) {
   const fin = new Date(fecha);
@@ -81,4 +85,12 @@ export async function generarReporteDevoluciones({ fechaDesde, fechaHasta, gener
 
 export async function obtenerReportesDevolucion() {
   return listarReportesDevolucion();
+}
+
+export async function generarPdfReporte(id) {
+  const reporte = await buscarReportePorId(id);
+  if (!reporte) {
+    throw reporteNoEncontrado(id);
+  }
+  return crearPdf(reporte);
 }

@@ -1,0 +1,526 @@
+/* Calendario semanal de turnos (FullCalendar) con los colores del proyecto.
+ *
+ * Como se conecta: FullCalendar dibuja su grilla con variables CSS propias
+ * (--fc-...). Aqui se les asignan las variables de la paleta del proyecto
+ * (index.css). Los colores de cada turno salen de la clase que le pone
+ * aEventos() segun su estado: evento-inscrito, evento-disponible, etc.
+ */
+
+.turnos-calendario {
+  /* Colores de los estados. Se usan en los bloques, la leyenda y el panel. */
+  --turno-inscrito-fondo: var(--verde);
+  --turno-inscrito-texto: var(--crema-suave);
+  --turno-inscrito-borde: #46532f;
+
+  --turno-azul-fondo: #dce8f3;
+  --turno-azul-texto: #1f4a72;
+  --turno-azul-borde: #7ea6cc;
+  --turno-azul-solido: #3d78b0;
+
+  --turno-rojo-fondo: #f6dcd4;
+  --turno-rojo-texto: var(--terracota-oscuro);
+  --turno-rojo-borde: #d98c78;
+
+  --turno-pasado-fondo: #e4ded3;
+  --turno-pasado-texto: var(--texto-suave);
+  --turno-pasado-borde: #cfc6b6;
+}
+
+/* --- Encabezado, filtros y navegacion de semanas --- */
+
+.turnos-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.turnos-encabezado h2 {
+  margin: 0;
+}
+
+/* Filtros a la izquierda y leyenda a la derecha, alineados al centro. */
+.turnos-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+/* Voluntario: la leyenda arriba y los filtros abajo, justo sobre la grilla,
+   los dos alineados a la izquierda. column-reverse invierte el orden del HTML
+   (filtros, leyenda) sin tener que cambiar el JSX. */
+.vista-voluntario .turnos-barra {
+  flex-direction: column-reverse;
+  align-items: flex-start;
+}
+
+.vista-voluntario .turnos-barra .leyenda-turnos {
+  margin-left: 0;
+}
+
+
+/* La leyenda y los filtros tienen la misma altura, para que se vean parejos. */
+.turnos-barra .leyenda-turnos,
+.turnos-barra .pestanas-voluntariado {
+  box-sizing: border-box;
+  height: 48px;
+  margin: 0;
+  align-items: center;
+}
+
+/* margin-left: auto empuja la leyenda al borde derecho (el mismo de la grilla). */
+.turnos-barra .leyenda-turnos {
+  margin-left: auto;
+  padding: 0 1rem;
+  gap: 0.5rem 1.1rem;
+  font-size: 0.8rem;
+}
+
+.turnos-barra .pestana-voluntariado {
+  padding: 0.45rem 0.95rem;
+  line-height: 1.4;
+}
+
+.cuenta-filtro {
+  display: inline-block;
+  min-width: 1.4rem;
+  margin-left: 0.3rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: rgba(86, 100, 63, 0.14);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.pestana-voluntariado.activa .cuenta-filtro {
+  background: rgba(244, 236, 220, 0.25);
+}
+
+.turnos-semana {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.navegacion-semana {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* Ancho minimo: en las semanas normales las flechas no se mueven. */
+.titulo-semana {
+  min-width: 16rem;
+  padding: 0 0.4rem;
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  color: var(--cafe);
+  text-align: center;
+}
+
+.flecha-semana {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--blanco-dev);
+  color: var(--cafe);
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(85, 56, 32, 0.1);
+}
+
+.flecha-semana:hover {
+  background: var(--rosado);
+}
+
+/* --- Leyenda --- */
+
+/* El contorno (fondo, bordes redondeados y sombra) es el mismo de los filtros:
+   la leyenda tambien usa la clase pestanas-voluntariado. Aqui solo cambia lo de
+   adentro. */
+.leyenda-turnos {
+  gap: 0.6rem 1.4rem;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+.leyenda-turnos li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.punto-leyenda {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  border: 2px solid transparent;
+}
+
+.punto-leyenda.estado-turno-inscrito { background: var(--turno-inscrito-fondo); border-color: var(--turno-inscrito-borde); }
+.punto-leyenda.estado-turno-disponible,
+.punto-leyenda.estado-turno-con-cupos { background: var(--turno-azul-solido); border-color: var(--turno-azul-texto); }
+.punto-leyenda.estado-turno-no-disponible,
+.punto-leyenda.estado-turno-lleno { background: var(--terracota); border-color: var(--terracota-oscuro); }
+.punto-leyenda.estado-turno-pasado { background: #a89f90; border-color: #8a8172; }
+.punto-leyenda.estado-turno-cancelado { background: var(--blanco-dev); border: 2px dashed var(--texto-suave); }
+
+/* --- Grilla y panel --- */
+
+/* Dos columnas: filtros, leyenda y grilla a la izquierda; panel a la derecha. */
+.turnos-cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: start;
+  gap: 1rem 1.25rem;
+}
+
+.turnos-barra {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.turnos-grilla {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+}
+
+/* Encargada: el panel parte a la altura de los filtros y la leyenda. */
+.turnos-cuerpo .panel-turno {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+/* Voluntario: el panel parte a la altura de la grilla. */
+.vista-voluntario .panel-turno {
+  grid-row: 2;
+}
+
+/* En pantallas angostas todo va en una columna y el panel queda abajo. */
+@media (max-width: 900px) {
+  .turnos-cuerpo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .turnos-cuerpo .panel-turno,
+  .vista-voluntario .panel-turno {
+    grid-column: 1;
+    grid-row: 3;
+  }
+}
+
+.calendario-turnos {
+  overflow-x: auto;
+  padding: 0.75rem;
+  border-radius: 22px;
+  background: var(--blanco-dev);
+  box-shadow: 0 10px 30px rgba(85, 56, 32, 0.1);
+
+  /* Variables de FullCalendar -> paleta del proyecto. */
+  --fc-border-color: var(--borde);
+  --fc-page-bg-color: var(--blanco-dev);
+  --fc-neutral-bg-color: var(--crema-suave);
+  --fc-today-bg-color: rgba(214, 201, 174, 0.28);
+  --fc-now-indicator-color: var(--terracota);
+  --fc-small-font-size: 0.75rem;
+}
+
+/* En pantallas chicas la semana se desliza de lado en vez de apretarse. */
+.calendario-turnos .fc {
+  min-width: 620px;
+  font-family: var(--sans);
+  color: var(--texto);
+}
+
+.calendario-turnos .fc-col-header-cell-cushion {
+  padding: 0.4rem 0.2rem 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  text-decoration: none;
+}
+
+.calendario-turnos .fc-day-today .fc-col-header-cell-cushion {
+  color: var(--terracota);
+  font-weight: 600;
+}
+
+.calendario-turnos .fc-timegrid-slot-label-cushion {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--texto-suave);
+}
+
+.calendario-turnos .fc-timegrid-slot {
+  height: 1.9rem;
+}
+
+/* --- Bloques de turno: el color sale de su estado --- */
+
+.calendario-turnos .evento-turno {
+  border-radius: 10px;
+  border-width: 1.5px;
+  cursor: pointer;
+  /* FullCalendar pinta cada evento con estas variables. */
+  --fc-event-bg-color: var(--turno-azul-fondo);
+  --fc-event-border-color: var(--turno-azul-borde);
+  --fc-event-text-color: var(--turno-azul-texto);
+}
+
+.calendario-turnos .evento-turno:hover {
+  box-shadow: 0 6px 14px rgba(85, 56, 32, 0.18);
+}
+
+/* FullCalendar oscurece el bloque con foco; aqui se marca con el contorno. */
+.calendario-turnos .fc-event:focus::after {
+  background: none;
+}
+
+/* El texto que no cabe en un bloque angosto se corta en vez de salirse. */
+.calendario-turnos .fc-v-event .fc-event-main {
+  overflow: hidden;
+}
+
+.calendario-turnos .evento-turno:focus-visible,
+.calendario-turnos .evento-elegido {
+  outline: 3px solid var(--texto);
+  outline-offset: 1px;
+}
+
+.calendario-turnos .evento-inscrito {
+  --fc-event-bg-color: var(--turno-inscrito-fondo);
+  --fc-event-border-color: var(--turno-inscrito-borde);
+  --fc-event-text-color: var(--turno-inscrito-texto);
+}
+
+.calendario-turnos .evento-no-disponible,
+.calendario-turnos .evento-lleno {
+  --fc-event-bg-color: var(--turno-rojo-fondo);
+  --fc-event-border-color: var(--turno-rojo-borde);
+  --fc-event-text-color: var(--turno-rojo-texto);
+}
+
+.calendario-turnos .evento-pasado {
+  --fc-event-bg-color: var(--turno-pasado-fondo);
+  --fc-event-border-color: var(--turno-pasado-borde);
+  --fc-event-text-color: var(--turno-pasado-texto);
+}
+
+.calendario-turnos .evento-cancelado {
+  border-style: dashed;
+  --fc-event-bg-color: var(--crema-claro);
+  --fc-event-border-color: #a89f90;
+  --fc-event-text-color: var(--texto-suave);
+}
+
+.calendario-turnos .evento-cancelado strong {
+  text-decoration: line-through;
+}
+
+.evento-turno-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 3px 5px;
+  overflow: hidden;
+  font-size: 0.74rem;
+  line-height: 1.25;
+}
+
+.evento-turno-contenido strong {
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.evento-turno-hora {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  opacity: 0.85;
+}
+
+/* --- Panel de detalle --- */
+
+.panel-turno {
+  min-width: 0;
+  padding: 1.4rem 1.5rem;
+  border-radius: 22px;
+  background: var(--blanco-dev);
+  box-shadow: 0 10px 30px rgba(85, 56, 32, 0.1);
+}
+
+.panel-turno h3 {
+  margin: 0.6rem 0 0;
+  font-family: var(--serif);
+  color: var(--cafe);
+}
+
+.panel-turno h4 {
+  margin: 0.8rem 0 0.3rem;
+  color: var(--cafe);
+}
+
+.etiqueta-estado {
+  display: inline-block;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+}
+
+.etiqueta-estado.estado-turno-inscrito { background: var(--turno-inscrito-fondo); color: var(--turno-inscrito-texto); }
+.etiqueta-estado.estado-turno-disponible,
+.etiqueta-estado.estado-turno-con-cupos { background: var(--turno-azul-fondo); color: var(--turno-azul-texto); }
+.etiqueta-estado.estado-turno-no-disponible,
+.etiqueta-estado.estado-turno-lleno { background: var(--turno-rojo-fondo); color: var(--turno-rojo-texto); }
+.etiqueta-estado.estado-turno-pasado,
+.etiqueta-estado.estado-turno-cancelado { background: var(--turno-pasado-fondo); color: var(--turno-pasado-texto); }
+
+.aviso-turno {
+  margin: 1rem 0 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+.aviso-no-disponible { background: var(--turno-rojo-fondo); color: var(--turno-rojo-texto); }
+.aviso-pasado { background: var(--turno-pasado-fondo); color: var(--turno-pasado-texto); }
+.aviso-cancelado { background: var(--crema-claro); border: 1.5px dashed #a89f90; }
+.aviso-cambio { background: var(--crema-dev); border: 1.5px dashed var(--cafe); }
+
+.confirmacion-turno {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 14px;
+  background: var(--turno-rojo-fondo);
+  color: var(--turno-rojo-texto);
+}
+
+.confirmacion-turno p {
+  margin: 0;
+}
+
+.confirmacion-turno textarea {
+  font: inherit;
+  padding: 0.6rem 0.75rem;
+  border: 1.5px solid var(--turno-rojo-borde);
+  border-radius: 12px;
+  background: var(--blanco-dev);
+  color: var(--texto);
+}
+
+.lista-inscritos ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+}
+
+/* Botones de cancelar: rosados, y al pasar el mouse se llenan de terracota. */
+.boton-peligro {
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.1rem;
+  min-height: 40px;
+  background: var(--turno-rojo-fondo);
+  color: var(--turno-rojo-texto);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.boton-peligro:hover {
+  background: var(--terracota-oscuro);
+  color: var(--crema-suave);
+  transform: translateY(-1px);
+}
+
+.boton-peligro.fuerte {
+  background: var(--terracota-oscuro);
+  color: var(--crema-suave);
+}
+
+.boton-peligro.fuerte:hover {
+  background: #8a2f1d;
+}
+
+.boton-peligro:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.aviso-cambio-turno {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.7rem 1rem;
+  border-radius: 14px;
+  background: var(--blanco-dev);
+  border: 1.5px dashed var(--cafe);
+}
+
+/* --- Ventana "Agregar un nuevo turno" --- */
+
+.ventana-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 3rem 1rem;
+  overflow-y: auto;
+  background: rgba(42, 37, 32, 0.45);
+}
+
+.ventana-turno {
+  width: 100%;
+  max-width: 680px;
+  padding: 1.5rem 1.5rem 1rem;
+  border-radius: 22px;
+  background: var(--blanco-dev);
+  box-shadow: 0 20px 50px rgba(42, 37, 32, 0.3);
+}
+
+.ventana-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ventana-encabezado h2 {
+  margin: 0;
+}
+
+/* El formulario ya va dentro de la ventana: sin su propia tarjeta. */
+.ventana-turno .formulario {
+  padding: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.ventana-turno .formulario::after {
+  display: none;
+}
+
+
+/* La grilla necesita mas ancho que el resto del sitio. */
+.contenido:has(.turnos-calendario) {
+  max-width: 1360px;
+}
