@@ -32,6 +32,12 @@ export function useFormulario({
     });
   }
 
+  function reiniciar() {
+    setValores(resolverIniciales(iniciales));
+    setErrores({});
+    setMensaje(null);
+  }
+
   async function enviarFormulario(evento) {
     evento.preventDefault();
     setMensaje(null);
@@ -64,5 +70,5 @@ export function useFormulario({
     }
   }
 
-  return { valores, errores, mensaje, cambiar, enviarFormulario };
+  return { valores, errores, mensaje, cambiar, reiniciar, enviarFormulario };
 }

@@ -654,3 +654,108 @@ body {
     display: none;
   }
 }
+
+/* Formularios de registro de animales y registro médico */
+.registro-animales .campo,
+.registro-medico .campo {
+  gap: 0;
+  align-items: stretch;
+}
+
+.registro-animales .formulario-campos,
+.registro-medico .formulario-campos {
+  gap: 1.25rem;
+}
+
+.registro-animales .campo label,
+.registro-medico .campo label {
+  margin: 0 0 8px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: normal;
+  text-align: left;
+  text-transform: none;
+  color: #222222;
+}
+
+.registro-animales .campo input:not([type="file"]),
+.registro-animales .campo select,
+.registro-animales .campo textarea,
+.registro-medico .campo input:not([type="file"]),
+.registro-medico .campo select,
+.registro-medico .campo textarea {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #c9c9dd;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.4;
+  color: #1a1a1a;
+}
+
+.registro-animales .campo textarea,
+.registro-medico .campo textarea {
+  height: auto;
+  min-height: 96px;
+  padding: 12px 14px;
+  resize: vertical;
+}
+
+.registro-animales .campo input::placeholder,
+.registro-animales .campo textarea::placeholder,
+.registro-medico .campo input::placeholder,
+.registro-medico .campo textarea::placeholder {
+  color: #a0a0a0;
+  opacity: 1;
+}
+
+.registro-animales .campo input:not([type="file"]):focus,
+.registro-animales .campo select:focus,
+.registro-animales .campo textarea:focus,
+.registro-medico .campo input:not([type="file"]):focus,
+.registro-medico .campo select:focus,
+.registro-medico .campo textarea:focus {
+  outline: none;
+  border-color: #8f8fb5;
+  box-shadow: 0 0 0 3px rgba(143, 143, 181, 0.2);
+}
+
+.registro-animales .campo input[type="file"] {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #c9c9dd;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  font-family: var(--sans);
+  font-size: 14px;
+  color: #1a1a1a;
+}
+
+.registro-animales .campo-error,
+.registro-medico .campo-error {
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.registro-animales .campo-imagen,
+.registro-medico .campo-imagen {
+  align-items: flex-start;
+}
+
+.boton-agregar-imagen {
+  width: fit-content;
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
+.campo-imagen .campo-ayuda {
+  display: block;
+  margin-top: 6px;
+}

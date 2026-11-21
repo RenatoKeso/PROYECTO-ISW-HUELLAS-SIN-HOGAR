@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { Routes, Route, Link, NavLink, Navigate, matchPath, useLocation, } from "react-router-dom";
 import HomePage from "./pages/HomePage.jsx";
 import RegistroPage from "./pages/RegistroPage.jsx";
+import RegistroFichaPage from "./pages/RegistroFichaPage.jsx";
+import RegistroIngresoPage from "./pages/RegistroIngresoPage.jsx";
+import RegistroFichasPage from "./pages/RegistroFichasPage.jsx";
+import RegistroHistorialPage from "./pages/RegistroHistorialPage.jsx";
 import AlertasSanitariasPage from "./pages/AlertasSanitariasPage.jsx";
 import AdopcionPage from "./pages/AdopcionPage.jsx";
 import ReporteDevolucionesPage from "./pages/ReporteDevolucionesPage.jsx";
@@ -24,6 +28,10 @@ const TITULOS_POR_RUTA = {
   "/": "Inicio",
   "/login": "Iniciar sesión",
   "/registro": "Registro de animales",
+  "/registro/ficha": "Registrar ficha de animal",
+  "/registro/ingreso": "Registrar ingreso de animal",
+  "/registro/fichas": "Lista de fichas",
+  "/registro/historial": "Historial de ingresos",
   "/salud/alertas": "Alertas sanitarias",
   "/salud/registros-medicos": "Registro médico",
   "/adopcion": "Adopción",
@@ -140,7 +148,7 @@ function App() {
               <NavLink to="/adopcion" end>🐶 Adopción</NavLink>
 
               {puedeGestionarFichas(usuario) && (
-                <NavLink to="/registro">📝 Registro</NavLink>
+                <NavLink to="/registro">📝 Registro de animales</NavLink>
               )}
 
               {puedeConsultarAlertas(usuario) && (
@@ -221,6 +229,32 @@ function App() {
               <Route
                 path="/registro"
                 element={proteger(<RegistroPage />, puedeGestionarFichas)}
+              />
+
+              <Route
+                path="/registro/ficha"
+                element={proteger(<RegistroFichaPage />, puedeGestionarFichas)}
+              />
+
+              <Route
+                path="/registro/ingreso"
+                element={proteger(
+                  <RegistroIngresoPage />,
+                  puedeGestionarFichas
+                )}
+              />
+
+              <Route
+                path="/registro/fichas"
+                element={proteger(<RegistroFichasPage />, puedeGestionarFichas)}
+              />
+
+              <Route
+                path="/registro/historial"
+                element={proteger(
+                  <RegistroHistorialPage />,
+                  puedeGestionarFichas
+                )}
               />
 
               <Route

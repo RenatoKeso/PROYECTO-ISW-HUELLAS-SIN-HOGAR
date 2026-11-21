@@ -119,6 +119,7 @@ export default function RevisionFinalForm({ registro, onSubmit, bloqueado = fals
           nombre="condiciones"
           control="textarea"
           rows={2}
+          ancho
           valor={valores.condiciones}
           error={errores.condiciones}
           onChange={(evento) => cambiar("condiciones", evento.target.value)}
@@ -129,6 +130,7 @@ export default function RevisionFinalForm({ registro, onSubmit, bloqueado = fals
           nombre="discapacidades"
           control="textarea"
           rows={2}
+          ancho
           valor={valores.discapacidades}
           error={errores.discapacidades}
           onChange={(evento) => cambiar("discapacidades", evento.target.value)}
@@ -139,6 +141,7 @@ export default function RevisionFinalForm({ registro, onSubmit, bloqueado = fals
           nombre="lesiones"
           control="textarea"
           rows={2}
+          ancho
           valor={valores.lesiones}
           error={errores.lesiones}
           onChange={(evento) => cambiar("lesiones", evento.target.value)}

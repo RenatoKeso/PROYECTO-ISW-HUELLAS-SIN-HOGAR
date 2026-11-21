@@ -23,6 +23,8 @@ const fichaHistorialSchema = z.object({
   id: z.number().int().positive(),
   codigoAnimal: z.string(),
   nombre: z.string().nullable().optional(),
+  especie: z.string().nullable().optional(),
+  raza: z.string().nullable().optional(),
 });
 
 export const historialIngresosGlobalResponseSchema = z.object({
