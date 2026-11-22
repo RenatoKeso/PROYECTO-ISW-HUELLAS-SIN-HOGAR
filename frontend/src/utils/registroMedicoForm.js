@@ -9,6 +9,15 @@ function valorOUndefined(valor) {
   return valor;
 }
 
+// Los campos clínicos descriptivos son opcionales. En la primera revisión se
+// muestran con un texto explícito en vez de quedar vacíos.
+function textoConPredeterminado(valor, predeterminado = "sin detalles") {
+  if (typeof valor === "string") {
+    return valor.trim() ? valor : predeterminado;
+  }
+  return valor ?? predeterminado;
+}
+
 function filasCompletas(items, camposRequeridos) {
   return items.filter((item) =>
     camposRequeridos.every(
@@ -78,14 +87,16 @@ export function crearRevisionFinalInicial(registro) {
   return {
     pesoRevalidadoKg: registro?.revisionCompleta?.peso ?? registro?.pesoKg ?? "",
     estadoSalud: registro?.clasificacionSalud ?? "",
-    condiciones:
-      registro?.revisionCompleta?.descripcionCondicionMedica ?? "sin detalles",
-    discapacidades:
-      registro?.revisionCompleta?.discapacidades ?? "sin detalles",
-    lesiones: registro?.revisionCompleta?.lesiones ?? "sin detalles",
-    descripcionCuidadosEspeciales:
-      registro?.revisionCompleta?.descripcionCuidadosEspeciales ??
-      "sin detalles",
+    condiciones: textoConPredeterminado(
+      registro?.revisionCompleta?.descripcionCondicionMedica,
+    ),
+    discapacidades: textoConPredeterminado(
+      registro?.revisionCompleta?.discapacidades,
+    ),
+    lesiones: textoConPredeterminado(registro?.revisionCompleta?.lesiones),
+    descripcionCuidadosEspeciales: textoConPredeterminado(
+      registro?.revisionCompleta?.descripcionCuidadosEspeciales,
+    ),
     adoptabilidad: "",
     enfermedades: [],
     tratamientos: [],
@@ -133,19 +144,24 @@ export function crearActualizacionInicial(registro) {
   return {
     pesoKg: registro?.pesoKg ?? "",
     clasificacionSalud: registro?.clasificacionSalud ?? "",
-    observacionInicial: registro?.observacionInicial ?? "",
+    observacionInicial: textoConPredeterminado(registro?.observacionInicial),
     requiereCuarentena:
       registro?.requiereCuarentena === true
         ? "true"
         : registro?.requiereCuarentena === false
           ? "false"
           : "",
-    condiciones: registro?.revisionCompleta?.descripcionCondicionMedica ?? "",
-    discapacidades: registro?.revisionCompleta?.discapacidades ?? "",
-    lesiones: registro?.revisionCompleta?.lesiones ?? "",
-    descripcionCuidadosEspeciales:
-      registro?.revisionCompleta?.descripcionCuidadosEspeciales ?? "",
-    necesidades: "",
+    condiciones: textoConPredeterminado(
+      registro?.revisionCompleta?.descripcionCondicionMedica,
+    ),
+    discapacidades: textoConPredeterminado(
+      registro?.revisionCompleta?.discapacidades,
+    ),
+    lesiones: textoConPredeterminado(registro?.revisionCompleta?.lesiones),
+    descripcionCuidadosEspeciales: textoConPredeterminado(
+      registro?.revisionCompleta?.descripcionCuidadosEspeciales,
+    ),
+    necesidades: "sin detalles",
     observacionSeguimiento: "",
     evolucionEstadoSalud: "",
     fechaRegistro: "",

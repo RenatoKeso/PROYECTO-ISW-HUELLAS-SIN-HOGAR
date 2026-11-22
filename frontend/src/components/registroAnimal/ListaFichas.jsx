@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Mensaje from "../ui/Mensaje.jsx";
 import VentanaModal from "../ui/VentanaModal.jsx";
 import IconoGato from "./IconoGato.jsx";
@@ -54,6 +54,7 @@ function textoMeta(fichaAnimal) {
 
 export default function ListaFichas() {
   const navegar = useNavigate();
+  const [parametros, setParametros] = useSearchParams();
   const [fichas, setFichas] = useState([]);
   const [cargandoFichas, setCargandoFichas] = useState(true);
   const [errorFichas, setErrorFichas] = useState("");
@@ -87,8 +88,16 @@ export default function ListaFichas() {
     };
   }, []);
 
+  const fichaSolicitada = parametros.get("ficha");
+
   function cerrarVentana() {
     setVentana(null);
+
+    if (parametros.has("ficha")) {
+      const nuevos = new URLSearchParams(parametros);
+      nuevos.delete("ficha");
+      setParametros(nuevos, { replace: true });
+    }
   }
 
   function abrirImagen(fichaAnimal) {
@@ -175,7 +184,7 @@ export default function ListaFichas() {
       actualizarFichaEnLista(respuesta.ficha);
       setMensajeImagen({
         tipo: "exito",
-        texto: `Imagen de ${fichaAnimal.codigoAnimal} actualizada correctamente.`,
+        texto: `Imagen de ${nombreVisible(fichaAnimal)} actualizada correctamente.`,
       });
     } catch (errorSubida) {
       setMensajeImagen({ tipo: "error", texto: errorSubida.message });
@@ -193,7 +202,7 @@ export default function ListaFichas() {
       actualizarFichaEnLista(respuesta.ficha);
       setMensajeImagen({
         tipo: "exito",
-        texto: `Imagen de ${fichaAnimal.codigoAnimal} eliminada correctamente.`,
+        texto: `Imagen de ${nombreVisible(fichaAnimal)} eliminada correctamente.`,
       });
     } catch (errorQuitar) {
       setMensajeImagen({ tipo: "error", texto: errorQuitar.message });
@@ -271,7 +280,11 @@ export default function ListaFichas() {
     ventana?.tipo === "detalle"
       ? fichas.find((fichaAnimal) => fichaAnimal.id === ventana.ficha.id) ??
         ventana.ficha
-      : null;
+      : !ventana && fichaSolicitada
+        ? (fichas.find(
+            (fichaAnimal) => String(fichaAnimal.id) === fichaSolicitada,
+          ) ?? null)
+        : null;
 
   return (
     <>
@@ -535,6 +548,7 @@ export default function ListaFichas() {
                     <article
                       className="lista-fichas-tarjeta"
                       key={fichaAnimal.id}
+                      onClick={() => abrirDetalle(fichaAnimal)}
                     >
                       <div className="lista-fichas-tarjeta-media">
                         <span
@@ -557,7 +571,10 @@ export default function ListaFichas() {
                             <button
                               type="button"
                               className="lista-fichas-tarjeta-imagen-boton"
-                              onClick={() => abrirImagen(fichaAnimal)}
+                              onClick={(evento) => {
+                                evento.stopPropagation();
+                                abrirImagen(fichaAnimal);
+                              }}
                               aria-label={`Ampliar imagen de ${nombre}`}
                             >
                               <img
@@ -571,6 +588,7 @@ export default function ListaFichas() {
                               <label
                                 className="lista-fichas-media-accion"
                                 title="Cambiar imagen"
+                                onClick={(evento) => evento.stopPropagation()}
                               >
                                 <span
                                   className="material-symbols-outlined"
@@ -600,7 +618,10 @@ export default function ListaFichas() {
                                 type="button"
                                 className="lista-fichas-media-accion lista-fichas-media-accion-peligro"
                                 disabled={procesandoImagenId !== null}
-                                onClick={() => quitarImagen(fichaAnimal)}
+                                onClick={(evento) => {
+                                  evento.stopPropagation();
+                                  quitarImagen(fichaAnimal);
+                                }}
                                 aria-label={`Quitar imagen de ${nombre}`}
                                 title="Quitar imagen"
                               >
@@ -624,7 +645,10 @@ export default function ListaFichas() {
                             <span className="lista-fichas-tarjeta-sin-foto-texto">
                               Sin fotografía asignada
                             </span>
-                            <label className="lista-fichas-subir-foto">
+                            <label
+                              className="lista-fichas-subir-foto"
+                              onClick={(evento) => evento.stopPropagation()}
+                            >
                               <span
                                 className="material-symbols-outlined"
                                 aria-hidden="true"
@@ -675,7 +699,10 @@ export default function ListaFichas() {
                           <button
                             type="button"
                             className="lista-fichas-boton-ver"
-                            onClick={() => abrirDetalle(fichaAnimal)}
+                            onClick={(evento) => {
+                              evento.stopPropagation();
+                              abrirDetalle(fichaAnimal);
+                            }}
                           >
                             <span
                               className="material-symbols-outlined"
@@ -689,7 +716,10 @@ export default function ListaFichas() {
                           <button
                             type="button"
                             className="lista-fichas-boton-icono"
-                            onClick={() => abrirHistorial(fichaAnimal)}
+                            onClick={(evento) => {
+                              evento.stopPropagation();
+                              abrirHistorial(fichaAnimal);
+                            }}
                             aria-label={`Historial de ${nombre}`}
                             title="Historial clínico"
                             disabled={
@@ -765,7 +795,7 @@ export default function ListaFichas() {
         </VentanaModal>
       )}
 
-      {ventana?.tipo === "detalle" && fichaDetalleActual && (
+      {fichaDetalleActual && (
         <VentanaModal
           titulo={`Ficha de ${nombreVisible(fichaDetalleActual)}`}
           alCerrar={cerrarVentana}

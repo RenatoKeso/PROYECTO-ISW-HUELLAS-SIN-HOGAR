@@ -1,18 +1,13 @@
-import { Link } from "react-router-dom";
 import HistorialIngresos from "../components/registroAnimal/HistorialIngresos.jsx";
+import MigasNavegacion from "../components/ui/MigasNavegacion.jsx";
 import "../styles/historialIngresos.css";
 
-export default function RegistroHistorialPage() {
+export default function RegistroHistorialPage({ usuario }) {
   return (
     <section className="historial-page">
-      <Link className="historial-volver" to="/registro">
-        <span className="material-symbols-outlined" aria-hidden="true">
-          arrow_back
-        </span>
-        <span>Volver a Registro de animales</span>
-      </Link>
+      <MigasNavegacion actual="Historial de ingresos" />
 
-      <HistorialIngresos />
+      <HistorialIngresos usuario={usuario} />
     </section>
   );
 }

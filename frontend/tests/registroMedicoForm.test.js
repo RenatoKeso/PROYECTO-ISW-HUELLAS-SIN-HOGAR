@@ -115,6 +115,27 @@ test("opciones de seguimiento usan las enfermedades y tratamientos existentes", 
   ]);
 });
 
+test("actualizacion usa sin detalles en campos descriptivos vacios", () => {
+  const inicial = crearActualizacionInicial({
+    pesoKg: 12.4,
+    clasificacionSalud: "ENFERMO",
+    observacionInicial: "",
+    revisionCompleta: {
+      descripcionCondicionMedica: "   ",
+      discapacidades: null,
+      lesiones: "",
+      descripcionCuidadosEspeciales: "Dieta húmeda",
+    },
+  });
+
+  assert.equal(inicial.observacionInicial, "sin detalles");
+  assert.equal(inicial.condiciones, "sin detalles");
+  assert.equal(inicial.discapacidades, "sin detalles");
+  assert.equal(inicial.lesiones, "sin detalles");
+  assert.equal(inicial.descripcionCuidadosEspeciales, "Dieta húmeda");
+  assert.equal(inicial.necesidades, "sin detalles");
+});
+
 test("actualizacion omite opcionales y filas vacias", () => {
   const inicial = crearActualizacionInicial({ pesoKg: 12.4, clasificacionSalud: "ENFERMO" });
   assert.equal(inicial.pesoKg, 12.4);

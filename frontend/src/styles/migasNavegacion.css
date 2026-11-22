@@ -1,0 +1,74 @@
+.migas-navegacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 20px;
+  color: #43483f;
+}
+
+.migas-navegacion-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.migas-navegacion-link,
+.migas-navegacion-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.migas-navegacion-link:hover,
+.migas-navegacion-link:hover .material-symbols-outlined {
+  color: #1d1b17;
+}
+
+.migas-navegacion-link:focus-visible,
+.migas-navegacion-volver:focus-visible {
+  outline: 2px solid #18330d;
+  outline-offset: 2px;
+}
+
+.migas-navegacion-link .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.migas-navegacion-sep {
+  font-size: 16px;
+  color: #d1cac0;
+}
+
+.migas-navegacion-actual {
+  font-weight: 600;
+  color: #1d1b17;
+}
+
+.migas-navegacion-volver {
+  padding: 8px 16px;
+  border: 1px solid rgba(195, 200, 187, 0.4);
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  color: #1d1b17;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.migas-navegacion-volver:hover {
+  background: #f9f3ec;
+}
+
+.migas-navegacion-volver .material-symbols-outlined {
+  font-size: 18px;
+}

@@ -141,3 +141,30 @@ export async function listarSeguimientosMedico(id) {
     await api.get(`/registros-medicos/${id}/seguimientos`),
   );
 }
+
+/**
+ * Pide al backend el PDF de los registros ya filtrados y lo descarga.
+ */
+export async function descargarReporteMedicoPdf({
+  ids = [],
+  titulo,
+  descripcionesFiltros = [],
+} = {}) {
+  const archivo = await api.postBlob("/registros-medicos/reporte/pdf", {
+    ids,
+    titulo,
+    descripcionesFiltros,
+  });
+
+  const nombreArchivo = `reporte-medico-${new Date().toISOString().slice(0, 10)}.pdf`;
+  const enlace = document.createElement("a");
+  const url = URL.createObjectURL(archivo);
+  enlace.href = url;
+  enlace.download = nombreArchivo;
+  document.body.appendChild(enlace);
+  enlace.click();
+  enlace.remove();
+  URL.revokeObjectURL(url);
+
+  return nombreArchivo;
+}

@@ -7,7 +7,7 @@ const matriz = [
     ["DIRECTORA", true, true, true],
     ["ENCARGADA_VOLUNTARIADO", true, false, false],
     ["ENCARGADA_ADOPCIONES", false, false, true],
-    ["VETERINARIA", false, true, false],
+    ["VETERINARIA", true, true, false],
     ["VOLUNTARIO", true, false, false],
 ];
 
