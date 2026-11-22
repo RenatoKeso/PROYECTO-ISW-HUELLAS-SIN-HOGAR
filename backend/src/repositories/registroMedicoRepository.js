@@ -44,6 +44,35 @@ const RELACIONES_SEGUIMIENTO = {
   },
 };
 
+// Para el reporte se trae el expediente clinico completo, no solo el resumen
+// que usa la ficha en pantalla.
+const RELACIONES_REPORTE_MEDICO = {
+  animal: true,
+  ingresoAnimal: {
+    include: { receptor: { select: { id: true, nombre: true, email: true } } },
+  },
+  revisionInicialPor: { select: SELECT_AUTOR },
+  revisionInicial: {
+    include: {
+      createdBy: { select: SELECT_AUTOR },
+      updatedBy: { select: SELECT_AUTOR },
+    },
+  },
+  revisionCompleta: {
+    include: {
+      createdBy: { select: SELECT_AUTOR },
+      updatedBy: { select: SELECT_AUTOR },
+    },
+  },
+  enfermedades: { include: { createdBy: { select: SELECT_AUTOR } } },
+  tratamientos: { include: { createdBy: { select: SELECT_AUTOR } } },
+  atencionesSanitarias: true,
+  atencionesVeterinarias: { include: { createdBy: { select: SELECT_AUTOR } } },
+  auditorias: { include: { autor: { select: SELECT_AUTOR } } },
+  historial: { include: { actualizadoPor: { select: SELECT_AUTOR } } },
+  seguimientos: { include: RELACIONES_SEGUIMIENTO },
+};
+
 export async function crearRegistroMedico(data, cliente = prisma) {
   return cliente.registroMedicoAnimal.create({ data });
 }
@@ -52,6 +81,13 @@ export async function obtenerRegistroMedicoPorId(id, cliente = prisma) {
   return cliente.registroMedicoAnimal.findUnique({
     where: { id },
     include: RELACIONES_REGISTRO_MEDICO,
+  });
+}
+
+export async function obtenerRegistroMedicoParaReporte(id, cliente = prisma) {
+  return cliente.registroMedicoAnimal.findUnique({
+    where: { id },
+    include: RELACIONES_REPORTE_MEDICO,
   });
 }
 

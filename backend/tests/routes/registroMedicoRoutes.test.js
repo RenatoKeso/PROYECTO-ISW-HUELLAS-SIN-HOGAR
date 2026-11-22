@@ -894,6 +894,124 @@ test("GET /registros-medicos/:id reenvia el id y el actor", async () => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// exportación del reporte médico a PDF
+// ---------------------------------------------------------------------------
+
+test("POST /registros-medicos/reporte/pdf exige un token valido", async () => {
+  const { url, cerrar } = await levantarApp();
+
+  try {
+    const respuesta = await fetch(`${url}/reporte/pdf`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: [1] }),
+    });
+
+    assert.equal(respuesta.status, 401);
+  } finally {
+    await cerrar();
+  }
+});
+
+test("POST /registros-medicos/reporte/pdf valida el body sin llamar al servicio", async () => {
+  let llamadas = 0;
+  const { url, cerrar } = await levantarApp(undefined, undefined, undefined, {
+    generarReporteMedicoPdf: async () => {
+      llamadas += 1;
+    },
+  });
+
+  try {
+    const respuesta = await fetch(`${url}/reporte/pdf`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer valido",
+      },
+      body: JSON.stringify({ ids: ["no-es-un-id"] }),
+    });
+
+    assert.equal(respuesta.status, 400);
+    assert.equal((await respuesta.json()).code, "DATOS_INVALIDOS");
+    assert.equal(llamadas, 0);
+  } finally {
+    await cerrar();
+  }
+});
+
+test("POST /registros-medicos/reporte/pdf devuelve el PDF con los filtros del frontend", async () => {
+  let recibido = null;
+  const { url, cerrar } = await levantarApp(undefined, undefined, undefined, {
+    generarReporteMedicoPdf: async (datos) => {
+      recibido = datos;
+      return {
+        pdf: Buffer.from("%PDF-1.4 reporte medico"),
+        nombreArchivo: "reporte-medico-2026-11-21.pdf",
+        total: 2,
+      };
+    },
+  });
+
+  try {
+    const respuesta = await fetch(`${url}/reporte/pdf`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer valido",
+      },
+      body: JSON.stringify({
+        ids: [2, 1],
+        titulo: "Revisiones médicas pendientes",
+        descripcionesFiltros: ["Revisión inicial", 'Búsqueda: "Gretel"'],
+      }),
+    });
+
+    assert.equal(respuesta.status, 200);
+    assert.match(respuesta.headers.get("content-type"), /application\/pdf/);
+    assert.match(
+      respuesta.headers.get("content-disposition"),
+      /reporte-medico-2026-11-21\.pdf/,
+    );
+    assert.equal(
+      Buffer.from(await respuesta.arrayBuffer()).toString("utf8"),
+      "%PDF-1.4 reporte medico",
+    );
+    assert.deepEqual(recibido, {
+      ids: [2, 1],
+      titulo: "Revisiones médicas pendientes",
+      descripcionesFiltros: ["Revisión inicial", 'Búsqueda: "Gretel"'],
+      actor: voluntaria,
+    });
+  } finally {
+    await cerrar();
+  }
+});
+
+test("POST /registros-medicos/reporte/pdf responde 403 si el actor no puede consultar", async () => {
+  const { url, cerrar } = await levantarApp(undefined, undefined, undefined, {
+    generarReporteMedicoPdf: async () => {
+      throw rolInsuficiente();
+    },
+  });
+
+  try {
+    const respuesta = await fetch(`${url}/reporte/pdf`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer valido",
+      },
+      body: JSON.stringify({ ids: [1] }),
+    });
+
+    assert.equal(respuesta.status, 403);
+    assert.equal((await respuesta.json()).code, "ROL_INSUFICIENTE");
+  } finally {
+    await cerrar();
+  }
+});
+
 test("GET /registros-medicos/:id traduce registro inexistente a 404", async () => {
   const { registroMedicoInexistente } = await import("../../src/entities/registroMedicoErrors.js");
 

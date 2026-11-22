@@ -61,9 +61,9 @@ function RutaDestino() {
   );
 }
 
-function renderPage() {
+function renderPage(ruta = "/registro/fichas") {
   return render(
-    <MemoryRouter initialEntries={["/registro/fichas"]}>
+    <MemoryRouter initialEntries={[ruta]}>
       <Routes>
         <Route path="/registro/fichas" element={<RegistroFichasPage />} />
         <Route path="*" element={<RutaDestino />} />
@@ -126,6 +126,26 @@ describe("RegistroFichasPage", () => {
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
+  });
+
+  test("abre el detalle al hacer clic en cualquier parte de la tarjeta", async () => {
+    renderPage();
+
+    fireEvent.click(
+      await screen.findByRole("heading", { level: 2, name: "Gretel" }),
+    );
+
+    expect(
+      await screen.findByRole("dialog", { name: "Ficha de Gretel" }),
+    ).toBeInTheDocument();
+  });
+
+  test("abre directamente la ficha indicada en la URL", async () => {
+    renderPage("/registro/fichas?ficha=1");
+
+    expect(
+      await screen.findByRole("dialog", { name: "Ficha de Gretel" }),
+    ).toBeInTheDocument();
   });
 
   test("amplía la imagen de la ficha y cierra con Escape", async () => {
@@ -249,7 +269,7 @@ describe("RegistroFichasPage", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Imagen de anim-001 eliminada correctamente."),
+        screen.getByText("Imagen de Gretel eliminada correctamente."),
       ).toBeInTheDocument();
     });
 
@@ -279,7 +299,7 @@ describe("RegistroFichasPage", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Imagen de anim-001 actualizada correctamente."),
+        screen.getByText("Imagen de Gretel actualizada correctamente."),
       ).toBeInTheDocument();
     });
 

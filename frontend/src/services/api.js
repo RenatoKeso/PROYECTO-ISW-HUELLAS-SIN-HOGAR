@@ -25,7 +25,7 @@ export class ApiError extends Error {
 }
 
 async function request(path, options = {}) {
-  const { sinSesion = false, ...opcionesFetch } = options;
+  const { sinSesion = false, blob = false, ...opcionesFetch } = options;
 
   const token = sinSesion ? null : obtenerToken();
   const headers = new Headers(opcionesFetch.headers);
@@ -45,9 +45,19 @@ async function request(path, options = {}) {
     headers,
   });
 
-  const data = await response.json().catch(() => null);
+  const data = blob ? await response.blob() : await response.json().catch(() => null);
 
   if (!response.ok) {
+    let cuerpo = data;
+    if (blob && typeof data?.text === "function") {
+      const texto = await data.text();
+      try {
+        cuerpo = JSON.parse(texto);
+      } catch {
+        cuerpo = null;
+      }
+    }
+
     if (
       response.status === 401 &&
       token &&
@@ -58,11 +68,11 @@ async function request(path, options = {}) {
     }
 
     throw new ApiError(
-      data?.message || `Error ${response.status}`,
+      cuerpo?.message || `Error ${response.status}`,
       {
         status: response.status,
-        code: data?.code,
-        detalles: data?.detalles,
+        code: cuerpo?.code,
+        detalles: cuerpo?.detalles,
       }
     );
   }
@@ -76,6 +86,14 @@ export const api = {
   post: (path, body, options = {}) =>
     request(path, {
       ...options,
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  postBlob: (path, body, options = {}) =>
+    request(path, {
+      ...options,
+      blob: true,
       method: "POST",
       body: JSON.stringify(body),
     }),

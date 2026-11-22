@@ -14,6 +14,7 @@ export function puedeGestionarFichas(usuario) {
   return tieneRol(usuario, [
     "DIRECTORA",
     "ENCARGADA_VOLUNTARIADO",
+    "VETERINARIA",
     "VOLUNTARIO",
     "VOLUNTARIO_CONFIANZA",
   ]);

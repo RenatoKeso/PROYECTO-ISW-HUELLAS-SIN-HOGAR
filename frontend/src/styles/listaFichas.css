@@ -6,29 +6,8 @@
   color: #1d1b17;
 }
 
-.lista-fichas-volver {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  width: fit-content;
-  margin-left: -8px;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 600;
-  color: #18330d;
-  text-decoration: none;
-  transition: color 0.15s ease, background-color 0.15s ease;
-}
-
-.lista-fichas-volver:hover {
-  color: #2e4a21;
-  background: rgba(202, 237, 181, 0.35);
-}
-
-.lista-fichas-volver .material-symbols-outlined {
-  font-size: 18px;
+.lista-fichas-page > .migas-navegacion {
+  margin-bottom: 0;
 }
 
 .lista-fichas {
@@ -334,6 +313,7 @@
   border-radius: 16px;
   background: #ffffff;
   box-shadow: 0 1px 2px rgba(29, 27, 23, 0.04);
+  cursor: pointer;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
@@ -823,6 +803,164 @@
 
   .lista-fichas-limpiar {
     justify-self: start;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Filtros del catálogo con el lenguaje visual del historial médico.
+   Se limita a /registro/fichas para no alterar el historial de ingresos.
+   -------------------------------------------------------------------------- */
+.lista-fichas-page .lista-fichas-filtros {
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.lista-fichas-page .lista-fichas-filtros-fila {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.lista-fichas-page .lista-fichas-buscador {
+  flex: 1 1 240px;
+  min-width: 240px;
+}
+
+.lista-fichas-page .lista-fichas-buscador .material-symbols-outlined {
+  left: 14px;
+  color: #43483f;
+  font-size: 20px;
+}
+
+.lista-fichas-page .lista-fichas-buscador input,
+.lista-fichas-page .lista-fichas-select {
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid rgba(195, 200, 187, 0.4);
+  border-radius: 8px;
+  background-color: #f9f3ec;
+  color: #1d1b17;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  transition: box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.lista-fichas-page .lista-fichas-buscador input {
+  width: 100%;
+  padding-left: 40px;
+}
+
+.lista-fichas-page .lista-fichas-buscador input::placeholder {
+  color: rgba(67, 72, 63, 0.7);
+}
+
+.lista-fichas-page .lista-fichas-select {
+  flex: 1 1 160px;
+  width: auto;
+  min-width: 160px;
+  padding-right: 32px;
+  background-image: linear-gradient(45deg, transparent 50%, #43483f 50%),
+    linear-gradient(135deg, #43483f 50%, transparent 50%);
+  background-position: calc(100% - 18px) 18px, calc(100% - 13px) 18px;
+  background-repeat: no-repeat;
+  background-size: 5px 5px, 5px 5px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.lista-fichas-page .lista-fichas-buscador input:focus,
+.lista-fichas-page .lista-fichas-select:focus {
+  outline: none;
+  border-color: rgba(195, 200, 187, 0.4);
+  background-color: #f9f3ec;
+  box-shadow: 0 0 0 2px rgba(24, 51, 13, 0.2);
+}
+
+.lista-fichas-page .lista-fichas-limpiar {
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid rgba(195, 200, 187, 0.4);
+  border-radius: 8px;
+  background: #f9f3ec;
+  color: #1d1b17;
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.lista-fichas-page .lista-fichas-limpiar:hover {
+  background: #ede7e1;
+  color: #1d1b17;
+}
+
+.lista-fichas-page .lista-fichas-limpiar .material-symbols-outlined {
+  color: #43483f;
+  font-size: 18px;
+}
+
+.lista-fichas-page .lista-fichas-filtros-especies {
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 0;
+  border-top: 0;
+  overflow: visible;
+}
+
+.lista-fichas-page .lista-fichas-filtros-especies-label {
+  color: #43483f;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.lista-fichas-page .lista-fichas-filtro-especie {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid rgba(195, 200, 187, 0.4);
+  background: #ffffff;
+  color: #43483f;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+}
+
+.lista-fichas-page .lista-fichas-filtro-especie:hover {
+  background: #ede7e1;
+}
+
+.lista-fichas-page .lista-fichas-filtro-especie-activo,
+.lista-fichas-page .lista-fichas-filtro-especie-activo:hover {
+  border-color: #18330d;
+  background: #18330d;
+  color: #ffffff;
+}
+
+@media (max-width: 900px) {
+  .lista-fichas-page .lista-fichas-filtros-fila {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .lista-fichas-page .lista-fichas-buscador,
+  .lista-fichas-page .lista-fichas-select {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .lista-fichas-page .lista-fichas-limpiar {
+    align-self: flex-start;
   }
 }
 

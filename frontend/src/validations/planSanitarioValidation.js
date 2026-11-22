@@ -23,9 +23,13 @@ const fechaSchema = z.string().refine((valor) => {
 }, "Ingresa una fecha valida");
 
 export const programarAtencionSchema = z.strictObject({
-  tipo: z.enum(TIPOS_PLAN),
+  tipo: z.enum(TIPOS_PLAN, { message: "Selecciona el tipo de atención" }),
   fechaProgramada: fechaSchema,
-  observaciones: z.string().trim().max(2000).optional(),
+  observaciones: z
+    .string()
+    .trim()
+    .max(2000, "Las observaciones no pueden superar los 2000 caracteres")
+    .optional(),
 });
 
 export const modificarAtencionSchema = z.discriminatedUnion(
@@ -46,8 +50,8 @@ export const modificarAtencionSchema = z.discriminatedUnion(
       motivoCancelacion: z
         .string()
         .trim()
-        .min(1, "Indica el motivo de cancelacion")
-        .max(500),
+        .min(1, "Indica el motivo de cancelación")
+        .max(500, "El motivo no puede superar los 500 caracteres"),
     }),
   ]
 );

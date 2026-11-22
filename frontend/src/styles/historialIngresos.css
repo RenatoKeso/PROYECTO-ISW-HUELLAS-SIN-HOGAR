@@ -4,40 +4,6 @@
   color: #1d1b17;
 }
 
-.historial-volver {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  width: fit-content;
-  margin-bottom: 16px;
-  padding: 6px 12px;
-  border: 1px solid rgba(195, 200, 187, 0.6);
-  border-radius: 8px;
-  background: #f9f3ec;
-  box-shadow: 0 1px 2px rgba(29, 27, 23, 0.06);
-  font-family: "Inter", system-ui, sans-serif;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 700;
-  color: #18330d;
-  text-decoration: none;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.historial-volver:hover {
-  border-color: #c3c8bb;
-  background: #f3ede6;
-}
-
-.historial-volver:focus-visible {
-  outline: 2px solid #18330d;
-  outline-offset: 2px;
-}
-
-.historial-volver .material-symbols-outlined {
-  font-size: 18px;
-}
-
 .historial-contenido {
   display: flex;
   flex-direction: column;
@@ -124,6 +90,15 @@
 
 .historial-tabla tbody tr:hover {
   background: #f9f3ec;
+}
+
+.historial-tabla tbody tr.historial-fila-clickable {
+  cursor: pointer;
+}
+
+.historial-tabla tbody tr.historial-fila-clickable:focus-within {
+  outline: 2px solid #18330d;
+  outline-offset: -2px;
 }
 
 .historial-tabla tbody tr:last-child td {
@@ -228,4 +203,327 @@
 .historial-page .lista-fichas-filtro-especie:focus-visible {
   outline: 2px solid #18330d;
   outline-offset: 2px;
+}
+
+/* Aviso sobre la tabla */
+.historial-aviso-acciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid #ede7e1;
+  border-radius: 10px;
+  background: #f9f3ec;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  color: #43483f;
+}
+
+.historial-aviso-acciones .material-symbols-outlined {
+  flex-shrink: 0;
+  font-size: 20px;
+  color: #18330d;
+}
+
+/* Modal de acciones de fila */
+.historial-modal-acciones.ventana-contenido {
+  width: min(100%, 460px);
+}
+
+.historial-modal-acciones-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.historial-modal-acciones-texto {
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  color: #43483f;
+}
+
+.historial-modal-acciones-texto strong {
+  color: #1d1b17;
+}
+
+.historial-modal-acciones-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.historial-modal-accion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e3dbd2;
+  border-radius: 10px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.historial-modal-accion:hover:not(:disabled) {
+  border-color: #c3c8bb;
+  background: #f9f3ec;
+}
+
+.historial-modal-accion:focus-visible {
+  outline: 2px solid #18330d;
+  outline-offset: 2px;
+}
+
+.historial-modal-accion:disabled {
+  cursor: progress;
+  opacity: 0.65;
+}
+
+.historial-modal-accion-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #caedb5;
+  color: #18330d;
+  font-size: 21px;
+}
+
+.historial-modal-accion-icono--medico {
+  background: #ffdbcb;
+  color: #75340d;
+}
+
+.historial-modal-accion-icono--info {
+  background: #ede7e1;
+  color: #43483f;
+}
+
+.historial-modal-accion-texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.historial-modal-accion-texto strong {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: #1d1b17;
+}
+
+.historial-modal-accion-texto small {
+  font-size: 12px;
+  line-height: 18px;
+  color: #43483f;
+}
+
+.historial-modal-accion-flecha {
+  flex-shrink: 0;
+  color: #8a8f85;
+  font-size: 20px;
+}
+
+.historial-modal-acciones-pie {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+
+/* Modal de informacion completa del ingreso */
+.historial-modal-informacion.ventana-contenido {
+  width: min(100%, 560px);
+}
+
+.historial-modal-informacion-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.historial-modal-informacion-subtitulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  color: #43483f;
+}
+
+.historial-modal-informacion-subtitulo strong {
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  color: #1d1b17;
+}
+
+.historial-modal-informacion-subtitulo span {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f3ede6;
+  font-size: 12px;
+  line-height: 18px;
+  color: #43483f;
+}
+
+.historial-modal-informacion-seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.historial-modal-informacion-seccion h3 {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: #18330d;
+}
+
+.historial-modal-informacion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin: 0;
+}
+
+.historial-modal-informacion-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f9f3ec;
+}
+
+.historial-modal-informacion-dato dt {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #8a8f85;
+}
+
+.historial-modal-informacion-dato dd {
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  color: #1d1b17;
+}
+
+.historial-modal-informacion-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 520px) {
+  .historial-modal-informacion-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .historial-modal-informacion-acciones {
+    flex-direction: column-reverse;
+  }
+
+  .historial-modal-informacion-acciones .historial-modal-registro-boton {
+    width: 100%;
+  }
+}
+
+/* Modal de registro medico no encontrado */
+.historial-modal-registro-cuerpo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 0 2px;
+  text-align: center;
+}
+
+.historial-modal-registro-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: #ffdbcb;
+  color: #75340d;
+  font-size: 30px;
+}
+
+.historial-modal-registro-texto {
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  color: #43483f;
+}
+
+.historial-modal-registro-texto strong {
+  color: #1d1b17;
+}
+
+.historial-modal-registro-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.historial-modal-registro-boton {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.historial-modal-registro-boton:focus-visible {
+  outline: 2px solid #18330d;
+  outline-offset: 2px;
+}
+
+.historial-modal-registro-boton--principal {
+  border: none;
+  background: #18330d;
+  color: #ffffff;
+}
+
+.historial-modal-registro-boton--principal:hover {
+  background: #2e4a21;
+}
+
+.historial-modal-registro-boton--secundario {
+  border: 1px solid #c3c8bb;
+  background: #f9f3ec;
+  color: #18330d;
+}
+
+.historial-modal-registro-boton--secundario:hover {
+  border-color: #a9b19f;
+  background: #f3ede6;
 }

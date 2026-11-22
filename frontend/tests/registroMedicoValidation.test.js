@@ -48,6 +48,42 @@ test("revision inicial rechaza datos invalidos", () => {
   }
 });
 
+test("revision inicial muestra mensajes claros en campos vacios", () => {
+  const resultado = revisionInicialFormSchema.safeParse({
+    pesoKg: "",
+    clasificacionSalud: "",
+    observacionInicial: "",
+    requiereCuarentena: "",
+  });
+
+  assert.equal(resultado.success, false);
+
+  const mensajes = Object.fromEntries(
+    resultado.error.issues.map((issue) => [issue.path.join("."), issue.message]),
+  );
+
+  assert.equal(mensajes.pesoKg, "Ingresa el peso en kg");
+  assert.equal(
+    mensajes.clasificacionSalud,
+    "Selecciona la clasificación de salud",
+  );
+  assert.equal(mensajes.observacionInicial, "Escribe la observación inicial");
+  assert.equal(mensajes.requiereCuarentena, "Indica si requiere cuarentena");
+});
+
+test("revision final pide seleccionar la adoptabilidad", () => {
+  const resultado = revisionFinalFormSchema.safeParse({
+    pesoRevalidadoKg: "12",
+    adoptabilidad: "",
+  });
+
+  assert.equal(resultado.success, false);
+  assert.equal(
+    resultado.error.issues[0].message,
+    "Selecciona la adoptabilidad",
+  );
+});
+
 test("revision final valida y permite listas opcionales", () => {
   const resultado = revisionFinalFormSchema.parse({
     pesoRevalidadoKg: "13.2",

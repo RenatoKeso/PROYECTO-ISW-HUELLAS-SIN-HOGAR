@@ -15,37 +15,6 @@
   margin-bottom: 20px;
 }
 
-.ingreso-volver {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  width: fit-content;
-  margin-left: -8px;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-family: "Inter", system-ui, sans-serif;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 600;
-  color: #18330d;
-  text-decoration: none;
-  transition: color 0.15s ease, background-color 0.15s ease;
-}
-
-.ingreso-volver:hover {
-  color: #2e4a21;
-  background: rgba(202, 237, 181, 0.35);
-}
-
-.ingreso-volver:focus-visible {
-  outline: 2px solid #18330d;
-  outline-offset: 2px;
-}
-
-.ingreso-volver .material-symbols-outlined {
-  font-size: 18px;
-}
-
 .ingreso-modulo {
   display: inline-flex;
   align-items: center;

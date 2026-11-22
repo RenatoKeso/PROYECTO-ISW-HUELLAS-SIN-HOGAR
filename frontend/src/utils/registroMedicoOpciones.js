@@ -1,8 +1,34 @@
+export const ETIQUETAS_ESTADO_VALIDACION = {
+  PROVISIONAL: "Revisión inicial",
+  VALIDACION_PENDIENTE: "Revisión completa",
+  REVISANDO: "En revisión",
+  REALIZADO: "Realizado",
+  ACTUALIZADO: "Actualizado",
+};
+
+export const ETIQUETAS_CLASIFICACION_SALUD = {
+  NORMAL: "Normal",
+  ENFERMO: "Enfermo",
+  CRITICO: "Crítico",
+};
+
+export const ETIQUETAS_ESPECIE = {
+  PERRO: "Canino",
+  GATO: "Felino",
+  OTRO: "Otra especie",
+};
+
+export const ETIQUETAS_SEXO = {
+  MACHO: "Macho",
+  HEMBRA: "Hembra",
+  DESCONOCIDO: "Sin determinar",
+};
+
 export const OPCIONES_CLASIFICACION_INICIAL = [
-  { valor: "", texto: "Seleccione..." },
-  { valor: "NORMAL", texto: "Normal" },
-  { valor: "ENFERMO", texto: "Enfermo" },
-  { valor: "CRITICO", texto: "Crítico" },
+  { valor: "", texto: "Seleccione estado clínico..." },
+  { valor: "NORMAL", texto: "Óptimo / Aparentemente sano" },
+  { valor: "ENFERMO", texto: "Requiere atención menor / En observación" },
+  { valor: "CRITICO", texto: "Estado crítico / Urgencia inmediata" },
 ];
 
 export const OPCIONES_CLASIFICACION_ACTUALIZACION = [
@@ -13,9 +39,9 @@ export const OPCIONES_CLASIFICACION_ACTUALIZACION = [
 ];
 
 export const OPCIONES_CUARENTENA_INICIAL = [
-  { valor: "", texto: "Seleccione..." },
-  { valor: "true", texto: "Sí" },
-  { valor: "false", texto: "No" },
+  { valor: "", texto: "Seleccione opción..." },
+  { valor: "false", texto: "No requerido (ingreso directo)" },
+  { valor: "true", texto: "Sí, cuarentena preventiva / aislamiento" },
 ];
 
 export const OPCIONES_CUARENTENA_ACTUALIZACION = [

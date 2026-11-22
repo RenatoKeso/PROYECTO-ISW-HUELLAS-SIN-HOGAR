@@ -52,6 +52,24 @@ export const listarRegistrosMedicosQuerySchema = z.object({
   estado: estadoValidacionMedicaSchema.optional(),
 });
 
+// El reporte se genera con los registros que el usuario ya tiene filtrados en
+// pantalla, por eso el frontend envía los identificadores en el orden deseado.
+export const reporteMedicoPdfSchema = z.strictObject({
+  ids: z
+    .array(
+      z.number({ message: "El identificador debe ser un número" })
+        .int("El identificador debe ser un número entero")
+        .positive("El identificador debe ser mayor que cero"),
+    )
+    .max(500, "No se pueden exportar más de 500 registros a la vez")
+    .default([]),
+  titulo: z.string().trim().max(120).optional(),
+  descripcionesFiltros: z
+    .array(z.string().trim().max(120))
+    .max(20, "Demasiados filtros para el reporte")
+    .default([]),
+});
+
 export const registroMedicoIdParamSchema = z.object({
   id: z.coerce
     .number({ message: "El identificador debe ser un número" })

@@ -26,6 +26,11 @@ export default function ActualizacionForm({
   onCancelar,
   bloqueado = false,
   enCurso = false,
+  idFormulario = "formulario-actualizacion",
+  sinAcciones = false,
+  onExito,
+  onEnvioFinalizado,
+  compacto = false,
 }) {
   const [valores, setValores] = useState(() => crearActualizacionInicial(registro));
   const [errores, setErrores] = useState({});
@@ -36,7 +41,6 @@ export default function ActualizacionForm({
   const tratamientosRegistrados = registro?.tratamientos ?? [];
   const opcionesEnfermedades = opcionesEnfermedadesRegistradas(registro);
   const opcionesTratamientos = opcionesTratamientosRegistrados(registro);
-
 
   function cambiar(campo, valor) {
     setValores((prev) => ({ ...prev, [campo]: valor }));
@@ -71,11 +75,14 @@ export default function ActualizacionForm({
       setMensaje({ tipo: "error", texto: error.message });
     } finally {
       setEnviando(false);
+      onEnvioFinalizado?.();
     }
   }
 
   async function guardar(evento) {
     evento.preventDefault();
+    if (enviando) return;
+
     setMensaje(null);
 
     const resultado = actualizacionVeterinariaFormSchema.safeParse(valores);
@@ -89,12 +96,17 @@ export default function ActualizacionForm({
     try {
       const datos = construirEntradaActualizacion(valores);
       const respuesta = await onGuardar(datos);
-      setMensaje({ tipo: "exito", texto: respuesta.message ?? "Registro médico actualizado correctamente" });
+      setMensaje({
+        tipo: "exito",
+        texto: respuesta.message ?? "Registro médico actualizado correctamente",
+      });
       setValores(crearActualizacionInicial(registro));
+      onExito?.(respuesta);
     } catch (error) {
       setMensaje({ tipo: "error", texto: error.message });
     } finally {
       setEnviando(false);
+      onEnvioFinalizado?.();
     }
   }
 
@@ -105,10 +117,12 @@ export default function ActualizacionForm({
     try {
       await onCancelar();
       setMensaje({ tipo: "exito", texto: "Actualización cancelada correctamente" });
+      onExito?.({ message: "Actualización cancelada correctamente" });
     } catch (error) {
       setMensaje({ tipo: "error", texto: error.message });
     } finally {
       setEnviando(false);
+      onEnvioFinalizado?.();
     }
   }
 
@@ -116,8 +130,16 @@ export default function ActualizacionForm({
     return (
       <section className="bloque">
         <h2>Actualización veterinaria</h2>
-        <p>El registro está en estado {registro?.estadoValidacion}. Puedes iniciar una actualización.</p>
-        <button className="boton" type="button" onClick={iniciar} disabled={bloqueado || enviando}>
+        <p>
+          El registro está en estado {registro?.estadoValidacion}. Puedes iniciar
+          una actualización.
+        </p>
+        <button
+          className="boton"
+          type="button"
+          onClick={iniciar}
+          disabled={bloqueado || enviando}
+        >
           {enviando ? "Iniciando..." : "Iniciar actualización"}
         </button>
         <Mensaje mensaje={mensaje} />
@@ -126,26 +148,42 @@ export default function ActualizacionForm({
   }
 
   return (
-    <form className="formulario" onSubmit={guardar} noValidate>
+    <form
+      id={idFormulario}
+      className={compacto ? "formulario formulario-compacto" : "formulario"}
+      onSubmit={guardar}
+      noValidate
+    >
       <h2>Actualización veterinaria</h2>
 
-      <div className="formulario-campos">
-        <Campo etiqueta="Peso (kg)" nombre="pesoKg" type="number" min={0} step="0.01" valor={valores.pesoKg} error={errores.pesoKg} onChange={(e) => cambiar("pesoKg", e.target.value)} />
-        <Campo etiqueta="Clasificación" nombre="clasificacionSalud" control="select" opciones={OPCIONES_CLASIFICACION_ACTUALIZACION} valor={valores.clasificacionSalud} error={errores.clasificacionSalud} onChange={(e) => cambiar("clasificacionSalud", e.target.value)} />
-        <Campo etiqueta="Cuarentena" nombre="requiereCuarentena" control="select" opciones={OPCIONES_CUARENTENA_ACTUALIZACION} valor={valores.requiereCuarentena} error={errores.requiereCuarentena} onChange={(e) => cambiar("requiereCuarentena", e.target.value)} />
-        <Campo etiqueta="Evolución" nombre="evolucionEstadoSalud" control="select" opciones={OPCIONES_EVOLUCION} valor={valores.evolucionEstadoSalud} error={errores.evolucionEstadoSalud} onChange={(e) => cambiar("evolucionEstadoSalud", e.target.value)} />
-        <Campo etiqueta="Fecha de registro" nombre="fechaRegistro" type="date" valor={valores.fechaRegistro} error={errores.fechaRegistro} onChange={(e) => cambiar("fechaRegistro", e.target.value)} />
-        <Campo etiqueta="Observación inicial" nombre="observacionInicial" control="textarea" rows={2} ancho valor={valores.observacionInicial} error={errores.observacionInicial} onChange={(e) => cambiar("observacionInicial", e.target.value)} />
-        <Campo etiqueta="Condiciones" nombre="condiciones" control="textarea" rows={2} ancho valor={valores.condiciones} onChange={(e) => cambiar("condiciones", e.target.value)} />
-        <Campo etiqueta="Discapacidades" nombre="discapacidades" control="textarea" rows={2} ancho valor={valores.discapacidades} onChange={(e) => cambiar("discapacidades", e.target.value)} />
-        <Campo etiqueta="Lesiones" nombre="lesiones" control="textarea" rows={2} ancho valor={valores.lesiones} onChange={(e) => cambiar("lesiones", e.target.value)} />
-        <Campo etiqueta="Cuidados especiales" nombre="descripcionCuidadosEspeciales" control="textarea" rows={2} ancho valor={valores.descripcionCuidadosEspeciales} onChange={(e) => cambiar("descripcionCuidadosEspeciales", e.target.value)} />
-        <Campo etiqueta="Necesidades" nombre="necesidades" control="textarea" rows={2} ancho valor={valores.necesidades} onChange={(e) => cambiar("necesidades", e.target.value)} />
-        <Campo etiqueta="Observación de seguimiento" nombre="observacionSeguimiento" control="textarea" rows={2} ancho valor={valores.observacionSeguimiento} error={errores.observacionSeguimiento} onChange={(e) => cambiar("observacionSeguimiento", e.target.value)} />
-      </div>
+      <section className="ficha-form-seccion">
+        <h3>1. Evaluación y constantes médicas</h3>
+        <div className="formulario-campos">
+          <Campo etiqueta="Peso (kg)" nombre="pesoKg" type="number" min={0} step="0.01" valor={valores.pesoKg} error={errores.pesoKg} onChange={(e) => cambiar("pesoKg", e.target.value)} />
+          <Campo etiqueta="Clasificación" nombre="clasificacionSalud" control="select" opciones={OPCIONES_CLASIFICACION_ACTUALIZACION} valor={valores.clasificacionSalud} error={errores.clasificacionSalud} onChange={(e) => cambiar("clasificacionSalud", e.target.value)} />
+          <Campo etiqueta="Cuarentena" nombre="requiereCuarentena" control="select" opciones={OPCIONES_CUARENTENA_ACTUALIZACION} valor={valores.requiereCuarentena} error={errores.requiereCuarentena} onChange={(e) => cambiar("requiereCuarentena", e.target.value)} />
+          <Campo etiqueta="Evolución" nombre="evolucionEstadoSalud" control="select" opciones={OPCIONES_EVOLUCION} valor={valores.evolucionEstadoSalud} error={errores.evolucionEstadoSalud} onChange={(e) => cambiar("evolucionEstadoSalud", e.target.value)} />
+          <Campo etiqueta="Fecha de registro" nombre="fechaRegistro" type="date" valor={valores.fechaRegistro} error={errores.fechaRegistro} onChange={(e) => cambiar("fechaRegistro", e.target.value)} />
+        </div>
+      </section>
 
-      <section className="bloque">
-        <h3>Nuevas enfermedades</h3>
+      <section className="ficha-form-seccion">
+        <h3>2. Hallazgos clínicos y observaciones</h3>
+        <div className="formulario-campos">
+          <Campo etiqueta="Observación inicial" nombre="observacionInicial" control="textarea" rows={2} ancho valor={valores.observacionInicial} error={errores.observacionInicial} onChange={(e) => cambiar("observacionInicial", e.target.value)} />
+          <Campo etiqueta="Condiciones" nombre="condiciones" control="textarea" rows={2} ancho valor={valores.condiciones} onChange={(e) => cambiar("condiciones", e.target.value)} />
+          <Campo etiqueta="Discapacidades" nombre="discapacidades" control="textarea" rows={2} ancho valor={valores.discapacidades} onChange={(e) => cambiar("discapacidades", e.target.value)} />
+          <Campo etiqueta="Lesiones" nombre="lesiones" control="textarea" rows={2} ancho valor={valores.lesiones} onChange={(e) => cambiar("lesiones", e.target.value)} />
+          <Campo etiqueta="Cuidados especiales" nombre="descripcionCuidadosEspeciales" control="textarea" rows={2} ancho valor={valores.descripcionCuidadosEspeciales} onChange={(e) => cambiar("descripcionCuidadosEspeciales", e.target.value)} />
+          <Campo etiqueta="Necesidades" nombre="necesidades" control="textarea" rows={2} ancho valor={valores.necesidades} onChange={(e) => cambiar("necesidades", e.target.value)} />
+          <Campo etiqueta="Observación de seguimiento" nombre="observacionSeguimiento" control="textarea" rows={2} ancho valor={valores.observacionSeguimiento} error={errores.observacionSeguimiento} onChange={(e) => cambiar("observacionSeguimiento", e.target.value)} />
+        </div>
+      </section>
+
+      <section className="ficha-form-seccion">
+        <h3>3. Diagnósticos, tratamientos y seguimiento</h3>
+
+        <h4>Nuevas enfermedades</h4>
         {valores.enfermedades.map((fila, indice) => (
           <div className="formulario-campos" key={indice}>
             <Campo etiqueta="Descripción" nombre={`enfermedades.${indice}.descripcionEnfermedad`} valor={fila.descripcionEnfermedad} error={errores[`enfermedades.${indice}.descripcionEnfermedad`]} onChange={(e) => cambiarFila("enfermedades", indice, "descripcionEnfermedad", e.target.value)} />
@@ -153,10 +191,8 @@ export default function ActualizacionForm({
           </div>
         ))}
         <button type="button" className="boton boton-secundario" onClick={() => agregarFila("enfermedades", { descripcionEnfermedad: "", tipoEnfermedad: "" })}>Agregar enfermedad</button>
-      </section>
 
-      <section className="bloque">
-        <h3>Nuevos tratamientos</h3>
+        <h4>Nuevos tratamientos</h4>
         {valores.tratamientos.map((fila, indice) => (
           <div className="formulario-campos" key={indice}>
             <Campo etiqueta="Descripción" nombre={`tratamientos.${indice}.descripcionTratamiento`} valor={fila.descripcionTratamiento} error={errores[`tratamientos.${indice}.descripcionTratamiento`]} onChange={(e) => cambiarFila("tratamientos", indice, "descripcionTratamiento", e.target.value)} />
@@ -165,10 +201,8 @@ export default function ActualizacionForm({
           </div>
         ))}
         <button type="button" className="boton boton-secundario" onClick={() => agregarFila("tratamientos", { descripcionTratamiento: "", fechaInicio: "" })}>Agregar tratamiento</button>
-      </section>
 
-      <section className="bloque">
-        <h3>Seguimiento de enfermedades existentes</h3>
+        <h4>Seguimiento de enfermedades existentes</h4>
         {!enfermedadesRegistradas.length && <p>No hay enfermedades registradas.</p>}
         {valores.seguimientoEnfermedades.map((fila, indice) => (
           <div className="formulario-campos" key={indice}>
@@ -178,10 +212,8 @@ export default function ActualizacionForm({
           </div>
         ))}
         <button type="button" className="boton boton-secundario" disabled={!enfermedadesRegistradas.length} onClick={() => agregarFila("seguimientoEnfermedades", { enfermedadId: "", estadoEnfermedad: "EN_CURSO", observacionSeguimiento: "" })}>Agregar seguimiento</button>
-      </section>
 
-      <section className="bloque">
-        <h3>Seguimiento de tratamientos existentes</h3>
+        <h4>Seguimiento de tratamientos existentes</h4>
         {!tratamientosRegistrados.length && <p>No hay tratamientos registrados.</p>}
         {valores.seguimientoTratamientos.map((fila, indice) => (
           <div className="formulario-campos" key={indice}>
@@ -191,10 +223,8 @@ export default function ActualizacionForm({
           </div>
         ))}
         <button type="button" className="boton boton-secundario" disabled={!tratamientosRegistrados.length} onClick={() => agregarFila("seguimientoTratamientos", { tratamientoId: "", estadoTratamiento: "EN_CURSO", observacionSeguimiento: "" })}>Agregar seguimiento</button>
-      </section>
 
-      <section className="bloque">
-        <h3>Atenciones sanitarias</h3>
+        <h4>Atenciones sanitarias</h4>
         {valores.atencionesSanitarias.map((fila, indice) => (
           <div className="formulario-campos" key={indice}>
             <Campo etiqueta="Tipo" nombre={`atencionesSanitarias.${indice}.tipo`} control="select" opciones={OPCIONES_TIPO_ATENCION} valor={fila.tipo} error={errores[`atencionesSanitarias.${indice}.tipo`]} onChange={(e) => cambiarFila("atencionesSanitarias", indice, "tipo", e.target.value)} />
@@ -206,14 +236,16 @@ export default function ActualizacionForm({
         <button type="button" className="boton boton-secundario" onClick={() => agregarFila("atencionesSanitarias", { tipo: "vacuna", fechaProgramada: "", estado: "PENDIENTE" })}>Agregar atención</button>
       </section>
 
-      <div className="alertas-acciones">
-        <button className="boton" type="submit" disabled={bloqueado || enviando}>
-          {enviando ? "Guardando..." : "Guardar actualización"}
-        </button>
-        <button className="boton boton-secundario" type="button" onClick={cancelar} disabled={bloqueado || enviando}>
-          Cancelar actualización
-        </button>
-      </div>
+      {!sinAcciones && (
+        <div className="alertas-acciones">
+          <button className="boton" type="submit" disabled={bloqueado || enviando}>
+            {enviando ? "Guardando..." : "Guardar actualización"}
+          </button>
+          <button className="boton boton-secundario" type="button" onClick={cancelar} disabled={bloqueado || enviando}>
+            Cancelar actualización
+          </button>
+        </div>
+      )}
 
       <Mensaje mensaje={mensaje} />
     </form>
