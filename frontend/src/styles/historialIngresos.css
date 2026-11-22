@@ -1,0 +1,231 @@
+.historial-page {
+  width: 100%;
+  font-family: "Inter", system-ui, sans-serif;
+  color: #1d1b17;
+}
+
+.historial-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin-bottom: 16px;
+  padding: 6px 12px;
+  border: 1px solid rgba(195, 200, 187, 0.6);
+  border-radius: 8px;
+  background: #f9f3ec;
+  box-shadow: 0 1px 2px rgba(29, 27, 23, 0.06);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  color: #18330d;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.historial-volver:hover {
+  border-color: #c3c8bb;
+  background: #f3ede6;
+}
+
+.historial-volver:focus-visible {
+  outline: 2px solid #18330d;
+  outline-offset: 2px;
+}
+
+.historial-volver .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.historial-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.historial-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.historial-titulos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.historial-eyebrow {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #43483f;
+}
+
+.historial-page h1 {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 36px;
+  line-height: 44px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #1d1b17;
+}
+
+.historial-tabla-card {
+  overflow: hidden;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(29, 27, 23, 0.06);
+}
+
+.historial-tabla-scroll {
+  overflow-x: auto;
+}
+
+.historial-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.historial-tabla th {
+  padding: 14px 16px;
+  background: #ede7e1;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #43483f;
+  white-space: nowrap;
+}
+
+.historial-tabla td {
+  padding: 16px;
+  border-bottom: 1px solid #f3ede6;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  color: #1d1b17;
+  vertical-align: middle;
+}
+
+.historial-tabla tbody tr:nth-child(even) {
+  background: rgba(249, 243, 236, 0.5);
+}
+
+.historial-tabla tbody tr:hover {
+  background: #f9f3ec;
+}
+
+.historial-tabla tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.historial-codigo {
+  color: #43483f;
+  white-space: nowrap;
+}
+
+.historial-nombre {
+  font-weight: 600;
+}
+
+.historial-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.historial-tipo-punto {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.historial-tipo-ingreso {
+  background: #caedb5;
+  color: #072100;
+}
+
+.historial-tipo-reingreso {
+  background: #ffdbcb;
+  color: #75340d;
+}
+
+.historial-estado {
+  margin: 0;
+  padding: 24px;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  color: #43483f;
+}
+
+.historial-estado-error {
+  background: #ffdad6;
+  color: #93000a;
+}
+
+.historial-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.historial-vacio .material-symbols-outlined {
+  font-size: 36px;
+  color: #43483f;
+}
+
+.historial-vacio-titulo {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: #1d1b17;
+}
+
+.historial-vacio-texto {
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 20px;
+  color: #43483f;
+}
+
+@media (max-width: 640px) {
+  .historial-page h1 {
+    font-size: 28px;
+    line-height: 36px;
+  }
+}
+
+.historial-page .lista-fichas-buscador input:focus-visible,
+.historial-page .lista-fichas-select:focus-visible,
+.historial-page .lista-fichas-limpiar:focus-visible,
+.historial-page .lista-fichas-filtro-especie:focus-visible {
+  outline: 2px solid #18330d;
+  outline-offset: 2px;
+}

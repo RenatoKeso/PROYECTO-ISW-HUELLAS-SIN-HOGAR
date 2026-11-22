@@ -1,0 +1,315 @@
+.registro-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  font-family: "Inter", system-ui, sans-serif;
+  color: #1d1b17;
+}
+
+.registro-hub-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.registro-hub-titulos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.registro-hub-migas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.registro-hub-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #caedb5;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #18330d;
+}
+
+.registro-hub-ruta {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #43483f;
+}
+
+.registro-hub .registro-hub-titulos h1 {
+  margin: 8px 0 0;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 36px;
+  line-height: 44px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #1d1b17;
+}
+
+.registro-hub-titulos > p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: #43483f;
+}
+
+.registro-hub-contadores {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.registro-hub-contador {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #ede7e1;
+  box-shadow: 0 1px 2px rgba(29, 27, 23, 0.08);
+}
+
+.registro-hub-contador-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #18330d;
+  color: #ffffff;
+  font-size: 22px;
+  font-variation-settings: "FILL" 1;
+}
+
+.registro-hub-contador-etiqueta {
+  display: block;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #43483f;
+}
+
+.registro-hub-contador-valor {
+  display: block;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  color: #1d1b17;
+}
+
+.registro-hub-acciones {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+
+@media (min-width: 640px) {
+  .registro-hub-acciones {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .registro-hub-acciones {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.registro-hub-tarjeta {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(29, 27, 23, 0.08);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.registro-hub-tarjeta:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(29, 27, 23, 0.12);
+}
+
+.registro-hub-tarjeta:focus-visible {
+  outline: 2px solid #18330d;
+  outline-offset: 2px;
+}
+
+.registro-hub-tarjeta-superior {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.registro-hub-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 26px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.registro-hub-numero {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #ede7e1;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #1d1b17;
+}
+
+.registro-hub-tarjeta-texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.registro-hub .registro-hub-tarjeta-texto h2 {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 600;
+  color: #1d1b17;
+  transition: color 0.2s ease;
+}
+
+.registro-hub-tarjeta:hover .registro-hub-tarjeta-texto h2 {
+  color: #18330d;
+}
+
+.registro-hub-tarjeta-texto p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: #43483f;
+}
+
+.registro-hub-abrir {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(202, 237, 181, 0.6);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #18330d;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.registro-hub-abrir > span {
+  transition: transform 0.2s ease;
+}
+
+.registro-hub-tarjeta:hover .registro-hub-abrir {
+  background: #18330d;
+  color: #ffffff;
+}
+
+.registro-hub-tarjeta:hover .registro-hub-abrir > span {
+  transform: translateX(4px);
+}
+
+.registro-hub-tarjeta-verde .registro-hub-icono {
+  background: #caedb5;
+  color: #072100;
+}
+
+.registro-hub-tarjeta-verde:hover .registro-hub-icono {
+  background: #18330d;
+  color: #ffffff;
+}
+
+.registro-hub-tarjeta-naranja .registro-hub-icono {
+  background: #ffdbcb;
+  color: #75340d;
+}
+
+.registro-hub-tarjeta-naranja:hover .registro-hub-icono {
+  background: #703009;
+  color: #ffffff;
+}
+
+.registro-hub-tarjeta-arena .registro-hub-icono {
+  background: #e9dece;
+  color: #4c463a;
+}
+
+.registro-hub-tarjeta-arena:hover .registro-hub-icono {
+  background: #18330d;
+  color: #ffffff;
+}
+
+.registro-hub-tarjeta-neutro .registro-hub-icono {
+  background: #ede7e1;
+  color: #43483f;
+}
+
+.registro-hub-tarjeta-neutro:hover .registro-hub-icono {
+  background: #18330d;
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .registro-hub {
+    gap: 24px;
+  }
+
+  .registro-hub-encabezado {
+    align-items: flex-start;
+  }
+
+  .registro-hub .registro-hub-titulos h1 {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .registro-hub-contadores {
+    width: 100%;
+  }
+
+  .registro-hub-contador {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .registro-hub-tarjeta {
+    padding: 20px;
+  }
+}

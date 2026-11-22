@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Campo from "../components/ui/Campo.jsx";
 import { useFormulario } from "../hooks/useFormulario.js";
-import { enviarPostulacionVoluntario } from "../services/postulacionVoluntarioService.js";
+import { enviarPostulacionVoluntario, pedirCodigoVoluntario } from "../services/postulacionVoluntarioService.js";
 import {
   OPCIONES_DIAS,
   OPCIONES_HABILIDADES,
@@ -12,11 +13,14 @@ import "../styles/voluntariado.css";
 const POSTULACION_INICIAL = {
   nombre: "",
   email: "",
+  codigo: "",
   telefono: "",
   diasDisponibles: [],
   motivacion: "",
   habilidades: [],
   otraHabilidad: "",
+  curriculumNombre: "",
+  curriculumBase64: "",
 };
 
 function Mensaje({ mensaje }) {
@@ -68,6 +72,58 @@ function VoluntariadoPage() {
 
   const { valores, errores, cambiar } = formulario;
 
+  const [avisoCodigo, setAvisoCodigo] = useState(null);
+  const [enviandoCodigo, setEnviandoCodigo] = useState(false);
+
+  async function pedirCodigo() {
+    if (!valores.email.trim()) {
+      setAvisoCodigo({ tipo: "error", texto: "Primero escribe tu correo" });
+      return;
+    }
+
+    setEnviandoCodigo(true);
+    setAvisoCodigo(null);
+
+    try {
+      await pedirCodigoVoluntario(valores.email.trim());
+      setAvisoCodigo(null);
+    } catch (error) {
+      setAvisoCodigo({ tipo: "error", texto: error.message || "No se pudo enviar el código" });
+    } finally {
+      setEnviandoCodigo(false);
+    }
+  }
+
+  function elegirCurriculum(evento) {
+    const archivo = evento.target.files[0];
+
+    if (!archivo) {
+      cambiar("curriculumNombre", "");
+      cambiar("curriculumBase64", "");
+      return;
+    }
+
+    if (archivo.type !== "application/pdf") {
+      alert("El currículum debe ser un archivo PDF");
+      evento.target.value = "";
+      return;
+    }
+
+    if (archivo.size > 2 * 1024 * 1024) {
+      alert("El currículum puede pesar máximo 2 MB");
+      evento.target.value = "";
+      return;
+    }
+
+    const lector = new FileReader();
+    lector.onload = () => {
+      const base64 = lector.result.split(",")[1];
+      cambiar("curriculumNombre", archivo.name);
+      cambiar("curriculumBase64", base64);
+    };
+    lector.readAsDataURL(archivo);
+  }
+
   return (
     <section className="bloque voluntariado">
       <Link to="/" className="volver-link">← Volver al inicio</Link>
@@ -80,15 +136,29 @@ function VoluntariadoPage() {
       <form className="formulario" onSubmit={formulario.enviarFormulario} noValidate>
         <h2>Tus datos</h2>
 
-        <div className="formulario-campos">
+      <div className="formulario-campos campos-voluntario">
           <Campo
             etiqueta="Nombre completo"
             nombre="nombre"
             valor={valores.nombre}
             error={errores.nombre}
             maxLength={255}
-            onChange={(evento) => cambiar("nombre", evento.target.value)}
+            onChange={(evento) =>
+              cambiar("nombre", evento.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü' -]/g, ""))
+            }
           />
+          <Campo
+            etiqueta="Teléfono"
+            nombre="telefono"
+            type="tel"
+            valor={valores.telefono}
+            error={errores.telefono}
+            placeholder="912345678"
+            inputMode="numeric"
+            maxLength={12}
+            onChange={(evento) => cambiar("telefono", evento.target.value.replace(/[^\d+]/g, ""))}
+          />
+         <div className="codigo-correo">
           <Campo
             etiqueta="Correo"
             nombre="email"
@@ -97,17 +167,26 @@ function VoluntariadoPage() {
             error={errores.email}
             onChange={(evento) => cambiar("email", evento.target.value)}
           />
-
           <Campo
-            etiqueta="Teléfono"
-            nombre="telefono"
-            type="tel"
-            valor={valores.telefono}
-            error={errores.telefono}
-            placeholder="912345678"
-            onChange={(evento) => cambiar("telefono", evento.target.value)}
-          />
-
+              etiqueta="Código del correo"
+              nombre="codigo"
+              valor={valores.codigo}
+              error={errores.codigo}
+              placeholder="123456"
+              inputMode="numeric"
+              maxLength={6}
+              onChange={(evento) => cambiar("codigo", evento.target.value.replace(/\D/g, ""))}
+            />
+            <button
+              type="button"
+              className="boton boton-codigo"
+              onClick={pedirCodigo}
+              disabled={enviandoCodigo}
+            >
+              {enviandoCodigo ? "Enviando..." : "Enviar código "}
+            </button>
+            <Mensaje mensaje={avisoCodigo} />
+          </div>
           <Casillas
             titulo="¿Qué días puedes venir?"
             opciones={OPCIONES_DIAS}
@@ -147,6 +226,14 @@ function VoluntariadoPage() {
             maxLength={1000}
             onChange={(evento) => cambiar("motivacion", evento.target.value)}
           />
+          <div className="campo campo-ancho">
+            <span>Currículum en PDF (opcional, máximo 2 MB)</span>
+            <label className="subir-cv">
+              <input type="file" accept="application/pdf" onChange={elegirCurriculum} hidden />
+              {valores.curriculumNombre ? `✅ ${valores.curriculumNombre}` : "Elegir archivo"}
+            </label>
+            {errores.curriculumBase64 && <span className="campo-error">{errores.curriculumBase64}</span>}
+          </div>
         </div>
 
         <button type="submit" className="boton">Enviar postulación</button>

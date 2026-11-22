@@ -1,0 +1,61 @@
+.lista-fichas-resumen {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  border: 1px solid #e7e2db;
+  border-radius: 12px;
+  background: #f9f3ec;
+}
+
+.lista-fichas-resumen-grupo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lista-fichas-resumen-icono {
+  font-size: 20px;
+  color: #18330d;
+}
+
+.lista-fichas-icono-gato {
+  display: inline-flex;
+  width: 1em;
+  height: 1em;
+  color: inherit;
+  vertical-align: middle;
+}
+
+.lista-fichas-resumen-label {
+  display: block;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #43483f;
+}
+
+.lista-fichas-resumen-valor {
+  display: block;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 700;
+  color: #1d1b17;
+}
+
+.lista-fichas-resumen-divisor {
+  width: 1px;
+  height: 28px;
+  background: #d1cac0;
+}
+
+@media (max-width: 640px) {
+  .lista-fichas-resumen {
+    flex: 1 1 100%;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px 12px;
+  }
+}

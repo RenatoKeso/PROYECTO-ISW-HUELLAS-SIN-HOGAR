@@ -1,10 +1,21 @@
 import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
+import { enviarCorreoRevision } from "../services/correoService.js";
 import {
   postularComoVoluntario,
   obtenerPostulacionesVoluntario,
   revisarPostulacionVoluntario,
   deshacerRevisionPostulacionVoluntario,
+  obtenerCurriculum,
+  enviarCodigoPostulacion,
 } from "../services/postulacionVoluntarioService.js";
+
+export async function pedirCodigo(request, response) {
+  await enviarCodigoPostulacion(request.body.email);
+
+  return enviarRespuestaExitosa(response, {
+    mensaje: "Te enviamos un código a tu correo",
+  });
+}
 
 export async function postular(request, response) {
   const postulacion = await postularComoVoluntario(request.body);
@@ -32,6 +43,10 @@ export async function revisar(request, response) {
     motivoRechazo: request.body.motivoRechazo,
     revisadaPorId: request.usuario.id,
   });
+    
+  enviarCorreoRevision(postulacion).catch((error) =>
+    console.error("No se pudo enviar el correo:", error.message),
+  );
 
   const mensaje =
     postulacion.estado === "ACEPTADA"
@@ -48,4 +63,12 @@ export async function deshacer(request, response) {
     mensaje: "Listo, la postulación volvió a En revisión",
     datos: { postulacion },
   });
+}
+
+export async function verCurriculum(request, response) {
+  const { curriculum, curriculumNombre } = await obtenerCurriculum(request.params.id);
+
+  response.setHeader("Content-Type", "application/pdf");
+  response.setHeader("Content-Disposition", `inline; filename="${curriculumNombre}"`);
+  return response.send(Buffer.from(curriculum));
 }

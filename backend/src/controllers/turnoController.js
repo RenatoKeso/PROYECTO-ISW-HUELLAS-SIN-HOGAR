@@ -1,14 +1,20 @@
 import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
 import {
+  cancelarTurno,
+  obtenerInscritosDeTurno,
   obtenerTurnosDisponibles,
   obtenerTurnosGestion,
   publicarTurno,
 } from "../services/turnoService.js";
+import { obtenerCalendarioVoluntario } from "../services/calendarioTurnosService.js";
 
 export function crearTurnoController({
   publicarTurnoServicio = publicarTurno,
   obtenerGestion = obtenerTurnosGestion,
   obtenerDisponibles = obtenerTurnosDisponibles,
+  obtenerCalendario = obtenerCalendarioVoluntario,
+  obtenerInscritos = obtenerInscritosDeTurno,
+  cancelarTurnoServicio = cancelarTurno,
 } = {}) {
   return {
     async publicarTurno(request, response) {
@@ -22,11 +28,33 @@ export function crearTurnoController({
     },
 
     async listarGestion(request, response) {
-      const turnos = await obtenerGestion();
+      const { semana, turnos } = await obtenerGestion(request.query);
 
       return enviarRespuestaExitosa(response, {
         mensaje: "Turnos obtenidos correctamente",
-        datos: { turnos },
+        datos: semana ? { semana, turnos } : { turnos },
+      });
+    },
+
+    async cancelar(request, response) {
+      const { turno, inscripciones } = await cancelarTurnoServicio(
+        request.params,
+        request.body,
+        request.usuario,
+      );
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: "Turno cancelado correctamente",
+        datos: { turno, inscripcionesCanceladas: inscripciones.length },
+      });
+    },
+
+    async verInscritos(request, response) {
+      const { turno, inscripciones } = await obtenerInscritos(request.params);
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: "Inscritos obtenidos correctamente",
+        datos: { turno, inscripciones },
       });
     },
 
@@ -36,6 +64,15 @@ export function crearTurnoController({
       return enviarRespuestaExitosa(response, {
         mensaje: "Turnos disponibles obtenidos correctamente",
         datos: { turnos },
+      });
+    },
+
+    async verCalendario(request, response) {
+      const calendario = await obtenerCalendario(request.query, request.usuario);
+
+      return enviarRespuestaExitosa(response, {
+        mensaje: "Calendario obtenido correctamente",
+        datos: calendario,
       });
     },
   };

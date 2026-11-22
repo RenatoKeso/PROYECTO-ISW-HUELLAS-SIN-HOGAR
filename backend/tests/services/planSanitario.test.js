@@ -286,21 +286,72 @@ test("los filtros invalidos no escriben y los registros inexistentes responden 4
   assert.equal(contar(), 0);
 });
 
-test("un cambio concurrente no permite sobrescribir una atencion finalizada", async () => {
-  const { servicio, repos } = preparar();
+test(
+  "un cambio concurrente no permite sobrescribir una atencion finalizada",
+  async () => {
+    const { servicio, repos } = preparar();
 
-  const atencion =
-    await servicio.programar("anim-001", datos);
+    const atencion = await servicio.programar(
+      "anim-001",
+      datos
+    );
 
-  repos.modificarAtencionPendiente = async () => ({
-    count: 0,
-  });
+    repos.modificarAtencionPendiente = async () => ({
+      count: 0,
+    });
 
-  await assert.rejects(
-    servicio.modificar(atencion.id, {
-      accion: "realizar",
-      fechaRealizacion: "2026-11-02",
-    }),
-    { estadoHttp: 409 }
-  );
-});
+    await assert.rejects(
+      servicio.modificar(atencion.id, {
+        accion: "realizar",
+        fechaRealizacion: "2026-11-02",
+      }),
+      { estadoHttp: 409 }
+    );
+  }
+);
+
+test(
+  "la agenda usa el mes completo, incluido el 29 de febrero, y entrega solo los datos visibles",
+  async () => {
+    const servicio = crearServicioPlanSanitario({
+      repos: {
+        async listarAgendaMes(desde, hasta) {
+          assert.equal(
+            desde.toISOString().slice(0, 10),
+            "2028-02-01"
+          );
+
+          assert.equal(
+            hasta.toISOString().slice(0, 10),
+            "2028-02-29"
+          );
+
+          return [
+            {
+              tipo: "control",
+              fechaProgramada: hasta,
+              fichaAnimal: {
+                nombre: "Gretel",
+              },
+            },
+          ];
+        },
+      },
+    });
+
+    const resultado = await servicio.agenda({
+      mes: "2028-02",
+    });
+
+    assert.deepEqual(resultado, {
+      mes: "2028-02",
+      atenciones: [
+        {
+          tipo: "control",
+          fechaProgramada: "2028-02-29",
+          nombreAnimal: "Gretel",
+        },
+      ],
+    });
+  }
+);

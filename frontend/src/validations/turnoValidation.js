@@ -6,6 +6,12 @@ export const CUPO_MAXIMO_TURNO = 100;
 
 const REGEX_HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
 
+// Igual que en el backend: empieza con una letra y solo lleva letras, espacios,
+// comas o guiones.
+const REGEX_TITULO = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ ,-]*$/;
+export const MENSAJE_TITULO =
+  "El título debe empezar con una letra y solo puede tener letras, espacios, comas y guiones";
+
 const vacioAUndefined = (valor) =>
   typeof valor !== "string" || valor.trim() === "" ? undefined : valor;
 
@@ -13,8 +19,9 @@ export const turnoFormSchema = z.strictObject({
   titulo: z
     .string()
     .trim()
-    .min(1, "El título es obligatorio")
-    .max(120, "El título no puede superar los 120 caracteres"),
+    .min(1, { message: "El título es obligatorio", abort: true })
+    .max(120, "El título no puede superar los 120 caracteres")
+    .regex(REGEX_TITULO, MENSAJE_TITULO),
   descripcion: z.preprocess(
     vacioAUndefined,
     z.string().trim().max(1000, "La descripción no puede superar los 1000 caracteres").optional(),

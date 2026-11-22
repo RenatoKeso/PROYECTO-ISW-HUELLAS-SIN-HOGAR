@@ -22,6 +22,7 @@ import {
 import authService from "../services/authService.js";
 import { crearRegistroMedicoRouter } from "./registroMedicoRoutes.js";
 import { crearNotificacionRouter } from "./notificacionRoutes.js";
+import { crearDonacionRouter } from "./donacionRoutes.js";
 
 export function crearRouter({
   registrarIngresoAnimal,
@@ -34,10 +35,9 @@ export function crearRouter({
 
   router.use("/auth", crearAuthRouter(servicioAuth));
 
-  router.use(
-    "/adopciones",
-    crearAdopcionRouter({ autenticar })
-  );
+  router.use("/donaciones", crearDonacionRouter({ autenticar }));
+
+  router.use("/adopciones",crearAdopcionRouter({ autenticar }));
 
   
   router.use(

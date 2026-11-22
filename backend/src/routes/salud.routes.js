@@ -5,7 +5,7 @@ import { crearPlanSanitarioController } from "../controllers/planSanitarioContro
 import { TIPOS } from "../services/alertasSanitarias.service.js";
 import { capturarErrores } from "../middlewares/capturarErrores.js";
 import { validarEsquema } from "../middlewares/validarEsquema.js";
-import {codigoPlanSchema,idAtencionSchema,programarAtencionSchema,modificarAtencionSchema,} from "../validations/planSanitarioValidation.js";
+import {mesAgendaSchema,busquedaAnimalesSchema,codigoPlanSchema,idAtencionSchema,programarAtencionSchema,modificarAtencionSchema,} from "../validations/planSanitarioValidation.js";
 
 export function crearSaludRouter({
   consultar,
@@ -28,8 +28,19 @@ export function crearSaludRouter({
     crearConsultaAlertasPlan(consultar)
   );
 
-  // crearRouter protege todo /salud con sesión
-  // y permiso sanitario.
+  // crearRouter protege todo /salud con sesión y permiso sanitario.
+  router.get(
+    "/agenda",
+    validarEsquema(mesAgendaSchema, "query"),
+    capturarErrores(plan.agenda)
+  );
+
+  router.get(
+    "/animales",
+    validarEsquema(busquedaAnimalesSchema, "query"),
+    capturarErrores(plan.buscarAnimales)
+  );
+
   router.get(
     "/plan/:codigo",
     validarEsquema(codigoPlanSchema, "params"),

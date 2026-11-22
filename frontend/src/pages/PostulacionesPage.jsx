@@ -55,9 +55,6 @@ function PostulacionesPage() {
           <h2>Postulaciones de adopción</h2>
           <p>Revisa las postulaciones que llegan desde el catálogo público.</p>
         </div>
-        <Link to="/adopciones/publicar" className="boton boton-secundario">
-          Publicar animales
-        </Link>
       </div>
 
       <div className="pestanas-estado" role="tablist">
@@ -92,7 +89,6 @@ function PostulacionesPage() {
           <table className="tabla-postulaciones">
             <thead>
               <tr>
-                <th>N°</th>
                 <th>Postulante</th>
                 <th>RUT</th>
                 <th>Animal</th>
@@ -104,12 +100,10 @@ function PostulacionesPage() {
             <tbody>
               {postulaciones.map((postulacion) => (
                 <tr key={postulacion.id}>
-                  <td>{postulacion.id}</td>
                   <td>{postulacion.nombrePostulante}</td>
                   <td>{postulacion.rutPostulante}</td>
                   <td>
                     {postulacion.fichaAnimal.nombre || "Sin nombre"}
-                    <span className="texto-suave"> · {postulacion.fichaAnimal.codigoAnimal}</span>
                   </td>
                   <td>{formatearFecha(postulacion.createdAt)}</td>
                   <td>

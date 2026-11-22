@@ -414,8 +414,9 @@
 
 .ventana-reporte {
   max-width: 1000px;
-  max-height: 95vh;
-  min-height: 80vh;
+  max-height: calc(100vh - 7rem);
+  min-height: 0;
+  margin-top: 4.5rem;
 }
 
 .ventana-reporte .lista-ventana {

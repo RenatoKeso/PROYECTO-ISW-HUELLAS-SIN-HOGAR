@@ -97,6 +97,7 @@ export function puedeConsultarRegistroMedico(usuario) {
 
 export function puedeRegistrarRevisionInicial(usuario) {
   return tieneRol(usuario, [
+    "VOLUNTARIO",
     "VOLUNTARIO_CONFIANZA",
     "VETERINARIA",
   ]);
@@ -104,6 +105,7 @@ export function puedeRegistrarRevisionInicial(usuario) {
 
 export function puedeActualizarRevisionInicial(usuario) {
   return tieneRol(usuario, [
+    "VOLUNTARIO",
     "VOLUNTARIO_CONFIANZA",
     "VETERINARIA",
   ]);
@@ -115,4 +117,8 @@ export function puedeRealizarRevisionFinal(usuario) {
 
 export function puedeActualizarRegistroMedico(usuario) {
   return tieneRol(usuario, ["VETERINARIA"]);
+}
+
+export function puedeGestionarDonaciones(usuario) {
+  return tieneRol(usuario, ["DIRECTORA"]);
 }

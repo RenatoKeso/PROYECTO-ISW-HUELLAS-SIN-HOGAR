@@ -1,11 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { ejecutarEnTransaccion } from "../config/prisma.js";
-import {
-  buscarAnimalParaPublicar,
-  listarAnimalesDisponibles,
-  listarAnimalesPublicables,
-  publicarAnimalAdoptable,
-} from "../repositories/animalAdopcionRepository.js";
+import { listarAnimalesDisponibles } from "../repositories/animalAdopcionRepository.js";
 import {
   buscarAnimalPorId,
   buscarPostulacionAbierta,
@@ -28,12 +23,12 @@ import {
 import {
   animalInexistente,
   animalNoDisponible,
-  animalNoPublicable,
   entregaNoPermitida,
   fechaInvalida,
   postulacionDuplicada,
   postulacionInexistente,
   postulacionNoAprobada,
+  postulacionNoEntregada,
   postulacionYaResuelta,
   primeraVisitaPendiente,
   seguimientoInexistente,
@@ -42,12 +37,10 @@ import {
   visitaYaRegistrada,
 } from "../entities/adopcionErrors.js";
 import { diaEnChile } from "../validations/adopcionValidation.js";
+import { crearActaEntregaPdf } from "./pdfEntregaAdopcion.js";
 
 const DEPENDENCIAS_POR_DEFECTO = {
   listarAnimalesDisponibles,
-  listarAnimalesPublicables,
-  buscarAnimalParaPublicar,
-  publicarAnimalAdoptable,
   buscarAnimalPorId,
   buscarPostulacionAbierta,
   buscarPostulacionPorId,
@@ -66,6 +59,7 @@ const DEPENDENCIAS_POR_DEFECTO = {
   buscarSeguimiento,
   marcarSeguimientoRealizado,
   ejecutarEnTransaccion,
+  crearActaEntregaPdf,
 };
 
 // Un animal solo recibe postulaciones mientras esta publicado en el catalogo.
@@ -91,51 +85,14 @@ function visitaHogarResuelta(postulacion) {
   );
 }
 
-// ---------- Catalogo y publicacion ----------
+
+// ---------- Catalogo ----------
 
 // Catalogo de adopcion: los animales que hoy pueden recibir postulaciones.
+// Un animal entra al catalogo automaticamente cuando la veterinaria lo evalua
+// como adoptable en la revision final (realizarRevisionFinal, en registroMedicoService.js).
 export async function obtenerCatalogo(dependencias = DEPENDENCIAS_POR_DEFECTO) {
   return dependencias.listarAnimalesDisponibles();
-}
-
-// Animales adoptables que todavia no estan publicados.
-export async function obtenerAnimalesPublicables(dependencias = DEPENDENCIAS_POR_DEFECTO) {
-  return dependencias.listarAnimalesPublicables();
-}
-
-// Publicar = pasar un animal ACTIVO y ADOPTABLE a ESPERA_ADOPCION (aparece en el catalogo).
-export async function publicarAnimal(id, dependencias = DEPENDENCIAS_POR_DEFECTO) {
-  const animal = await dependencias.buscarAnimalParaPublicar(id);
-
-  if (!animal) throw animalInexistente(id);
-
-  if (animal.estadoEstadia === ESTADO_DISPONIBLE) {
-    throw animalNoPublicable(
-      "El animal ya esta publicado en el catalogo",
-    );
-  }
-
-  if (animal.estadoAdopcion !== "ADOPTABLE") {
-    throw animalNoPublicable(
-      "La veterinaria todavia no evalua a este animal como adoptable",
-    );
-  }
-
-  if (animal.estadoEstadia !== "ACTIVO") {
-    throw animalNoPublicable(
-      "Solo se pueden publicar animales que estan en el refugio",
-    );
-  }
-
-  const cambios = await dependencias.publicarAnimalAdoptable(id);
-
-  if (cambios === 0) {
-    throw animalNoPublicable(
-      "El animal cambio de estado mientras se publicaba",
-    );
-  }
-
-  return { ...animal, estadoEstadia: ESTADO_DISPONIBLE };
 }
 
 // ---------- Postulaciones ----------
@@ -144,7 +101,7 @@ export async function publicarAnimal(id, dependencias = DEPENDENCIAS_POR_DEFECTO
 export async function registrarPostulacion(datos, dependencias = DEPENDENCIAS_POR_DEFECTO) {
   const animal = await dependencias.buscarAnimalPorId(datos.fichaAnimalId);
 
-  if (!animal) throw animalInexistente(datos.fichaAnimalId);
+  if (!animal) throw animalInexistente();
   if (animal.estadoEstadia !== ESTADO_DISPONIBLE) throw animalNoDisponible();
 
   const abierta = await dependencias.buscarPostulacionAbierta({
@@ -167,7 +124,7 @@ export async function obtenerPostulaciones(filtros = {}, dependencias = DEPENDEN
 export async function obtenerDetallePostulacion(id, dependencias = DEPENDENCIAS_POR_DEFECTO) {
   const postulacion = await dependencias.buscarPostulacionPorId(id);
 
-  if (!postulacion) throw postulacionInexistente(id);
+  if (!postulacion) throw postulacionInexistente();
 
   const devoluciones = await dependencias.listarDevolucionesDelPostulante(
     postulacion.rutPostulante,
@@ -199,7 +156,7 @@ export async function resolverPostulacion(
 ) {
   const postulacion = await dependencias.buscarPostulacionPorId(id);
 
-  if (!postulacion) throw postulacionInexistente(id);
+  if (!postulacion) throw postulacionInexistente();
   if (postulacion.estado !== "EN_REVISION") throw postulacionYaResuelta();
 
   // No tiene sentido aprobar si el animal ya no esta en el catalogo.
@@ -228,7 +185,7 @@ export async function resolverPostulacion(
 async function obtenerPostulacionAprobada(id, dependencias) {
   const postulacion = await dependencias.buscarPostulacionPorId(id);
 
-  if (!postulacion) throw postulacionInexistente(id);
+  if (!postulacion) throw postulacionInexistente();
   if (postulacion.estado !== "APROBADA") throw postulacionNoAprobada();
 
   return postulacion;
@@ -394,7 +351,7 @@ export async function formalizarEntrega(
 ) {
   const postulacion = await dependencias.buscarPostulacionPorId(id);
 
-  if (!postulacion) throw postulacionInexistente(id);
+  if (!postulacion) throw postulacionInexistente();
 
   validarRequisitosEntrega(postulacion, fechaEntrega);
 
@@ -452,7 +409,7 @@ export async function realizarSeguimiento(
     postulacionId,
   });
 
-  if (!seguimiento) throw seguimientoInexistente(seguimientoId);
+  if (!seguimiento) throw seguimientoInexistente();
   if (seguimiento.estado !== "PENDIENTE") throw seguimientoYaRealizado();
 
   const cambios = await dependencias.marcarSeguimientoRealizado(seguimientoId);
@@ -460,4 +417,34 @@ export async function realizarSeguimiento(
   if (cambios === 0) throw seguimientoYaRealizado();
 
   return dependencias.buscarPostulacionPorId(postulacionId);
+}
+
+// ---------- Acta de entrega ----------
+
+// "Luna Blanca" -> "acta-entrega-luna-blanca.pdf". Sin tildes ni espacios para que
+// el nombre funcione en cualquier sistema. No usa ningun id ni el codigo del animal.
+export function nombreArchivoActa(nombreAnimal) {
+  const nombre = (nombreAnimal ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return nombre ? `acta-entrega-${nombre}.pdf` : "acta-entrega.pdf";
+}
+
+// Arma el acta de entrega en PDF. Solo existe cuando el animal ya se entrego.
+export async function obtenerActaEntrega(id, dependencias = DEPENDENCIAS_POR_DEFECTO) {
+  const postulacion = await dependencias.buscarPostulacionPorId(id);
+
+  if (!postulacion) throw postulacionInexistente();
+  if (postulacion.estado !== "ENTREGADA") throw postulacionNoEntregada();
+
+  const pdf = await dependencias.crearActaEntregaPdf(postulacion);
+
+  return {
+    pdf,
+    nombreArchivo: nombreArchivoActa(postulacion.fichaAnimal.nombre),
+  };
 }

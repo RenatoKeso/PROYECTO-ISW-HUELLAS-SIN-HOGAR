@@ -48,6 +48,7 @@ model FichaAnimal {
   ingresoAnimal         IngresoAnimal[]
   postulacionesAdopcion Postulacion[]
   devoluciones          Devolucion[]
+  donaciones            Donacion[]
   atencionesSanitarias  AtencionSanitaria[]
 
   registroMedicoAnimal  RegistroMedicoAnimal?
@@ -76,11 +77,11 @@ model Voluntario {
   activo    Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  ingresosRecibidos      IngresoAnimal[]
-  devolucionesRecibidas  Devolucion[]
-  usuario                Usuario?
-  inscripcionesTurno     InscripcionTurno[]
-  postulacionVoluntario  PostulacionVoluntario?
+  ingresosRecibidos     IngresoAnimal[]
+  devolucionesRecibidas Devolucion[]
+  usuario               Usuario?
+  inscripcionesTurno    InscripcionTurno[]
+  postulacionVoluntario PostulacionVoluntario?
 }
 
 // Módulo de adopción
@@ -99,6 +100,12 @@ enum TipoVivienda {
   OTRO
 }
 
+enum TenenciaVivienda {
+  PROPIA
+  ARRENDADA
+  OTRA
+}
+
 model Postulacion {
   id                   Int               @id @default(autoincrement())
   fichaAnimalId        Int
@@ -107,9 +114,11 @@ model Postulacion {
   rutPostulante        String
   telefonoPostulante   String
   emailPostulante      String?
+
   // Cuenta que aprobo o rechazo la postulacion (directora o encargada de adopciones).
-  revisorId            Int?
-  revisor              Usuario?          @relation("PostulacionesRevisadas", fields: [revisorId], references: [id])
+  revisorId Int?
+  revisor   Usuario? @relation("PostulacionesRevisadas", fields: [revisorId], references: [id])
+
   tipoVivienda         TipoVivienda
   otrasMascotas        String?
   alertaMostradaEn     DateTime?
@@ -119,15 +128,30 @@ model Postulacion {
   estado               EstadoPostulacion @default(EN_REVISION)
   createdAt            DateTime          @default(now())
 
+  // Datos del postulante y su hogar que se piden desde la revision de codigo.
+  // Son opcionales en la base de datos porque las postulaciones antiguas no
+  // los tienen; para las nuevas, Zod los exige.
+  fechaNacimientoPostulante DateTime?         @db.Date
+  direccionPostulante       String?
+  comunaPostulante          String?
+  tenenciaVivienda          TenenciaVivienda?
+  permiteMascotasArriendo   Boolean?
+  tienePatio                Boolean?
+  personasHogar             Int?
+  hayNinos                  Boolean?
+  horasSoloAlDia            Int?
+  motivoAdopcion            String?
+  aceptaSeguimiento        Boolean?
+
   // Omision de la visita al hogar (RF3): motivo de la lista y quien la autorizo.
   motivoOmisionVisitaHogar      MotivoOmisionVisita?
   observacionOmisionVisitaHogar String?
   fechaOmisionVisitaHogar       DateTime?
   omisionAutorizadaPorId        Int?
-  omisionAutorizadaPor          Usuario?             @relation("OmisionesVisitaAutorizadas", fields: [omisionAutorizadaPorId], references: [id])
+  omisionAutorizadaPor          Usuario? @relation("OmisionesVisitaAutorizadas", fields: [omisionAutorizadaPorId], references: [id])
 
-  // Entrega  El modulo de devoluciones usa fechaEntrega para validar la fecha de devolución.
-  fechaEntrega           DateTime? @db.Date
+  // El modulo de devoluciones usa fechaEntrega para validar la fecha de devolución.
+  fechaEntrega          DateTime? @db.Date
   documentacionEntregada String?
 
   devoluciones Devolucion[]
@@ -164,16 +188,16 @@ enum EstadoSeguimientoAdopcion {
 
 // Primera visita entre el animal y la familia, y visita al hogar del postulante.
 model VisitaAdopcion {
-  id              Int                     @id @default(autoincrement())
+  id              Int                    @id @default(autoincrement())
   postulacionId   Int
-  postulacion     Postulacion             @relation(fields: [postulacionId], references: [id])
+  postulacion     Postulacion            @relation(fields: [postulacionId], references: [id])
   tipo            TipoVisitaAdopcion
-  fechaVisita     DateTime                @db.Date
+  fechaVisita     DateTime               @db.Date
   resultado       ResultadoVisitaAdopcion
   observaciones   String?
   registradaPorId Int
-  registradaPor   Usuario                 @relation("VisitasAdopcionRegistradas", fields: [registradaPorId], references: [id])
-  createdAt       DateTime                @default(now())
+  registradaPor   Usuario                @relation("VisitasAdopcionRegistradas", fields: [registradaPorId], references: [id])
+  createdAt       DateTime               @default(now())
 
   // Cada postulación tiene a lo mas una visita de cada tipo.
   @@unique([postulacionId, tipo])
@@ -296,10 +320,17 @@ model Turno {
   cupoMaximo             Int
   cuposDisponibles       Int
   estado                 EstadoTurno @default(PUBLICADO)
-  publicadoPorId         Int
-  publicadoPor           Usuario     @relation("TurnosPublicados", fields: [publicadoPorId], references: [id])
-  createdAt              DateTime    @default(now())
-  updatedAt              DateTime    @updatedAt
+
+  publicadoPorId Int
+  publicadoPor   Usuario @relation("TurnosPublicados", fields: [publicadoPorId], references: [id])
+
+  motivoCancelacion String?
+  canceladoEn       DateTime?
+  canceladoPorId    Int?
+  canceladoPor      Usuario? @relation("TurnosCancelados", fields: [canceladoPorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   inscripciones          InscripcionTurno[]
   historialInscripciones HistorialInscripcion[] @relation("TurnoDelHistorial")
@@ -330,18 +361,23 @@ model InscripcionTurno {
 // Una fila por operación sobre una inscripción: inscribirse, cambiar de turno o cancelar.
 
 model HistorialInscripcion {
-  id              Int               @id @default(autoincrement())
+  id              Int              @id @default(autoincrement())
   inscripcionId   Int
-  inscripcion     InscripcionTurno  @relation(fields: [inscripcionId], references: [id])
+  inscripcion     InscripcionTurno @relation(fields: [inscripcionId], references: [id])
   accion          AccionInscripcion
-  turnoId         Int
-  turno           Turno             @relation("TurnoDelHistorial", fields: [turnoId], references: [id])
+
+  turnoId Int
+  turno   Turno @relation("TurnoDelHistorial", fields: [turnoId], references: [id])
+
   turnoAnteriorId Int?
-  turnoAnterior   Turno?            @relation("TurnoAnteriorDelHistorial", fields: [turnoAnteriorId], references: [id])
-  detalle         String?
-  realizadoPorId  Int
-  realizadoPor    Usuario           @relation("HistorialInscripcionesRealizadas", fields: [realizadoPorId], references: [id])
-  fecha           DateTime          @default(now())
+  turnoAnterior   Turno? @relation("TurnoAnteriorDelHistorial", fields: [turnoAnteriorId], references: [id])
+
+  detalle String?
+
+  realizadoPorId Int
+  realizadoPor   Usuario @relation("HistorialInscripcionesRealizadas", fields: [realizadoPorId], references: [id])
+
+  fecha DateTime @default(now())
 
   @@index([inscripcionId, fecha])
 }
@@ -370,26 +406,31 @@ model Usuario {
   voluntario   Voluntario? @relation(fields: [voluntarioId], references: [id], onDelete: Restrict)
 
   turnosPublicados       Turno[]                @relation("TurnosPublicados")
+  turnosCancelados       Turno[]                @relation("TurnosCancelados")
   historialInscripciones HistorialInscripcion[] @relation("HistorialInscripcionesRealizadas")
 
-  revisionesInicialesCreadas      RevisionInicial[]           @relation("RevisionInicialCreatedBy")
-  revisionesInicialesActualizadas RevisionInicial[]           @relation("RevisionInicialUpdatedBy")
-  revisionInicialRealizada        RegistroMedicoAnimal[]      @relation("RevisionInicialRealizada")
-  revisionesCompletasCreadas      RevisionCompleta[]          @relation("RevisionCompletaCreatedBy")
-  revisionesCompletasActualizadas RevisionCompleta[]          @relation("RevisionCompletaUpdatedBy")
-  tratamientosCreados             TratamientoAnimal[]
-  enfermedadesCreadas             EnfermedadAnimal[]
-  seguimientosCreados             SeguimientoMedicoAnimal[]
-  atencionesRegistradas           AtencionVeterinaria[]
-  actualizacionesEstadoAnimal     ActualizacionEstadoAnimal[]
-  auditoriasRealizadas            AuditoriaRevisionInicial[]
-  versionesHistorial              HistorialRegistroMedico[]
-  notificacionesRecibidas         Notificacion[]
-  reportesDevolucionGenerados     ReporteDevolucion[]
-  visitasAdopcionRegistradas      VisitaAdopcion[]            @relation("VisitasAdopcionRegistradas")
-  omisionesVisitaAutorizadas      Postulacion[]               @relation("OmisionesVisitaAutorizadas")
-  postulacionesRevisadas          Postulacion[]               @relation("PostulacionesRevisadas")
+  revisionesInicialesCreadas      RevisionInicial[]      @relation("RevisionInicialCreatedBy")
+  revisionesInicialesActualizadas RevisionInicial[]     @relation("RevisionInicialUpdatedBy")
+  revisionInicialRealizada        RegistroMedicoAnimal[] @relation("RevisionInicialRealizada")
+  revisionesCompletasCreadas      RevisionCompleta[]     @relation("RevisionCompletaCreatedBy")
+  revisionesCompletasActualizadas RevisionCompleta[]     @relation("RevisionCompletaUpdatedBy")
+
+  tratamientosCreados         TratamientoAnimal[]
+  enfermedadesCreadas         EnfermedadAnimal[]
+  seguimientosCreados         SeguimientoMedicoAnimal[]
+  atencionesRegistradas       AtencionVeterinaria[]
+  actualizacionesEstadoAnimal ActualizacionEstadoAnimal[]
+  auditoriasRealizadas        AuditoriaRevisionInicial[]
+  versionesHistorial          HistorialRegistroMedico[]
+  notificacionesRecibidas     Notificacion[]
+  reportesDevolucionGenerados ReporteDevolucion[]
+
+  visitasAdopcionRegistradas VisitaAdopcion[] @relation("VisitasAdopcionRegistradas")
+  omisionesVisitaAutorizadas  Postulacion[]   @relation("OmisionesVisitaAutorizadas")
+  postulacionesRevisadas      Postulacion[]   @relation("PostulacionesRevisadas")
+
   postulacionesVoluntarioRevisadas PostulacionVoluntario[]
+  donacionesRevisadas              Donacion[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -442,10 +483,10 @@ enum EstadoAdopcion {
 }
 
 model RegistroMedicoAnimal {
-  id              Int            @id @default(autoincrement())
-  animalId        Int            @unique
-  animal          FichaAnimal    @relation(fields: [animalId], references: [id], onDelete: Restrict)
-  ingresoAnimalId Int?           @unique
+  id              Int           @id @default(autoincrement())
+  animalId        Int           @unique
+  animal          FichaAnimal   @relation(fields: [animalId], references: [id], onDelete: Restrict)
+  ingresoAnimalId Int?          @unique
   ingresoAnimal   IngresoAnimal? @relation(fields: [ingresoAnimalId], references: [id], onDelete: Restrict)
 
   estadoValidacion     EstadoValidacionMedica  @default(PROVISIONAL)
@@ -455,13 +496,13 @@ model RegistroMedicoAnimal {
   // r2: revision inicial. Los campos son nullables porque el registro nace
   // PROVISIONAL en r1 y la revision inicial aun no ocurrio. La obligatoriedad
   // la impone Zod en el endpoint, no el esquema.
-  pesoKg               Decimal?            @db.Decimal(5, 2)
+  pesoKg               Decimal?           @db.Decimal(5, 2)
   clasificacionSalud   ClasificacionSalud?
   observacionInicial   String?
   requiereCuarentena   Boolean?
   fechaRevisionInicial DateTime?
   revisionInicialPorId Int?
-  revisionInicialPor   Usuario?            @relation("RevisionInicialRealizada", fields: [revisionInicialPorId], references: [id], onDelete: Restrict)
+  revisionInicialPor   Usuario?           @relation("RevisionInicialRealizada", fields: [revisionInicialPorId], references: [id], onDelete: Restrict)
 
   revisionInicial        RevisionInicial?
   revisionCompleta       RevisionCompleta?
@@ -478,8 +519,8 @@ model RegistroMedicoAnimal {
 }
 
 model RevisionInicial {
-  id               Int                  @id @default(autoincrement())
-  registroMedicoId Int                  @unique
+  id               Int                 @id @default(autoincrement())
+  registroMedicoId Int                 @unique
   registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
 
   clasificacionSalud     ClasificacionSalud?
@@ -501,12 +542,12 @@ model RevisionInicial {
 }
 
 model RevisionCompleta {
-  id               Int                  @id @default(autoincrement())
-  registroMedicoId Int                  @unique
+  id               Int                 @id @default(autoincrement())
+  registroMedicoId Int                 @unique
   registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
 
   edad                          Int?
-  peso                          Decimal?            @db.Decimal(5, 2)
+  peso                          Decimal?           @db.Decimal(5, 2)
   descripcionCuidadosEspeciales String?
   descripcionCondicionMedica    String?
   discapacidades                String?
@@ -522,7 +563,7 @@ model RevisionCompleta {
 }
 
 model TratamientoAnimal {
-  id               Int                  @id @default(autoincrement())
+  id               Int                 @id @default(autoincrement())
   registroMedicoId Int
   registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
 
@@ -541,7 +582,7 @@ model TratamientoAnimal {
 }
 
 model EnfermedadAnimal {
-  id               Int                  @id @default(autoincrement())
+  id               Int                 @id @default(autoincrement())
   registroMedicoId Int
   registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
 
@@ -558,16 +599,16 @@ model EnfermedadAnimal {
 }
 
 model AtencionVeterinaria {
-  id               Int                  @id @default(autoincrement())
+  id               Int                 @id @default(autoincrement())
   registroMedicoId Int
   registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
 
-  lugarAtencion        String?
+  lugarAtencion       String?
   nombreClinicaExterna String?
-  nombreMedico         String? //quien atiende
-  fechaAtencion        DateTime
-  descripcionAtencion  String?
-  resultado            String?
+  nombreMedico        String? //quien atiende
+  fechaAtencion       DateTime
+  descripcionAtencion String?
+  resultado           String?
 
   createdAt   DateTime @default(now())
   createdById Int
@@ -577,12 +618,12 @@ model AtencionVeterinaria {
 }
 
 model SeguimientoMedicoAnimal {
-  id               Int                  @id @default(autoincrement())
+  id               Int                 @id @default(autoincrement())
   registroMedicoId Int
   registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
 
   fechaRegistro          DateTime
-  peso                   Decimal?             @db.Decimal(5, 2)
+  peso                   Decimal?           @db.Decimal(5, 2)
   observacionSeguimiento String
   necesidades            String?
   estadoSalud            ClasificacionSalud
@@ -642,7 +683,7 @@ model ActualizacionEstadoAnimal {
 }
 
 model AuditoriaRevisionInicial {
-  id               Int                  @id @default(autoincrement())
+  id               Int                 @id @default(autoincrement())
   registroMedicoId Int
   registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
 
@@ -659,13 +700,13 @@ model AuditoriaRevisionInicial {
 }
 
 model HistorialRegistroMedico {
-  id               Int                  @id @default(autoincrement())
+  id               Int                 @id @default(autoincrement())
   registroMedicoId Int
   registroMedico   RegistroMedicoAnimal @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
 
   version                       Int
   estadoOrigen                  EstadoValidacionMedica
-  peso                          Decimal?               @db.Decimal(5, 2)
+  peso                          Decimal?           @db.Decimal(5, 2)
   clasificacionSalud            ClasificacionSalud?
   descripcionCuidadosEspeciales String?
   descripcionCondicionMedica    String?
@@ -682,22 +723,22 @@ model HistorialRegistroMedico {
 }
 
 model Notificacion {
-  id               Int                   @id @default(autoincrement())
-  destinatarioId   Int
-  destinatario     Usuario               @relation(fields: [destinatarioId], references: [id])
+  id             Int     @id @default(autoincrement())
+  destinatarioId Int
+  destinatario   Usuario @relation(fields: [destinatarioId], references: [id])
+
   tipo             String
   titulo           String
   mensaje          String
   registroMedicoId Int?
   registroMedico   RegistroMedicoAnimal? @relation(fields: [registroMedicoId], references: [id], onDelete: Cascade)
-  leida            Boolean               @default(false)
-  createdAt        DateTime              @default(now())
+  leida            Boolean              @default(false)
+  createdAt        DateTime             @default(now())
 
   @@index([destinatarioId, leida])
 }
 
-
-// ---------- Postulacion de voluntarios ----------
+// Postulacion de voluntarios
 
 enum EstadoPostulacionVoluntario {
   EN_REVISION
@@ -726,21 +767,23 @@ enum HabilidadVoluntario {
 }
 
 model PostulacionVoluntario {
-  id              Int                         @id @default(autoincrement())
-  nombre          String
-  email           String
-  telefono        String
-  diasDisponibles DiaSemana[]
-  motivacion      String
-  habilidades     HabilidadVoluntario[]
-  otraHabilidad   String?
-  estado          EstadoPostulacionVoluntario @default(EN_REVISION)
+  id               Int                         @id @default(autoincrement())
+  nombre           String
+  email            String
+  telefono         String
+  diasDisponibles  DiaSemana[]
+  motivacion       String
+  habilidades      HabilidadVoluntario[]
+  otraHabilidad    String?
+  curriculum       Bytes?
+  curriculumNombre String?
+  estado           EstadoPostulacionVoluntario @default(EN_REVISION)
 
   // Se llenan cuando la encargada revisa la postulacion.
   motivoRechazo String?
   fechaRevision DateTime?
   revisadaPorId Int?
-  revisadaPor   Usuario?  @relation(fields: [revisadaPorId], references: [id])
+  revisadaPor   Usuario? @relation(fields: [revisadaPorId], references: [id])
 
   // El voluntario que se crea al aceptar.
   voluntarioId Int?        @unique
@@ -750,4 +793,55 @@ model PostulacionVoluntario {
 
   @@index([estado])
   @@index([email])
+}
+
+// Donaciones públicas y revisión de recepción.
+
+enum DestinoDonacion {
+  REFUGIO
+  APADRINAMIENTO
+}
+
+enum MedioPagoDonacion {
+  TRANSFERENCIA
+  EFECTIVO
+}
+
+enum EstadoDonacion {
+  PENDIENTE
+  CONFIRMADA
+  RECHAZADA
+}
+
+model Donacion {
+  id                Int             @id @default(autoincrement())
+  folio             String          @unique @default(uuid())
+  destino           DestinoDonacion
+
+  animalId Int?
+  animal   FichaAnimal? @relation(fields: [animalId], references: [id], onDelete: Restrict)
+
+  monto       Decimal          @db.Decimal(14, 0)
+  medioPago   MedioPagoDonacion
+  fechaAporte DateTime         @db.Date
+
+  anonima         Boolean
+  nombreDonante   String?
+  emailDonante    String?
+  telefonoDonante String?
+
+  comprobante       Bytes?
+  comprobanteNombre String?
+
+  estado        EstadoDonacion @default(PENDIENTE)
+  motivoRechazo String?
+
+  revisadaPorId Int?
+  revisadaPor   Usuario? @relation(fields: [revisadaPorId], references: [id], onDelete: Restrict)
+  revisadaEn    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([estado, fechaAporte])
+  @@index([animalId, fechaAporte])
 }

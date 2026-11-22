@@ -1,24 +1,30 @@
 import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
 import {
   formalizarEntrega,
-  obtenerAnimalesPublicables,
+  obtenerActaEntrega,
   obtenerCatalogo,
   obtenerDetallePostulacion,
   obtenerPostulaciones,
   omitirVisitaHogar,
-  publicarAnimal,
   realizarSeguimiento,
   registrarPostulacion,
   registrarVisita,
   resolverPostulacion,
 } from "../services/adopcionService.js";
+import { enviarCorreoAprobacion } from "../services/correoAdopcionService.js";
 
 const MENSAJE_CATALOGO = "Animales en adopcion obtenidos correctamente";
 
+// El correo se envia sin esperarlo: si Gmail falla, la decision ya quedo
+// guardada y solo se deja el error en la consola.
+function avisarSinEsperar(avisar, postulacion) {
+  Promise.resolve()
+    .then(() => avisar(postulacion))
+    .catch((error) => console.error("No se pudo enviar el correo de aprobacion:", error.message));
+}
+
 export function crearAdopcionController({
   obtenerCatalogoAdopcion = obtenerCatalogo,
-  obtenerPublicables = obtenerAnimalesPublicables,
-  publicarAnimalAdopcion = publicarAnimal,
   registrarPostulacionAdopcion = registrarPostulacion,
   obtenerPostulacionesAdopcion = obtenerPostulaciones,
   obtenerDetalle = obtenerDetallePostulacion,
@@ -27,6 +33,8 @@ export function crearAdopcionController({
   omitirVisitaHogarAdopcion = omitirVisitaHogar,
   formalizarEntregaAdopcion = formalizarEntrega,
   realizarSeguimientoAdopcion = realizarSeguimiento,
+  obtenerActa = obtenerActaEntrega,
+  avisarAprobacion = enviarCorreoAprobacion,
 } = {}) {
   return {
     async listarAnimales(request, response) {
@@ -35,24 +43,6 @@ export function crearAdopcionController({
       return enviarRespuestaExitosa(response, {
         mensaje: MENSAJE_CATALOGO,
         datos: { animales },
-      });
-    },
-
-    async listarPublicables(request, response) {
-      const animales = await obtenerPublicables();
-
-      return enviarRespuestaExitosa(response, {
-        mensaje: "Animales listos para publicar obtenidos correctamente",
-        datos: { animales },
-      });
-    },
-
-    async publicarAnimal(request, response) {
-      const animal = await publicarAnimalAdopcion(request.params.id);
-
-      return enviarRespuestaExitosa(response, {
-        mensaje: "Animal publicado en el catalogo de adopcion",
-        datos: { animal },
       });
     },
 
@@ -90,6 +80,8 @@ export function crearAdopcionController({
         request.body,
         request.usuario,
       );
+
+      if (postulacion.estado === "APROBADA") avisarSinEsperar(avisarAprobacion, postulacion);
 
       return enviarRespuestaExitosa(response, {
         mensaje:
@@ -137,6 +129,15 @@ export function crearAdopcionController({
         mensaje: "Entrega registrada: el animal quedo adoptado",
         datos: resultado,
       });
+    },
+
+    // Responde el PDF como archivo para descargar (igual que el reporte de devoluciones).
+    async descargarActaEntrega(request, response) {
+      const { pdf, nombreArchivo } = await obtenerActa(request.params.id);
+
+      response.setHeader("Content-Type", "application/pdf");
+      response.setHeader("Content-Disposition", `attachment; filename="${nombreArchivo}"`);
+      return response.send(pdf);
     },
 
     async realizarSeguimiento(request, response) {

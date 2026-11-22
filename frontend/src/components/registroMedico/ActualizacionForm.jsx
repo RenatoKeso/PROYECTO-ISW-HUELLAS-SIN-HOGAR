@@ -132,16 +132,16 @@ export default function ActualizacionForm({
       <div className="formulario-campos">
         <Campo etiqueta="Peso (kg)" nombre="pesoKg" type="number" min={0} step="0.01" valor={valores.pesoKg} error={errores.pesoKg} onChange={(e) => cambiar("pesoKg", e.target.value)} />
         <Campo etiqueta="Clasificación" nombre="clasificacionSalud" control="select" opciones={OPCIONES_CLASIFICACION_ACTUALIZACION} valor={valores.clasificacionSalud} error={errores.clasificacionSalud} onChange={(e) => cambiar("clasificacionSalud", e.target.value)} />
-        <Campo etiqueta="Observación inicial" nombre="observacionInicial" control="textarea" rows={2} valor={valores.observacionInicial} error={errores.observacionInicial} onChange={(e) => cambiar("observacionInicial", e.target.value)} />
         <Campo etiqueta="Cuarentena" nombre="requiereCuarentena" control="select" opciones={OPCIONES_CUARENTENA_ACTUALIZACION} valor={valores.requiereCuarentena} error={errores.requiereCuarentena} onChange={(e) => cambiar("requiereCuarentena", e.target.value)} />
-        <Campo etiqueta="Condiciones" nombre="condiciones" control="textarea" rows={2} valor={valores.condiciones} onChange={(e) => cambiar("condiciones", e.target.value)} />
-        <Campo etiqueta="Discapacidades" nombre="discapacidades" control="textarea" rows={2} valor={valores.discapacidades} onChange={(e) => cambiar("discapacidades", e.target.value)} />
-        <Campo etiqueta="Lesiones" nombre="lesiones" control="textarea" rows={2} valor={valores.lesiones} onChange={(e) => cambiar("lesiones", e.target.value)} />
-        <Campo etiqueta="Cuidados especiales" nombre="descripcionCuidadosEspeciales" control="textarea" rows={2} valor={valores.descripcionCuidadosEspeciales} onChange={(e) => cambiar("descripcionCuidadosEspeciales", e.target.value)} />
-        <Campo etiqueta="Necesidades" nombre="necesidades" control="textarea" rows={2} valor={valores.necesidades} onChange={(e) => cambiar("necesidades", e.target.value)} />
-        <Campo etiqueta="Observación de seguimiento" nombre="observacionSeguimiento" control="textarea" rows={2} valor={valores.observacionSeguimiento} error={errores.observacionSeguimiento} onChange={(e) => cambiar("observacionSeguimiento", e.target.value)} />
         <Campo etiqueta="Evolución" nombre="evolucionEstadoSalud" control="select" opciones={OPCIONES_EVOLUCION} valor={valores.evolucionEstadoSalud} error={errores.evolucionEstadoSalud} onChange={(e) => cambiar("evolucionEstadoSalud", e.target.value)} />
         <Campo etiqueta="Fecha de registro" nombre="fechaRegistro" type="date" valor={valores.fechaRegistro} error={errores.fechaRegistro} onChange={(e) => cambiar("fechaRegistro", e.target.value)} />
+        <Campo etiqueta="Observación inicial" nombre="observacionInicial" control="textarea" rows={2} ancho valor={valores.observacionInicial} error={errores.observacionInicial} onChange={(e) => cambiar("observacionInicial", e.target.value)} />
+        <Campo etiqueta="Condiciones" nombre="condiciones" control="textarea" rows={2} ancho valor={valores.condiciones} onChange={(e) => cambiar("condiciones", e.target.value)} />
+        <Campo etiqueta="Discapacidades" nombre="discapacidades" control="textarea" rows={2} ancho valor={valores.discapacidades} onChange={(e) => cambiar("discapacidades", e.target.value)} />
+        <Campo etiqueta="Lesiones" nombre="lesiones" control="textarea" rows={2} ancho valor={valores.lesiones} onChange={(e) => cambiar("lesiones", e.target.value)} />
+        <Campo etiqueta="Cuidados especiales" nombre="descripcionCuidadosEspeciales" control="textarea" rows={2} ancho valor={valores.descripcionCuidadosEspeciales} onChange={(e) => cambiar("descripcionCuidadosEspeciales", e.target.value)} />
+        <Campo etiqueta="Necesidades" nombre="necesidades" control="textarea" rows={2} ancho valor={valores.necesidades} onChange={(e) => cambiar("necesidades", e.target.value)} />
+        <Campo etiqueta="Observación de seguimiento" nombre="observacionSeguimiento" control="textarea" rows={2} ancho valor={valores.observacionSeguimiento} error={errores.observacionSeguimiento} onChange={(e) => cambiar("observacionSeguimiento", e.target.value)} />
       </div>
 
       <section className="bloque">
