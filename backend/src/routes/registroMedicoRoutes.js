@@ -7,6 +7,7 @@ import {
   actualizacionVeterinariaSchema,
   listarRegistrosMedicosQuerySchema,
   registroMedicoIdParamSchema,
+  reporteMedicoPdfSchema,
   revisionFinalSchema,
   revisionInicialSchema,
 } from "../validations/registroMedicoValidation.js";
@@ -28,6 +29,13 @@ export function crearRegistroMedicoRouter({
     "/actualizaciones",
     autenticar,
     capturarErrores(controlador.listarActualizaciones),
+  );
+
+  router.post(
+    "/reporte/pdf",
+    autenticar,
+    validarEsquema(reporteMedicoPdfSchema),
+    capturarErrores(controlador.exportarReportePdf),
   );
 
   router.get(

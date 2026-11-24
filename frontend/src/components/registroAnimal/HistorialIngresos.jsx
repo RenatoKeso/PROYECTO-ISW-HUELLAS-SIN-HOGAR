@@ -1,12 +1,55 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import VentanaModal from "../ui/VentanaModal.jsx";
 import { listarIngresosGlobales } from "../../services/animalesService.js";
+import { listarRegistrosMedicos } from "../../services/registroMedicoService.js";
+import {
+  puedeConsultarRegistroMedico,
+  puedeRealizarRevisionFinal,
+} from "../../utils/permisosUsuario.js";
 import { formatearFecha } from "../../utils/formatoAdopcion.js";
-import { codigoAnimalDesdeNumero } from "../../utils/registroAnimal.js";
+import {
+  NOMBRES_ESPECIE,
+  codigoAnimalDesdeNumero,
+} from "../../utils/registroAnimal.js";
+import "../../styles/registroFichas.css";
 import "../../styles/listaFichas.css";
 import "../../styles/resumenAnimales.css";
 
-export default function HistorialIngresos() {
+function nombreAnimal(ingreso) {
+  return (
+    ingreso.fichaAnimal?.nombre ||
+    ingreso.fichaAnimal?.codigoAnimal ||
+    "animal"
+  );
+}
+
+function codigoAnimal(ingreso) {
+  return ingreso.fichaAnimal?.codigoAnimal ?? "—";
+}
+
+function etiquetaEspecie(ingreso) {
+  return (
+    NOMBRES_ESPECIE[ingreso.fichaAnimal?.especie] ??
+    ingreso.fichaAnimal?.especie ??
+    "Sin información"
+  );
+}
+
+function textoOIngreso(valor) {
+  const texto = String(valor ?? "").trim();
+  return texto || "Sin información";
+}
+
+function tieneRevisionCompleta(registro) {
+  return Boolean(
+    registro?.revisionCompleta ||
+      ["REALIZADO", "ACTUALIZADO"].includes(registro?.estadoValidacion),
+  );
+}
+
+export default function HistorialIngresos({ usuario }) {
+  const navegar = useNavigate();
   const [parametros, setParametros] = useSearchParams();
   const [busqueda, setBusqueda] = useState(
     () => parametros.get("busqueda") ?? "",
@@ -16,6 +59,15 @@ export default function HistorialIngresos() {
   const [historialGlobal, setHistorialGlobal] = useState([]);
   const [cargandoHistorialGlobal, setCargandoHistorialGlobal] = useState(true);
   const [errorHistorialGlobal, setErrorHistorialGlobal] = useState("");
+  const [registrosMedicos, setRegistrosMedicos] = useState(null);
+  const [errorRegistrosMedicos, setErrorRegistrosMedicos] = useState("");
+  const [modalFila, setModalFila] = useState(null);
+  const [modalInformacion, setModalInformacion] = useState(null);
+
+  const puedeVerRegistroMedico = puedeConsultarRegistroMedico(usuario);
+  const puedeRealizarRevisionCompleta = puedeRealizarRevisionFinal(usuario);
+  const cargandoRegistrosMedicos =
+    puedeVerRegistroMedico && registrosMedicos === null;
 
   useEffect(() => {
     let vigente = true;
@@ -40,6 +92,28 @@ export default function HistorialIngresos() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!puedeVerRegistroMedico) return undefined;
+
+    let vigente = true;
+
+    listarRegistrosMedicos()
+      .then((respuesta) => {
+        if (!vigente) return;
+        setRegistrosMedicos(respuesta.registros);
+        setErrorRegistrosMedicos("");
+      })
+      .catch((error) => {
+        if (!vigente) return;
+        setRegistrosMedicos([]);
+        setErrorRegistrosMedicos(error.message);
+      });
+
+    return () => {
+      vigente = false;
+    };
+  }, [puedeVerRegistroMedico]);
+
   function cambiarBusqueda(valor) {
     setBusqueda(valor);
 
@@ -57,6 +131,102 @@ export default function HistorialIngresos() {
     setFiltroEspecie("TODOS");
     setOrden("recientes");
     setParametros({}, { replace: true });
+  }
+
+  function rutaFicha(ingreso) {
+    const idFicha = ingreso.fichaAnimal?.id;
+
+    return idFicha == null
+      ? null
+      : `/registro/fichas?ficha=${encodeURIComponent(idFicha)}`;
+  }
+
+  function abrirModalFila(ingreso) {
+    setModalFila({
+      ingreso,
+      nombre: nombreAnimal(ingreso),
+      vista: "acciones",
+      registroId: null,
+      error: "",
+    });
+  }
+
+  function cerrarModalFila() {
+    setModalFila(null);
+  }
+
+  function abrirInformacionIngreso() {
+    if (!modalFila) return;
+
+    setModalInformacion(modalFila.ingreso);
+    setModalFila(null);
+  }
+
+  function volverAOpciones() {
+    if (!modalInformacion) return;
+
+    const ingreso = modalInformacion;
+    setModalInformacion(null);
+    abrirModalFila(ingreso);
+  }
+
+  function cerrarInformacion() {
+    setModalInformacion(null);
+  }
+
+  function verFichaDesdeModal() {
+    if (!modalFila) return;
+
+    const ruta = rutaFicha(modalFila.ingreso);
+    setModalFila(null);
+
+    if (ruta) navegar(ruta);
+  }
+
+  function verRegistroMedicoDesdeModal() {
+    if (!modalFila) return;
+
+    if (errorRegistrosMedicos) {
+      setModalFila((actual) => ({
+        ...actual,
+        vista: "sinRegistro",
+        registroId: null,
+        error: errorRegistrosMedicos,
+      }));
+      return;
+    }
+
+    const idFicha = modalFila.ingreso.fichaAnimal?.id;
+    const registro = (registrosMedicos ?? []).find(
+      (item) => item.animalId === idFicha,
+    );
+
+    if (tieneRevisionCompleta(registro)) {
+      setModalFila(null);
+      navegar(
+        `/salud/registros-medicos/historial?registro=${encodeURIComponent(registro.id)}`,
+      );
+      return;
+    }
+
+    setModalFila((actual) => ({
+      ...actual,
+      vista: "sinRegistro",
+      registroId: registro?.id ?? null,
+      error: "",
+    }));
+  }
+
+  function irARevisionCompleta() {
+    if (!modalFila?.registroId) return;
+
+    const registroId = modalFila.registroId;
+    setModalFila(null);
+    navegar(
+      `/salud/registros-medicos/revisiones?registro=${encodeURIComponent(
+        registroId,
+      )}`,
+    );
   }
 
   const termino = busqueda.trim().toLowerCase();
@@ -125,11 +295,28 @@ export default function HistorialIngresos() {
   ).length;
   const hayFiltros = Boolean(termino) || filtroEspecie !== "TODOS";
 
+  const totalIngresosFiltrados = ingresosFiltrados.filter(
+    (ingreso) => ingreso.tipo === "INGRESO",
+  ).length;
+  const totalReingresosFiltrados = ingresosFiltrados.filter(
+    (ingreso) => ingreso.tipo === "REINGRESO",
+  ).length;
+
   const valorTotal = cargandoHistorialGlobal
     ? "…"
     : errorHistorialGlobal
       ? "—"
       : ingresosFiltrados.length;
+  const valorIngresos = cargandoHistorialGlobal
+    ? "…"
+    : errorHistorialGlobal
+      ? "—"
+      : totalIngresosFiltrados;
+  const valorReingresos = cargandoHistorialGlobal
+    ? "…"
+    : errorHistorialGlobal
+      ? "—"
+      : totalReingresosFiltrados;
 
   return (
     <section className="historial-contenido">
@@ -153,6 +340,46 @@ export default function HistorialIngresos() {
               <span className="lista-fichas-resumen-label">Total</span>
               <span className="lista-fichas-resumen-valor">
                 {valorTotal}
+              </span>
+            </div>
+          </div>
+
+          <span
+            className="lista-fichas-resumen-divisor"
+            aria-hidden="true"
+          />
+
+          <div className="lista-fichas-resumen-grupo">
+            <span
+              className="material-symbols-outlined lista-fichas-resumen-icono"
+              aria-hidden="true"
+            >
+              pets
+            </span>
+            <div>
+              <span className="lista-fichas-resumen-label">Ingresos</span>
+              <span className="lista-fichas-resumen-valor">
+                {valorIngresos}
+              </span>
+            </div>
+          </div>
+
+          <span
+            className="lista-fichas-resumen-divisor"
+            aria-hidden="true"
+          />
+
+          <div className="lista-fichas-resumen-grupo">
+            <span
+              className="material-symbols-outlined lista-fichas-resumen-icono"
+              aria-hidden="true"
+            >
+              pets
+            </span>
+            <div>
+              <span className="lista-fichas-resumen-label">Reingresos</span>
+              <span className="lista-fichas-resumen-valor">
+                {valorReingresos}
               </span>
             </div>
           </div>
@@ -268,6 +495,16 @@ export default function HistorialIngresos() {
         </div>
       </section>
 
+      <div className="historial-aviso-acciones" role="note">
+        <span className="material-symbols-outlined" aria-hidden="true">
+          touch_app
+        </span>
+        <span>
+          Haz clic sobre una fila para elegir entre ver la ficha del animal o
+          consultar su registro médico.
+        </span>
+      </div>
+
       <section className="historial-tabla-card">
         {cargandoHistorialGlobal && (
           <p className="historial-estado">Cargando historial...</p>
@@ -331,17 +568,24 @@ export default function HistorialIngresos() {
                     <th>Nombre</th>
                     <th>Tipo</th>
                     <th>Fecha</th>
-                    <th>Procedencia</th>
-                    <th>Receptor</th>
-                    <th>Ubicación</th>
-                    <th>Estado de salud</th>
                   </tr>
                 </thead>
                 <tbody>
                   {ingresosFiltrados.map((ingreso) => (
-                    <tr key={ingreso.id}>
+                    <tr
+                      className="historial-fila historial-fila-clickable"
+                      key={ingreso.id}
+                      tabIndex={0}
+                      onClick={() => abrirModalFila(ingreso)}
+                      onKeyDown={(evento) => {
+                        if (evento.key === "Enter" || evento.key === " ") {
+                          evento.preventDefault();
+                          abrirModalFila(ingreso);
+                        }
+                      }}
+                    >
                       <td className="historial-codigo">
-                        {ingreso.fichaAnimal?.codigoAnimal ?? "—"}
+                        {codigoAnimal(ingreso)}
                       </td>
                       <td className="historial-nombre">
                         {ingreso.fichaAnimal?.nombre || "Sin nombre"}
@@ -364,10 +608,6 @@ export default function HistorialIngresos() {
                         </span>
                       </td>
                       <td>{formatearFecha(ingreso.fechaIngreso)}</td>
-                      <td>{ingreso.procedencia || "—"}</td>
-                      <td>{ingreso.receptor?.nombre ?? "—"}</td>
-                      <td>{ingreso.ubicacionEncontrado || "—"}</td>
-                      <td>{ingreso.estadoSalud || "—"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -375,6 +615,263 @@ export default function HistorialIngresos() {
             </div>
           )}
       </section>
+
+      {modalFila && (
+        <VentanaModal
+          titulo={
+            modalFila.vista === "acciones"
+              ? `Acciones para “${modalFila.nombre}”`
+              : "Registro médico"
+          }
+          alCerrar={cerrarModalFila}
+          className="historial-modal-acciones"
+        >
+          {modalFila.vista === "acciones" ? (
+            <div className="historial-modal-acciones-cuerpo">
+              <p className="historial-modal-acciones-texto">
+                ¿Qué deseas consultar para{" "}
+                <strong>“{modalFila.nombre}”</strong>?
+              </p>
+
+              <div className="historial-modal-acciones-lista">
+                <button
+                  type="button"
+                  className="historial-modal-accion"
+                  onClick={verFichaDesdeModal}
+                  disabled={!rutaFicha(modalFila.ingreso)}
+                >
+                  <span
+                    className="material-symbols-outlined historial-modal-accion-icono"
+                    aria-hidden="true"
+                  >
+                    pets
+                  </span>
+                  <span className="historial-modal-accion-texto">
+                    <strong>Ver ficha del animal</strong>
+                    <small>Consulta sus datos generales y fotografía.</small>
+                  </span>
+                  <span
+                    className="material-symbols-outlined historial-modal-accion-flecha"
+                    aria-hidden="true"
+                  >
+                    chevron_right
+                  </span>
+                </button>
+
+                {puedeVerRegistroMedico && (
+                  <button
+                    type="button"
+                    className="historial-modal-accion"
+                    onClick={verRegistroMedicoDesdeModal}
+                    disabled={cargandoRegistrosMedicos}
+                  >
+                    <span
+                      className="material-symbols-outlined historial-modal-accion-icono historial-modal-accion-icono--medico"
+                      aria-hidden="true"
+                    >
+                      stethoscope
+                    </span>
+                    <span className="historial-modal-accion-texto">
+                      <strong>
+                        {cargandoRegistrosMedicos
+                          ? "Cargando registro..."
+                          : "Ver registro médico"}
+                      </strong>
+                      <small>
+                        {cargandoRegistrosMedicos
+                          ? "Estamos consultando los registros clínicos."
+                          : "Revisa la ficha clínica y sus datos."}
+                      </small>
+                    </span>
+                    <span
+                      className="material-symbols-outlined historial-modal-accion-flecha"
+                      aria-hidden="true"
+                    >
+                      chevron_right
+                    </span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  className="historial-modal-accion"
+                  onClick={abrirInformacionIngreso}
+                >
+                  <span
+                    className="material-symbols-outlined historial-modal-accion-icono historial-modal-accion-icono--info"
+                    aria-hidden="true"
+                  >
+                    description
+                  </span>
+                  <span className="historial-modal-accion-texto">
+                    <strong>Ver información completa del ingreso</strong>
+                    <small>
+                      Consulta procedencia, receptor, ubicación y estado de
+                      salud.
+                    </small>
+                  </span>
+                  <span
+                    className="material-symbols-outlined historial-modal-accion-flecha"
+                    aria-hidden="true"
+                  >
+                    chevron_right
+                  </span>
+                </button>
+              </div>
+
+              <div className="historial-modal-acciones-pie">
+                <button
+                  type="button"
+                  className="historial-modal-registro-boton historial-modal-registro-boton--secundario"
+                  onClick={cerrarModalFila}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="historial-modal-registro-cuerpo">
+              <span
+                className="material-symbols-outlined historial-modal-registro-icono"
+                aria-hidden="true"
+              >
+                medical_information
+              </span>
+
+              {modalFila.error ? (
+                <p className="historial-modal-registro-texto">
+                  No se pudo consultar el registro médico: {modalFila.error}
+                </p>
+              ) : (
+                <p className="historial-modal-registro-texto">
+                  No se encuentra un registro médico para{" "}
+                  <strong>“{modalFila.nombre}”</strong>.
+                </p>
+              )}
+
+              <div className="historial-modal-registro-acciones">
+                {puedeRealizarRevisionCompleta &&
+                  !modalFila.error &&
+                  Boolean(modalFila.registroId) && (
+                    <button
+                      type="button"
+                      className="historial-modal-registro-boton historial-modal-registro-boton--principal"
+                      onClick={irARevisionCompleta}
+                    >
+                      Sí, realizar registro médico completo
+                    </button>
+                  )}
+
+                <button
+                  type="button"
+                  className="historial-modal-registro-boton historial-modal-registro-boton--secundario"
+                  onClick={cerrarModalFila}
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          )}
+        </VentanaModal>
+      )}
+
+      {modalInformacion && (
+        <VentanaModal
+          titulo="Información completa del ingreso"
+          alCerrar={cerrarInformacion}
+          className="historial-modal-informacion"
+        >
+          <div className="historial-modal-informacion-cuerpo">
+            <p className="historial-modal-informacion-subtitulo">
+              <strong>{nombreAnimal(modalInformacion)}</strong>
+              <span>{codigoAnimal(modalInformacion)}</span>
+            </p>
+
+            <section className="historial-modal-informacion-seccion">
+              <h3>Animal</h3>
+              <dl className="historial-modal-informacion-grid">
+                <div className="historial-modal-informacion-dato">
+                  <dt>Código</dt>
+                  <dd>{codigoAnimal(modalInformacion)}</dd>
+                </div>
+                <div className="historial-modal-informacion-dato">
+                  <dt>Nombre</dt>
+                  <dd>
+                    {textoOIngreso(modalInformacion.fichaAnimal?.nombre)}
+                  </dd>
+                </div>
+                <div className="historial-modal-informacion-dato">
+                  <dt>Especie</dt>
+                  <dd>{etiquetaEspecie(modalInformacion)}</dd>
+                </div>
+                <div className="historial-modal-informacion-dato">
+                  <dt>Raza</dt>
+                  <dd>{textoOIngreso(modalInformacion.fichaAnimal?.raza)}</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section className="historial-modal-informacion-seccion">
+              <h3>Ingreso</h3>
+              <dl className="historial-modal-informacion-grid">
+                <div className="historial-modal-informacion-dato">
+                  <dt>Tipo</dt>
+                  <dd>
+                    {modalInformacion.tipo === "INGRESO"
+                      ? "Ingreso"
+                      : "Reingreso"}
+                  </dd>
+                </div>
+                <div className="historial-modal-informacion-dato">
+                  <dt>Fecha de ingreso</dt>
+                  <dd>{formatearFecha(modalInformacion.fechaIngreso)}</dd>
+                </div>
+                <div className="historial-modal-informacion-dato">
+                  <dt>Procedencia</dt>
+                  <dd>{textoOIngreso(modalInformacion.procedencia)}</dd>
+                </div>
+                <div className="historial-modal-informacion-dato">
+                  <dt>Receptor</dt>
+                  <dd>{textoOIngreso(modalInformacion.receptor?.nombre)}</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section className="historial-modal-informacion-seccion">
+              <h3>Ubicación y salud</h3>
+              <dl className="historial-modal-informacion-grid">
+                <div className="historial-modal-informacion-dato">
+                  <dt>Ubicación encontrada</dt>
+                  <dd>
+                    {textoOIngreso(modalInformacion.ubicacionEncontrado)}
+                  </dd>
+                </div>
+                <div className="historial-modal-informacion-dato">
+                  <dt>Estado de salud</dt>
+                  <dd>{textoOIngreso(modalInformacion.estadoSalud)}</dd>
+                </div>
+              </dl>
+            </section>
+
+            <div className="historial-modal-informacion-acciones">
+              <button
+                type="button"
+                className="historial-modal-registro-boton historial-modal-registro-boton--secundario"
+                onClick={volverAOpciones}
+              >
+                Volver a las opciones
+              </button>
+              <button
+                type="button"
+                className="historial-modal-registro-boton historial-modal-registro-boton--principal"
+                onClick={cerrarInformacion}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </VentanaModal>
+      )}
     </section>
   );
 }

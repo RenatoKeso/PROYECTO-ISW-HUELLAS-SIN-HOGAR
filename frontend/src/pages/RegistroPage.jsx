@@ -8,7 +8,6 @@ import "../styles/registroHub.css";
 
 const ACCIONES = [
   {
-    numero: "01",
     icono: "assignment_add",
     tema: "verde",
     titulo: "Registrar ficha de animal",
@@ -16,7 +15,6 @@ const ACCIONES = [
     ruta: "/registro/ficha",
   },
   {
-    numero: "02",
     icono: "add_home",
     tema: "naranja",
     titulo: "Registrar ingreso de animal",
@@ -24,7 +22,6 @@ const ACCIONES = [
     ruta: "/registro/ingreso",
   },
   {
-    numero: "03",
     icono: "list_alt",
     tema: "arena",
     titulo: "Lista de fichas",
@@ -32,7 +29,6 @@ const ACCIONES = [
     ruta: "/registro/fichas",
   },
   {
-    numero: "04",
     icono: "history",
     tema: "neutro",
     titulo: "Historial de ingresos",
@@ -139,9 +135,6 @@ export default function RegistroPage() {
                 aria-hidden="true"
               >
                 {accion.icono}
-              </span>
-              <span className="registro-hub-numero" aria-hidden="true">
-                {accion.numero}
               </span>
             </div>
 

@@ -10,6 +10,8 @@ function Campo({
   opcional = false,
   icono = null,
   opcionalPildora = false,
+  ayuda = "",
+  sufijo = "",
   ...props
 }) {
   const controlElemento =
@@ -78,10 +80,16 @@ function Campo({
             {icono}
           </span>
         </div>
+      ) : sufijo ? (
+        <div className="campo-control-sufijo">
+          {controlElemento}
+          <span className="campo-sufijo">{sufijo}</span>
+        </div>
       ) : (
         controlElemento
       )}
 
+      {ayuda && <span className="campo-ayuda">{ayuda}</span>}
       {error && <span className="campo-error">{error}</span>}
     </div>
   );

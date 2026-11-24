@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { CARPETA_UPLOADS } from "./config/almacenamientoImagenes.js";
+import "./validations/configuracionZod.js";
 import {manejadorErrores,manejarRutaNoEncontrada,} from "./handlers/manejadorErrores.js";
 import { crearRouter } from "./routes/index.js";
 

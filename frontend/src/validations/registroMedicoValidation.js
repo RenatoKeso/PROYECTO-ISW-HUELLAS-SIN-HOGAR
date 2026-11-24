@@ -32,7 +32,9 @@ export const PESO_INICIAL_KG_MAXIMO = 100;
 
 export const PESO_REVALIDADO_KG_MAXIMO = 100;
 
-const fechaSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const fechaSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Ingresa una fecha válida");
 
 const fechaOpcionalSchema = z.preprocess(
   (valor) => (valor === "" || valor === null ? undefined : valor),
@@ -42,7 +44,7 @@ const fechaOpcionalSchema = z.preprocess(
 const textoOpcional = z
   .string()
   .trim()
-  .max(1000)
+  .max(1000, "El texto no puede superar los 1000 caracteres")
   .optional()
   .transform((valor) => (valor === "" ? undefined : valor));
 
@@ -53,29 +55,45 @@ function normalizarBooleano(valor) {
   return valor;
 }
 
-const booleanoFormulario = z.preprocess(normalizarBooleano, z.boolean());
+const booleanoFormulario = z.preprocess(
+  normalizarBooleano,
+  z.boolean({ message: "Indica si requiere cuarentena" }),
+);
 
 const booleanoOpcionalFormulario = z.preprocess(
   (valor) =>
     valor === "" || valor === null || valor === undefined
       ? undefined
       : normalizarBooleano(valor),
-  z.boolean().optional(),
+  z.boolean({ message: "Selecciona una opción" }).optional(),
 );
 
 const numeroOpcionalFormulario = z.preprocess(
   (valor) => (valor === "" || valor === null ? undefined : valor),
-  z.coerce.number().positive().max(PESO_KG_MAXIMO).optional(),
+  z.coerce
+    .number({ message: "Ingresa un número válido" })
+    .positive("El peso debe ser mayor que 0")
+    .max(PESO_KG_MAXIMO, `El peso no puede superar los ${PESO_KG_MAXIMO} kg`)
+    .optional(),
 );
 
 const clasificacionOpcionalFormulario = z.preprocess(
   (valor) => (valor === "" || valor === null ? undefined : valor),
-  z.enum(CLASIFICACIONES_SALUD).optional(),
+  z
+    .enum(CLASIFICACIONES_SALUD, {
+      message: "Selecciona la clasificación de salud",
+    })
+    .optional(),
 );
 
 const observacionInicialOpcional = z.preprocess(
   (valor) => (valor === "" || valor === null ? undefined : valor),
-  z.string().trim().min(1).max(1000).optional(),
+  z
+    .string()
+    .trim()
+    .min(1, "Escribe la observación inicial")
+    .max(1000, "La observación no puede superar los 1000 caracteres")
+    .optional(),
 );
 
 function filasVacias(items) {
@@ -84,33 +102,74 @@ function filasVacias(items) {
   );
 }
 
+const vacioAUndefined = (valor) =>
+  typeof valor === "string" && valor.trim() === "" ? undefined : valor;
+
 export const revisionInicialFormSchema = z.strictObject({
-  pesoKg: z.coerce.number().positive().max(PESO_INICIAL_KG_MAXIMO),
-  clasificacionSalud: z.enum(CLASIFICACIONES_SALUD),
-  observacionInicial: z.string().trim().min(1).max(1000),
+  pesoKg: z.preprocess(
+    vacioAUndefined,
+    z.coerce
+      .number({ message: "Ingresa el peso en kg" })
+      .positive("El peso debe ser mayor que 0")
+      .max(
+        PESO_INICIAL_KG_MAXIMO,
+        `El peso no puede superar los ${PESO_INICIAL_KG_MAXIMO} kg`,
+      ),
+  ),
+  clasificacionSalud: z.enum(CLASIFICACIONES_SALUD, {
+    message: "Selecciona la clasificación de salud",
+  }),
+  observacionInicial: z
+    .string()
+    .trim()
+    .min(1, "Escribe la observación inicial")
+    .max(1000, "La observación no puede superar los 1000 caracteres"),
   requiereCuarentena: booleanoFormulario,
 });
 
 export const revisionFinalFormSchema = z.strictObject({
-  pesoRevalidadoKg: z.coerce.number().positive().max(PESO_REVALIDADO_KG_MAXIMO),
+  pesoRevalidadoKg: z.preprocess(
+    vacioAUndefined,
+    z.coerce
+      .number({ message: "Ingresa el peso revalidado en kg" })
+      .positive("El peso debe ser mayor que 0")
+      .max(
+        PESO_REVALIDADO_KG_MAXIMO,
+        `El peso no puede superar los ${PESO_REVALIDADO_KG_MAXIMO} kg`,
+      ),
+  ),
   estadoSalud: clasificacionOpcionalFormulario,
   condiciones: textoOpcional,
   discapacidades: textoOpcional,
   lesiones: textoOpcional,
   descripcionCuidadosEspeciales: textoOpcional,
-  adoptabilidad: z.enum(ADOPTABILIDADES),
+  adoptabilidad: z.enum(ADOPTABILIDADES, {
+    message: "Selecciona la adoptabilidad",
+  }),
   enfermedades: z
     .array(
       z.strictObject({
-        descripcionEnfermedad: z.string().trim().min(1).max(1000),
-        tipoEnfermedad: z.string().trim().max(100).optional(),
+        descripcionEnfermedad: z
+          .string()
+          .trim()
+          .min(1, "Escribe la descripción de la enfermedad")
+          .max(1000, "La descripción no puede superar los 1000 caracteres"),
+        tipoEnfermedad: z
+          .string()
+          .trim()
+          .max(100, "El tipo no puede superar los 100 caracteres")
+          .optional(),
       }),
     )
     .optional(),
   tratamientos: z
     .array(
       z.strictObject({
-        descripcionTratamiento: z.string().trim().min(1).max(1000),
+        descripcionTratamiento: z
+          .string()
+          .trim()
+          .min(1, "Escribe la descripción del tratamiento")
+          .max(1000, "La descripción no puede superar los 1000 caracteres"),
         fechaInicio: fechaSchema,
         fechaFin: fechaOpcionalSchema,
         observaciones: textoOpcional,
@@ -120,9 +179,15 @@ export const revisionFinalFormSchema = z.strictObject({
   atencionesSanitarias: z
     .array(
       z.strictObject({
-        tipo: z.enum(TIPOS_ATENCION_MEDICA),
+        tipo: z.enum(TIPOS_ATENCION_MEDICA, {
+          message: "Selecciona el tipo de atención",
+        }),
         fechaProgramada: fechaSchema,
-        estado: z.enum(["PENDIENTE", "REALIZADA", "CANCELADA"]).optional(),
+        estado: z
+          .enum(["PENDIENTE", "REALIZADA", "CANCELADA"], {
+            message: "Selecciona el estado de la atención",
+          })
+          .optional(),
         fechaRealizacion: fechaOpcionalSchema,
         observaciones: textoOpcional,
       }),
@@ -140,15 +205,33 @@ export const actualizacionVeterinariaFormSchema = z.strictObject({
   lesiones: textoOpcional,
   descripcionCuidadosEspeciales: textoOpcional,
   necesidades: textoOpcional,
-  observacionSeguimiento: z.string().trim().min(1).max(1000),
-  evolucionEstadoSalud: z.enum(EVOLUCIONES_SALUD),
+  observacionSeguimiento: z
+    .string()
+    .trim()
+    .min(1, "Escribe la observación de seguimiento")
+    .max(1000, "La observación no puede superar los 1000 caracteres"),
+  evolucionEstadoSalud: z.enum(EVOLUCIONES_SALUD, {
+    message: "Selecciona la evolución del estado de salud",
+  }),
   fechaRegistro: fechaOpcionalSchema,
   enfermedades: z
     .array(
       z.strictObject({
-        descripcionEnfermedad: z.string().trim().min(1).max(1000),
-        tipoEnfermedad: z.string().trim().max(100).optional(),
-        estadoEnfermedad: z.enum(ESTADOS_ENFERMEDAD).optional(),
+        descripcionEnfermedad: z
+          .string()
+          .trim()
+          .min(1, "Escribe la descripción de la enfermedad")
+          .max(1000, "La descripción no puede superar los 1000 caracteres"),
+        tipoEnfermedad: z
+          .string()
+          .trim()
+          .max(100, "El tipo no puede superar los 100 caracteres")
+          .optional(),
+        estadoEnfermedad: z
+          .enum(ESTADOS_ENFERMEDAD, {
+            message: "Selecciona el estado de la enfermedad",
+          })
+          .optional(),
         observacionSeguimiento: textoOpcional,
       }),
     )
@@ -156,11 +239,19 @@ export const actualizacionVeterinariaFormSchema = z.strictObject({
   tratamientos: z
     .array(
       z.strictObject({
-        descripcionTratamiento: z.string().trim().min(1).max(1000),
+        descripcionTratamiento: z
+          .string()
+          .trim()
+          .min(1, "Escribe la descripción del tratamiento")
+          .max(1000, "La descripción no puede superar los 1000 caracteres"),
         fechaInicio: fechaSchema,
         fechaFin: fechaOpcionalSchema,
         observaciones: textoOpcional,
-        estadoTratamiento: z.enum(ESTADOS_TRATAMIENTO).optional(),
+        estadoTratamiento: z
+          .enum(ESTADOS_TRATAMIENTO, {
+            message: "Selecciona el estado del tratamiento",
+          })
+          .optional(),
         observacionSeguimiento: textoOpcional,
       }),
     )
@@ -168,8 +259,13 @@ export const actualizacionVeterinariaFormSchema = z.strictObject({
   seguimientoEnfermedades: z
     .array(
       z.strictObject({
-        enfermedadId: z.coerce.number().int().positive(),
-        estadoEnfermedad: z.enum(ESTADOS_ENFERMEDAD),
+        enfermedadId: z.coerce
+          .number({ message: "Selecciona la enfermedad a seguir" })
+          .int("Selecciona la enfermedad a seguir")
+          .positive("Selecciona la enfermedad a seguir"),
+        estadoEnfermedad: z.enum(ESTADOS_ENFERMEDAD, {
+          message: "Selecciona el estado de la enfermedad",
+        }),
         observacionSeguimiento: textoOpcional,
       }),
     )
@@ -177,8 +273,13 @@ export const actualizacionVeterinariaFormSchema = z.strictObject({
   seguimientoTratamientos: z
     .array(
       z.strictObject({
-        tratamientoId: z.coerce.number().int().positive(),
-        estadoTratamiento: z.enum(ESTADOS_TRATAMIENTO),
+        tratamientoId: z.coerce
+          .number({ message: "Selecciona el tratamiento a seguir" })
+          .int("Selecciona el tratamiento a seguir")
+          .positive("Selecciona el tratamiento a seguir"),
+        estadoTratamiento: z.enum(ESTADOS_TRATAMIENTO, {
+          message: "Selecciona el estado del tratamiento",
+        }),
         observacionSeguimiento: textoOpcional,
       }),
     )
@@ -186,9 +287,15 @@ export const actualizacionVeterinariaFormSchema = z.strictObject({
   atencionesSanitarias: z
     .array(
       z.strictObject({
-        tipo: z.enum(TIPOS_ATENCION_MEDICA),
+        tipo: z.enum(TIPOS_ATENCION_MEDICA, {
+          message: "Selecciona el tipo de atención",
+        }),
         fechaProgramada: fechaSchema,
-        estado: z.enum(["PENDIENTE", "REALIZADA", "CANCELADA"]).optional(),
+        estado: z
+          .enum(["PENDIENTE", "REALIZADA", "CANCELADA"], {
+            message: "Selecciona el estado de la atención",
+          })
+          .optional(),
         fechaRealizacion: fechaOpcionalSchema,
         observaciones: textoOpcional,
       }),
@@ -202,6 +309,12 @@ export const animalMedicoSchema = z.object({
   nombre: z.string().nullable().optional(),
   estadoEstadia: z.string(),
   estadoAdopcion: z.string().nullable().optional(),
+  sexoAnimal: z.string().nullable().optional(),
+  especie: z.string().nullable().optional(),
+  raza: z.string().nullable().optional(),
+  edad: z.number().int().nullable().optional(),
+  imagenUrl: z.string().nullable().optional(),
+  observaciones: z.string().nullable().optional(),
 });
 
 export const revisionInicialMedicaSchema = z

@@ -11,6 +11,9 @@ import {
   obtenerRegistroMedico as obtenerRegistroMedicoService,
   realizarRevisionFinal,
 } from "../services/registroMedicoService.js";
+import {
+  generarReporteMedicoPdf as generarReporteMedicoPdfService,
+} from "../services/reporteMedicoService.js";
 import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
 
 const MENSAJE_REVISION_INICIAL = "Revisión inicial registrada correctamente";
@@ -40,6 +43,7 @@ export function crearRegistroMedicoController({
   listarRegistrosMedicos = listarRegistrosMedicosService,
   listarSeguimientosRegistroMedico = listarSeguimientosRegistroMedicoService,
   obtenerRegistroMedico = obtenerRegistroMedicoService,
+  generarReporteMedicoPdf = generarReporteMedicoPdfService,
 } = {}) {
   return {
     async completarRevisionInicial(request, response) {
@@ -175,6 +179,20 @@ export function crearRegistroMedicoController({
         mensaje: "Registro médico obtenido correctamente",
         datos: { registro },
       });
+    },
+
+    async exportarReportePdf(request, response) {
+      const { pdf, nombreArchivo } = await generarReporteMedicoPdf({
+        ...request.body,
+        actor: request.usuario,
+      });
+
+      response.setHeader("Content-Type", "application/pdf");
+      response.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${nombreArchivo}"`,
+      );
+      return response.send(pdf);
     },
   };
 }

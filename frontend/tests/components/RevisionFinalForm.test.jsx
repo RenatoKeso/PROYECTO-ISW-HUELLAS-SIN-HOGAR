@@ -23,10 +23,10 @@ describe("RevisionFinalForm", () => {
     fireEvent.click(
       screen.getByRole("button", { name: /Agregar tratamiento/i }),
     );
-    fireEvent.change(screen.getByLabelText("Descripción"), {
+    fireEvent.change(screen.getByLabelText(/Descripción/i), {
       target: { value: "Antibiótico" },
     });
-    fireEvent.change(screen.getByLabelText("Fecha inicio"), {
+    fireEvent.change(screen.getByLabelText(/Fecha inicio/i), {
       target: { value: "2026-11-08" },
     });
 
@@ -39,5 +39,55 @@ describe("RevisionFinalForm", () => {
     const datos = onSubmit.mock.calls[0][0];
     expect(datos.tratamientos).toHaveLength(1);
     expect(datos.tratamientos[0].fechaFin).toBeUndefined();
+  });
+
+  test("muestra un mensaje claro cuando falta seleccionar la adoptabilidad", async () => {
+    const onSubmit = vi.fn();
+
+    render(<RevisionFinalForm registro={registro} onSubmit={onSubmit} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Registrar revisión completa/i }),
+    );
+
+    expect(
+      await screen.findByText("Selecciona la adoptabilidad"),
+    ).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  test("muestra el rediseño clínico y guarda el borrador en el navegador", () => {
+    localStorage.clear();
+    const onSubmit = vi.fn();
+
+    render(<RevisionFinalForm registro={registro} onSubmit={onSubmit} />);
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Revisión Completa y Evaluación Clínica",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Constantes y evaluación general")).toBeInTheDocument();
+    expect(
+      screen.getByText("Examen físico y hallazgos detallados"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Diagnóstico, tratamientos y plan sanitario"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Sin patologías registradas")).toBeInTheDocument();
+    expect(screen.getByText("Sin medicación prescrita")).toBeInTheDocument();
+    expect(
+      screen.getByText("Sin procedimientos anexados"),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Guardar como borrador" }));
+
+    expect(
+      screen.getByText("Borrador guardado en este navegador."),
+    ).toBeInTheDocument();
+    expect(localStorage.getItem("huellas.revision-completa.1")).toContain(
+      "pesoRevalidadoKg",
+    );
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });

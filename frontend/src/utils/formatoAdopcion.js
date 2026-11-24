@@ -54,6 +54,18 @@ export function formatearFecha(valor, { soloFecha = false } = {}) {
     : fecha.toLocaleString("es-CL", { dateStyle: "short", timeStyle: "short" });
 }
 
+export function formatearFechaLarga(valor) {
+  if (!valor) return "—";
+
+  const fecha = new Date(valor);
+  if (Number.isNaN(fecha.getTime())) return "—";
+
+  return fecha.toLocaleString("es-CL", {
+    dateStyle: "long",
+    timeStyle: "short",
+  });
+}
+
 export function formatearEdad(edad) {
   if (edad === null || edad === undefined) return null;
   if (edad === 0) return "menos de 1 año";

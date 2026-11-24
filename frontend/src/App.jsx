@@ -16,6 +16,8 @@ import PostulacionDetallePage from "./pages/PostulacionDetallePage.jsx";
 import VoluntariadoPage from "./pages/VoluntariadoPage.jsx";
 import PostulacionesVoluntarioPage from "./pages/PostulacionesVoluntarioPage.jsx";
 import RegistroMedicoPage from "./pages/RegistroMedicoPage.jsx";
+import RegistroMedicoHubPage from "./pages/RegistroMedicoHubPage.jsx";
+import RegistroMedicoHistorialPage from "./pages/RegistroMedicoHistorialPage.jsx";
 import TurnosPage from "./pages/TurnosPage.jsx";
 import useSesion from "./hooks/useSesion.js";
 import {puedeGestionarFichas,puedeConsultarAlertas,puedeConsultarReportesDevolucion,puedeRegistrarDevoluciones,puedeGestionarAdopciones,puedeRevisarPostulacionesVoluntario,puedeConsultarRegistroMedico,puedeConsultarTurnos,NOMBRES_ROL,} from "./utils/permisosUsuario.js";
@@ -34,6 +36,8 @@ const TITULOS_POR_RUTA = {
   "/registro/historial": "Historial de ingresos",
   "/salud/alertas": "Alertas sanitarias",
   "/salud/registros-medicos": "Registro médico",
+  "/salud/registros-medicos/revisiones": "Revisiones médicas",
+  "/salud/registros-medicos/historial": "Historial de Registros Médicos",
   "/adopcion": "Adopción",
   "/adopcion/postular": "Postular a adopción",
   "/voluntariado": "Voluntariado",
@@ -56,6 +60,8 @@ function App() {
   const [menuAbierto, setMenuAbierto] = useState(false);
 
   useEffect(() => {
+    // Cerrar el menú de navegación al navegar a una página distinta.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMenuAbierto(false);
   }, [pathname]);
 
@@ -252,7 +258,7 @@ function App() {
               <Route
                 path="/registro/historial"
                 element={proteger(
-                  <RegistroHistorialPage />,
+                  <RegistroHistorialPage usuario={usuario} />,
                   puedeGestionarFichas
                 )}
               />
@@ -268,7 +274,23 @@ function App() {
               <Route
                 path="/salud/registros-medicos"
                 element={proteger(
+                  <RegistroMedicoHubPage />,
+                  puedeConsultarRegistroMedico
+                )}
+              />
+
+              <Route
+                path="/salud/registros-medicos/revisiones"
+                element={proteger(
                   <RegistroMedicoPage usuario={usuario} />,
+                  puedeConsultarRegistroMedico
+                )}
+              />
+
+              <Route
+                path="/salud/registros-medicos/historial"
+                element={proteger(
+                  <RegistroMedicoHistorialPage usuario={usuario} />,
                   puedeConsultarRegistroMedico
                 )}
               />
