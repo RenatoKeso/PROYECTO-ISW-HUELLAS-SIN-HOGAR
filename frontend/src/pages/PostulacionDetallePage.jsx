@@ -106,6 +106,7 @@ function FormularioResolucion({ postulacionId, onResuelta }) {
         valor={observaciones}
         maxLength={1000}
         placeholder="Opcional al aprobar, obligatoria al rechazar (motivo)."
+        ayuda="Si rechazas, este motivo se le enviará por correo al postulante."
         onChange={(evento) => setObservaciones(evento.target.value)}
       />
 

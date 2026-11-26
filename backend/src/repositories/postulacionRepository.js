@@ -163,21 +163,36 @@ export async function marcarAnimalAdoptado(fichaAnimalId, cliente = prisma) {
   return count;
 }
 
-// Cierra las demas postulaciones abiertas del mismo animal.
+// Cierra las demas postulaciones abiertas del mismo animal y devuelve cuales
+// eran, para poder avisarles por correo que el animal ya fue adoptado.
+// updateMany solo devuelve cuantas filas cambio (no quienes eran), por eso
+// primero se buscan con el mismo filtro y dentro de la misma transaccion.
 export async function cerrarOtrasPostulacionesAbiertas(
   { fichaAnimalId, postulacionEntregadaId, fecha },
   cliente = prisma,
 ) {
-  const { count } = await cliente.postulacion.updateMany({
-    where: {
-      fichaAnimalId,
-      id: { not: postulacionEntregadaId },
-      estado: { in: ESTADOS_ABIERTOS },
+  const filtro = {
+    fichaAnimalId,
+    id: { not: postulacionEntregadaId },
+    estado: { in: ESTADOS_ABIERTOS },
+  };
+
+  const abiertas = await cliente.postulacion.findMany({
+    where: filtro,
+    select: {
+      id: true,
+      nombrePostulante: true,
+      emailPostulante: true,
+      fichaAnimal: { select: { nombre: true, sexoAnimal: true } },
     },
+  });
+
+  await cliente.postulacion.updateMany({
+    where: filtro,
     data: { estado: "CERRADA", fechaResolucion: fecha },
   });
 
-  return count;
+  return abiertas;
 }
 
 export async function crearSeguimientos(seguimientos, cliente = prisma) {

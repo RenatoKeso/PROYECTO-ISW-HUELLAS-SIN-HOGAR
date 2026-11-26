@@ -1,5 +1,6 @@
 import { enviarRespuestaExitosa } from "../handlers/respuestaExitosa.js";
 import {
+  avisarRechazoPorVisita,
   formalizarEntrega,
   obtenerActaEntrega,
   obtenerCatalogo,
@@ -11,16 +12,21 @@ import {
   registrarVisita,
   resolverPostulacion,
 } from "../services/adopcionService.js";
-import { enviarCorreoAprobacion } from "../services/correoAdopcionService.js";
+import {
+  enviarCorreoAprobacion,
+  enviarCorreoRechazo,
+  enviarCorreosAdoptadoPorOtro,
+} from "../services/correoAdopcionService.js";
 
 const MENSAJE_CATALOGO = "Animales en adopcion obtenidos correctamente";
 
-// El correo se envia sin esperarlo: si Gmail falla, la decision ya quedo
-// guardada y solo se deja el error en la consola.
-function avisarSinEsperar(avisar, postulacion) {
+// El correo se envia sin esperarlo: si Gmail falla, lo que se hizo ya quedo
+// guardado y solo se deja el error en la consola. "cualCorreo" es para que el
+// error diga que correo fallo (de aprobacion, de rechazo...).
+function avisarSinEsperar(cualCorreo, enviar) {
   Promise.resolve()
-    .then(() => avisar(postulacion))
-    .catch((error) => console.error("No se pudo enviar el correo de aprobacion:", error.message));
+    .then(enviar)
+    .catch((error) => console.error(`No se pudo enviar el correo ${cualCorreo}:`, error.message));
 }
 
 export function crearAdopcionController({
@@ -35,6 +41,9 @@ export function crearAdopcionController({
   realizarSeguimientoAdopcion = realizarSeguimiento,
   obtenerActa = obtenerActaEntrega,
   avisarAprobacion = enviarCorreoAprobacion,
+  avisarRechazo = enviarCorreoRechazo,
+  avisarRechazoVisita = avisarRechazoPorVisita,
+  avisarAdoptadoPorOtro = enviarCorreosAdoptadoPorOtro,
 } = {}) {
   return {
     async listarAnimales(request, response) {
@@ -81,7 +90,11 @@ export function crearAdopcionController({
         request.usuario,
       );
 
-      if (postulacion.estado === "APROBADA") avisarSinEsperar(avisarAprobacion, postulacion);
+      if (postulacion.estado === "APROBADA") {
+        avisarSinEsperar("de aprobacion", () => avisarAprobacion(postulacion));
+      } else if (postulacion.estado === "RECHAZADA") {
+        avisarSinEsperar("de rechazo", () => avisarRechazo(postulacion));
+      }
 
       return enviarRespuestaExitosa(response, {
         mensaje:
@@ -98,6 +111,14 @@ export function crearAdopcionController({
         request.body,
         request.usuario,
       );
+
+      // Una visita desfavorable rechaza la postulacion: se avisa con el motivo
+      // que quedo en las observaciones de la visita.
+      if (visita.resultado === "DESFAVORABLE") {
+        avisarSinEsperar("de rechazo", () =>
+          avisarRechazoVisita(request.params.id, visita.observaciones),
+        );
+      }
 
       return enviarRespuestaExitosa(response, {
         mensaje:
@@ -123,11 +144,21 @@ export function crearAdopcionController({
     },
 
     async formalizarEntrega(request, response) {
-      const resultado = await formalizarEntregaAdopcion(request.params.id, request.body);
+      const { postulacion, postulacionesCerradas } = await formalizarEntregaAdopcion(
+        request.params.id,
+        request.body,
+      );
 
+      // La entrega ya quedo guardada: recien ahora se avisa a los demas
+      // postulantes. Si la transaccion hubiera fallado no se llega a esta linea,
+      // asi que nadie recibe un aviso falso.
+      avisarSinEsperar("de animal adoptado", () => avisarAdoptadoPorOtro(postulacionesCerradas));
+
+      // Al frontend solo va cuantas se cerraron: no hace falta mandarle los
+      // nombres ni los correos de los otros postulantes.
       return enviarRespuestaExitosa(response, {
         mensaje: "Entrega registrada: el animal quedo adoptado",
-        datos: resultado,
+        datos: { postulacion, postulacionesCerradas: postulacionesCerradas.length },
       });
     },
 
