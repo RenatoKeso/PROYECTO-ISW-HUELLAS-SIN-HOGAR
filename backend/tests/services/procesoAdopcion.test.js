@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  avisarRechazoPorVisita,
   registrarVisita,
   omitirVisitaHogar,
   formalizarEntrega,
@@ -146,7 +147,32 @@ test("omitirVisitaHogar no se permite si la visita al hogar ya se registro", asy
   );
 });
 
+// ---------- avisarRechazoPorVisita ----------
+
+test("avisarRechazoPorVisita busca la postulacion y la avisa con el motivo de la visita", async () => {
+  const rechazada = postulacionAprobada({ estado: "RECHAZADA" });
+  let aviso;
+
+  const enviado = await avisarRechazoPorVisita(10, "No tiene patio cerrado", {
+    buscarPostulacionPorId: async (id) => (id === 10 ? rechazada : null),
+    enviarCorreoRechazo: async (postulacion, motivo) => {
+      aviso = { postulacion, motivo };
+      return true;
+    },
+  });
+
+  assert.equal(enviado, true);
+  assert.equal(aviso.postulacion, rechazada);
+  assert.equal(aviso.motivo, "No tiene patio cerrado");
+});
+
 // ---------- formalizarEntrega ----------
+
+// Lo que devuelve el repositorio al cerrar las otras postulaciones del animal.
+const OTRAS_CERRADAS = [
+  { id: 11, nombrePostulante: "Ana Rojas", emailPostulante: "ana@correo.cl" },
+  { id: 12, nombrePostulante: "Luis Soto", emailPostulante: "luis@correo.cl" },
+];
 
 function dependenciasEntrega(postulacion, registro = {}) {
   return {
@@ -162,7 +188,7 @@ function dependenciasEntrega(postulacion, registro = {}) {
     },
     cerrarOtrasPostulacionesAbiertas: async (datos) => {
       registro.cerrar = datos;
-      return 2;
+      return OTRAS_CERRADAS;
     },
     crearSeguimientos: async (seguimientos) => {
       registro.seguimientos = seguimientos;
@@ -187,7 +213,8 @@ test("formalizarEntrega deja todo listo en una transaccion", async () => {
   assert.equal(registro.entrega.datos.documentacionEntregada, "Contrato y carnet");
   assert.equal(registro.animal, 3);
   assert.equal(registro.cerrar.postulacionEntregadaId, 10);
-  assert.equal(resultado.postulacionesCerradas, 2);
+  // Devuelve a quienes se les cerro la postulacion, para avisarles por correo.
+  assert.deepEqual(resultado.postulacionesCerradas, OTRAS_CERRADAS);
   assert.deepEqual(
     registro.seguimientos.map((s) => [s.diasDesdeEntrega, s.fechaProgramada.toISOString().slice(0, 10)]),
     [[15, "2026-11-09"], [30, "2026-11-24"]],
