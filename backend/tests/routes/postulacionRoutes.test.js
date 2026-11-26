@@ -274,13 +274,15 @@ test("PATCH /postulaciones/:id/resolucion pasa la decision y el usuario al servi
   );
 });
 
-test("PATCH /postulaciones/:id/resolucion avisa por correo al aprobar, no al rechazar", async () => {
-  const avisadas = [];
+test("PATCH /postulaciones/:id/resolucion manda el correo de aprobacion o el de rechazo", async () => {
+  const aprobadas = [];
+  const rechazadas = [];
 
   await conServidor(
     {
       resolverPostulacionAdopcion: async (id, cuerpo) => ({ id, estado: cuerpo.decision }),
-      avisarAprobacion: async (postulacion) => avisadas.push(postulacion),
+      avisarAprobacion: async (postulacion) => aprobadas.push(postulacion),
+      avisarRechazo: async (postulacion) => rechazadas.push(postulacion),
     },
     async (url) => {
       await enviar(`${url}/postulaciones/7/resolucion`, {
@@ -296,7 +298,33 @@ test("PATCH /postulaciones/:id/resolucion avisa por correo al aprobar, no al rec
     },
   );
 
-  assert.deepEqual(avisadas, [{ id: 7, estado: "APROBADA" }]);
+  assert.deepEqual(aprobadas, [{ id: 7, estado: "APROBADA" }]);
+  assert.deepEqual(rechazadas, [{ id: 8, estado: "RECHAZADA" }]);
+});
+
+test("PATCH /postulaciones/:id/resolucion rechaza igual si el correo falla", async (t) => {
+  const errores = t.mock.method(console, "error", () => {});
+
+  await conServidor(
+    {
+      resolverPostulacionAdopcion: async (id, cuerpo) => ({ id, estado: cuerpo.decision }),
+      avisarRechazo: async () => {
+        throw new Error("Gmail no responde");
+      },
+    },
+    async (url) => {
+      const respuesta = await enviar(`${url}/postulaciones/7/resolucion`, {
+        method: "PATCH",
+        rol: "DIRECTORA",
+        body: { decision: "RECHAZADA", observaciones: "El arriendo no permite mascotas" },
+      });
+
+      assert.equal(respuesta.status, 200);
+    },
+  );
+
+  assert.equal(errores.mock.callCount(), 1);
+  assert.match(errores.mock.calls[0].arguments[0], /correo de rechazo/);
 });
 
 test("PATCH /postulaciones/:id/resolucion aprueba igual si el correo falla", async (t) => {

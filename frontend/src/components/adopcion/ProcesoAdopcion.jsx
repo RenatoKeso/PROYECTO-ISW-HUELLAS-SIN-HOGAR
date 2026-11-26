@@ -150,6 +150,11 @@ function FormularioVisita({ postulacionId, tipo, onActualizada }) {
           placeholder={
             valores.resultado === "DESFAVORABLE" ? "Explica por qué no fue favorable" : "Opcional"
           }
+          ayuda={
+            valores.resultado === "DESFAVORABLE"
+              ? "La postulación quedará rechazada y este motivo se le enviará por correo al postulante."
+              : ""
+          }
           valor={valores.observaciones}
           error={errores.observaciones}
           onChange={(evento) => cambiar("observaciones", evento.target.value)}

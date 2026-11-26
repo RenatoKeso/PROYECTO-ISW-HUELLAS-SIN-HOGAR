@@ -37,6 +37,7 @@ import {
   visitaYaRegistrada,
 } from "../entities/adopcionErrors.js";
 import { diaEnChile } from "../validations/adopcionValidation.js";
+import { enviarCorreoRechazo } from "./correoAdopcionService.js";
 import { crearActaEntregaPdf } from "./pdfEntregaAdopcion.js";
 
 const DEPENDENCIAS_POR_DEFECTO = {
@@ -60,6 +61,7 @@ const DEPENDENCIAS_POR_DEFECTO = {
   marcarSeguimientoRealizado,
   ejecutarEnTransaccion,
   crearActaEntregaPdf,
+  enviarCorreoRechazo,
 };
 
 // Un animal solo recibe postulaciones mientras esta publicado en el catalogo.
@@ -265,6 +267,19 @@ export async function registrarVisita(
   }
 }
 
+// Cuando una visita sale desfavorable la postulacion queda RECHAZADA: se le
+// avisa al postulante por correo y el motivo es la observacion de esa visita.
+// Se llama despues de registrar la visita, cuando el rechazo ya quedo guardado.
+export async function avisarRechazoPorVisita(
+  id,
+  motivo,
+  dependencias = DEPENDENCIAS_POR_DEFECTO,
+) {
+  const postulacion = await dependencias.buscarPostulacionPorId(id);
+
+  return dependencias.enviarCorreoRechazo(postulacion, motivo);
+}
+
 // Omitir la visita al hogar exige un motivo de la lista y deja registrado
 // quien la autorizo.
 export async function omitirVisitaHogar(
@@ -342,7 +357,8 @@ function validarRequisitosEntrega(postulacion, fechaEntrega) {
 // no se guarda nada.
 //  - la postulacion queda ENTREGADA (con fecha y documentacion)
 //  - el animal queda ADOPTADO, asi sale del catalogo
-//  - las demas postulaciones abiertas del animal se cierran
+//  - las demas postulaciones abiertas del animal se cierran (se devuelven
+//    para que el controller les avise por correo que el animal fue adoptado)
 //  - se programan los seguimientos de 15 y 30 dias
 export async function formalizarEntrega(
   id,

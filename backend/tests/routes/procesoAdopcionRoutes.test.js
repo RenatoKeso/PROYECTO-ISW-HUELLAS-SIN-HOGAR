@@ -168,6 +168,39 @@ test("POST /visitas pasa el usuario al servicio y responde 201", async () => {
   );
 });
 
+test("POST /visitas avisa al postulante con el motivo si la visita fue desfavorable", async () => {
+  const avisos = [];
+
+  await conServidor(
+    {
+      registrarVisitaAdopcion: async (id, datos) => ({ id: 1, ...datos }),
+      avisarRechazoVisita: async (id, motivo) => avisos.push({ id, motivo }),
+    },
+    async (url) => {
+      await enviar(`${url}/postulaciones/4/visitas`, {
+        method: "POST",
+        rol: "ENCARGADA_ADOPCIONES",
+        body: { tipo: "PRIMERA_VISITA", fechaVisita: "2026-10-20", resultado: "FAVORABLE" },
+      });
+      const respuesta = await enviar(`${url}/postulaciones/4/visitas`, {
+        method: "POST",
+        rol: "ENCARGADA_ADOPCIONES",
+        body: {
+          tipo: "PRIMERA_VISITA",
+          fechaVisita: "2026-10-20",
+          resultado: "DESFAVORABLE",
+          observaciones: "El perro no se adapto a los niños",
+        },
+      });
+
+      assert.equal(respuesta.status, 201);
+    },
+  );
+
+  // La visita favorable no avisa nada; la desfavorable avisa una vez, con su motivo.
+  assert.deepEqual(avisos, [{ id: 4, motivo: "El perro no se adapto a los niños" }]);
+});
+
 test("POST /omision-visita exige explicar el motivo OTRO", async () => {
   await conServidor({}, async (url) => {
     const respuesta = await enviar(`${url}/postulaciones/1/omision-visita`, {
@@ -196,6 +229,41 @@ test("POST /entrega exige fecha y documentacion", async () => {
     assert.ok(campos.includes("fechaEntrega"));
     assert.ok(campos.includes("documentacionEntregada"));
   });
+});
+
+test("POST /entrega avisa a los otros postulantes y responde solo cuantos se cerraron", async () => {
+  const cerradas = [
+    { id: 11, nombrePostulante: "Ana Rojas", emailPostulante: "ana@correo.cl" },
+    { id: 12, nombrePostulante: "Luis Soto", emailPostulante: "luis@correo.cl" },
+  ];
+  let avisadas;
+
+  await conServidor(
+    {
+      formalizarEntregaAdopcion: async (id) => ({
+        postulacion: { id, estado: "ENTREGADA" },
+        postulacionesCerradas: cerradas,
+      }),
+      avisarAdoptadoPorOtro: async (postulaciones) => {
+        avisadas = postulaciones;
+      },
+    },
+    async (url) => {
+      const respuesta = await enviar(`${url}/postulaciones/10/entrega`, {
+        method: "POST",
+        rol: "DIRECTORA",
+        body: { fechaEntrega: "2026-10-31", documentacionEntregada: "Contrato y carnet" },
+      });
+      const cuerpo = await respuesta.json();
+
+      assert.equal(respuesta.status, 200);
+      assert.equal(cuerpo.postulacionesCerradas, 2);
+      // La respuesta no lleva los correos de los otros postulantes.
+      assert.doesNotMatch(JSON.stringify(cuerpo), /ana@correo\.cl/);
+    },
+  );
+
+  assert.deepEqual(avisadas, cerradas);
 });
 
 test("POST /visitas exige explicar una visita desfavorable", async () => {
